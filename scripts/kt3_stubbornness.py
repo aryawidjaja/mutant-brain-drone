@@ -1,6 +1,11 @@
 """KT3 (H3): the stubbornness frontier. Hold a hidden target vs release a decoy, as each arm's memory knob is swept.
 
 Pre-registered (KT3; the paper's Protocol and amendments section). Uses KT2-tuned params for everything but the swept knob.
+Post hoc addition (prompted by an independent review, labelled "posthoc_unclamped" in results/kt3.json): the
+pre-registered release is clamped at >= 0, which hides arms that switch to the target before the evidence crossing t*.
+The unclamped signed release (first time from 5 s, the start of the evidence ramp, that the command is within 20 deg of
+the target, minus t*; negative = switched early) and the noise-free target/decoy evidence ratio at that moment are
+recorded from the same trials. The pre-registered numbers are unchanged (asserted against the committed file).
 Usage: uv run python scripts/kt3_stubbornness.py [--selfcheck]
 """
 import json, os, sys
@@ -12,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from brain.arbiters import make, wrap
 from kt2_five_arms import DT, V, OMEGA, SIG_VIS, SIG_COMPASS, GUST_DEG, TEST_SEEDS
 from rng import Rng
-from provenance import stamp
+from provenance import assert_reproduces, stamp
 from stats import boot_idx
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,14 +26,23 @@ T_OCC_ON, HOLD_CAP = 4.0, 10.0
 T_RAMP0, T_RAMP1, REL_CAP = 5.0, 9.0, 20.0
 F_CROSS = 1.05 / 1.65                       # 0.3 + 0.6 f = 1.5 (0.9 - 0.7 f)
 T_CROSS = T_RAMP0 + (T_RAMP1 - T_RAMP0) * F_CROSS
+PROCS = int(os.environ.get("KT_PROCS", os.cpu_count()))  # cap worker processes on a shared machine
 SWEEPS = {"ring": ("ring_gain", [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0]),
           "state_machine": ("timeout_s", list(np.geomspace(0.2, 10, 15))),
           "accumulator": ("tau_leak_s", list(np.geomspace(0.05, 20, 15))),
           "vote": (None, [None]), "sum": (None, [None]), "ring_static": (None, [None])}
 
 
-def trial(arm, params, seeds, kind):
-    """kind 'occ' -> t_hold [B] and on-target at 4 s; kind 'dec' -> t_release [B] and on-decoy at 5 s."""
+def ratio_at(t):
+    """Noise-free target/decoy evidence ratio of the decoy trial at time t."""
+    f = np.clip((np.asarray(t, float) - T_RAMP0) / (T_RAMP1 - T_RAMP0), 0, 1)
+    return (0.3 + 0.6 * f) / (0.9 - 0.7 * f)
+
+
+def trial(arm, params, seeds, kind, detail=False):
+    """kind 'occ' -> t_hold [B] and on-target at 4 s; kind 'dec' -> t_release [B] and on-decoy at 5 s.
+    detail=True (decoy trial, post hoc) also returns {"release_signed": [B] first on-target time from 5 s minus t*
+    (cap 20 s, negative = before the crossing), "ratio_at_switch": [B] noise-free evidence ratio then (NaN if never)}."""
     B = len(seeds)
     r = Rng(seeds, 20 if kind == "occ" else 21)
     rc, rv, rg = Rng(seeds, 22), Rng(seeds, 23), Rng(seeds, 24)
@@ -44,6 +58,7 @@ def trial(arm, params, seeds, kind):
     arb = make(arm, params, B)
     pos = np.zeros((B, 2))
     out = np.full(B, np.nan)
+    sw = np.full(B, np.nan)                                       # post hoc: unclamped switch time
     flag = np.zeros(B, bool)
     T = T_OCC_ON + HOLD_CAP if kind == "occ" else T_CROSS + REL_CAP
     for k in range(int(round(T / DT)) + 1):
@@ -76,18 +91,24 @@ def trial(arm, params, seeds, kind):
                 flag = np.abs(wrap(cmd - bear[:, 1])) <= TOL
             if t >= T_CROSS - DT / 2:
                 out = np.where(np.isnan(out) & (err_t < TOL), t - T_CROSS, out)
+            if t >= T_RAMP0 - DT / 2:
+                sw = np.where(np.isnan(sw) & (err_t < TOL), t, sw)
         turn = np.clip(wrap(cmd - hhat), -OMEGA * DT, OMEGA * DT)
         h = h + turn + np.deg2rad(GUST_DEG["none"]) * np.sqrt(DT) * rg.normal()
         pos = pos + V * DT * np.stack([np.cos(h), np.sin(h)], 1)
     cap = HOLD_CAP if kind == "occ" else REL_CAP
-    return np.clip(np.where(np.isnan(out), cap, out), 0.0, cap), flag
+    res = np.clip(np.where(np.isnan(out), cap, out), 0.0, cap), flag
+    if detail and kind == "dec":
+        return *res, {"release_signed": np.where(np.isnan(sw), REL_CAP, np.minimum(sw - T_CROSS, REL_CAP)),
+                      "ratio_at_switch": np.where(np.isnan(sw), np.nan, ratio_at(sw))}
+    return res
 
 
 def _point(a):
     arm, params, seeds = a
     hold, on_t = trial(arm, params, seeds, "occ")
-    rel, on_d = trial(arm, params, seeds, "dec")
-    return hold, rel, on_t.mean(), on_d.mean()
+    rel, on_d, det = trial(arm, params, seeds, "dec", detail=True)
+    return hold, rel, on_t.mean(), on_d.mean(), det
 
 
 def pareto_interp(H, R):
@@ -136,8 +157,10 @@ def main():
             p = dict(tuned[arm]["params"]) | ({knob: float(v)} if knob else {})
             jobs.append((arm, p, TEST_SEEDS))
             keys.append((arm, v))
-    with ProcessPoolExecutor(max_workers=os.cpu_count()) as ex:
+    with ProcessPoolExecutor(max_workers=PROCS) as ex:
         pts = list(ex.map(_point, jobs))
+    dets = [p[4] for p in pts]
+    pts = [p[:4] for p in pts]
     per = {arm: [(v, *pts[i]) for i, (a, v) in enumerate(keys) if a == arm] for arm in SWEEPS}
     Hs = {a: np.array([x[1] for x in per[a]]) for a in SWEEPS}     # [n_points, n_seeds]
     Rs = {a: np.array([x[2] for x in per[a]]) for a in SWEEPS}
@@ -180,6 +203,22 @@ def main():
                                                          for g, e, l, h in zip(gains, est_dom[rv], ci_dom[rv][0], ci_dom[rv][1])] for rv in est_dom}},
            "rule": "ALIVE if >=2 adjacent ring gains with lower CI of Delta_SM and Delta_acc > 0; DEAD if SM or acc has Delta <= 0 wherever defined",
            "provenance": stamp(seed="test 1000-1299", param_source="results/kt2_tuned_params.json + swept knob")}
+    assert_reproduces(ROOT / "results/kt3.json", res, skip=("provenance", "posthoc_unclamped"))
+
+    def unclamped(d):
+        r, q = d["release_signed"], d["ratio_at_switch"]
+        return {"release_signed_mean_s": float(r.mean()), "release_signed_q05_q50_q95_s": [float(x) for x in np.quantile(r, [.05, .5, .95])],
+                "frac_switched_before_crossing": float((r < 0).mean()), "frac_never_switched": float(np.isnan(q).mean()),
+                "ratio_at_switch_mean": None if np.isnan(q).all() else float(np.nanmean(q)),
+                "ratio_at_switch_median": None if np.isnan(q).all() else float(np.nanmedian(q))}
+    res["posthoc_unclamped"] = {
+        "label": "POST HOC (not pre-registered): unclamped decoy release, same trials and seeds as the pre-registered points",
+        "definition": "release_signed = first time t >= 5 s (start of the evidence ramp) with |heading_cmd - target bearing| < 20 deg, "
+                      "minus t* (cap 20 s); negative = the arm switched to the target before the noise-free 1.5x evidence crossing. "
+                      "ratio_at_switch = noise-free target/decoy evidence ratio (0.3 + 0.6 f) / (0.9 - 0.7 f) at that time "
+                      "(1.5 at t*; mean/median over seeds that switched within the cap).",
+        "points": {a: [{"value": (None if keys[i][1] is None else float(keys[i][1])), **unclamped(dets[i])}
+                       for i in range(len(keys)) if keys[i][0] == a] for a in SWEEPS}}
     (ROOT / "results/kt3.json").write_text(json.dumps(res, indent=1))
     figure(res)
     for a in SWEEPS:
@@ -232,6 +271,11 @@ def selfcheck():
     # decoy trial: everyone starts on the decoy; a memoryless vote releases quickly after the crossing
     rv, ond = trial("vote", {}, s, "dec")
     assert ond.all() and (rv < 2.0).all(), rv
+    # post hoc detail leaves the pre-registered output bit-identical; signed release agrees with it once >= 0
+    rv2, ond2, det = trial("vote", {}, s, "dec", detail=True)
+    assert np.array_equal(rv, rv2) and np.array_equal(ond, ond2)
+    pos = det["release_signed"] >= 0
+    assert np.allclose(np.clip(det["release_signed"], 0, None)[pos], rv[pos], atol=DT) and np.isclose(ratio_at(T_CROSS), 1.5)
     # Pareto interpolation: dominated points are ignored; outside range is NaN
     f = pareto_interp([1, 2, 3, 2.5], [1, 2, 3, 5])
     assert np.isclose(f(1.5), 1.5) and np.isnan(f(0.5)) and np.isnan(f(3.5)) and np.isclose(f(2.5), 2.5)

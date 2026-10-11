@@ -14,6 +14,7 @@ Usage:
   uv run python scripts/kt2_five_arms.py --pilot      # time one config per arm, log extrapolation
   uv run python scripts/kt2_five_arms.py --tune       # 64 configs/arm on training seeds 0-99 -> results/kt2_tuned_params.json
   uv run python scripts/kt2_five_arms.py --test       # frozen params on test seeds 1000-1299 -> results/kt2.json, parquet, fig
+  uv run python scripts/kt2_five_arms.py --posthoc    # post hoc arm-permutation test from the test parquet (no simulation)
   uv run python scripts/kt2_five_arms.py --selfcheck
 """
 import hashlib, json, os, sys, time
@@ -26,7 +27,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 from brain.arbiters import ARBITERS, CLASSES, make, sample_params, wrap
 from rng import Rng
-from provenance import stamp
+from provenance import assert_reproduces, stamp
 
 ROOT = Path(__file__).resolve().parents[1]
 DT, V, OMEGA = 0.02, 2.0, np.deg2rad(120.0)
@@ -41,6 +42,7 @@ FAULTS = {"occlusion": [1.0, 4.0, 7.0, 10.0], "decoy": [0.5, 0.65, 0.8, 0.95], "
 CONDS = [("none", 0, None)] + [(f, i + 1, v) for f, vs in FAULTS.items() for i, v in enumerate(vs)]
 TRAIN_SEEDS, TEST_SEEDS = np.arange(0, 100), np.arange(1000, 1300)
 N_CONFIGS, SEARCH_SEED = 64, 2026
+PROCS = int(os.environ.get("KT_PROCS", os.cpu_count()))  # cap worker processes on a shared machine
 
 
 def decoy_quality(d, s):
@@ -259,7 +261,7 @@ RUNG1_SEEDS, RUNG2_TOP = np.arange(0, 20), 8
 def tune():
     """Amendment A1: rung 1 = 64 configs x train seeds 0-19; rung 2 = top 8 x train seeds 0-99."""
     t0 = time.time()
-    with ProcessPoolExecutor(max_workers=os.cpu_count()) as ex:
+    with ProcessPoolExecutor(max_workers=PROCS) as ex:
         r1 = list(ex.map(_job, [(arm, i, p, RUNG1_SEEDS) for arm in ARBITERS for i, p in enumerate(configs(arm))]))
         top = [x for arm in ARBITERS for x in sorted([x for x in r1 if x[0] == arm], key=lambda x: -x[3])[:RUNG2_TOP]]
         r2 = list(ex.map(_job, [(arm, i, p, TRAIN_SEEDS) for arm, i, p, _, _ in top]))
@@ -288,7 +290,7 @@ def test():
     from stats import paired_bootstrap, paired_diff, holm
     import pandas as pd
     tuned = json.loads((ROOT / "results/kt2_tuned_params.json").read_text())
-    with ProcessPoolExecutor(max_workers=6) as ex:
+    with ProcessPoolExecutor(max_workers=min(6, PROCS)) as ex:
         runs = dict(ex.map(_test_job, ARBITERS))
     n = len(TEST_SEEDS)
     auc = {a: auc_per_seed(r, n) for a, r in runs.items()}
@@ -313,6 +315,7 @@ def test():
            "t_release_decoy_mean_s": {a: float(np.nanmean(runs[a]["t_release_decoy_s"])) for a in ARBITERS},
            "gate": gate, "tuned_params": {a: tuned["arms"][a]["params"] for a in ARBITERS},
            "provenance": stamp(seed="test 1000-1299", param_source="results/kt2_tuned_params.json")}
+    assert_reproduces(ROOT / "results/kt2.json", res, skip=("provenance", "posthoc_permutation"))
     (ROOT / "results/kt2.json").write_text(json.dumps(res, indent=1))
     prov = res["provenance"]
     rows = []
@@ -331,10 +334,53 @@ def test():
     (ROOT / "results/runs").mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_parquet(ROOT / "results/runs/kt2_test.parquet", index=False)
     figure(res, runs)
+    posthoc()
     for a in ARBITERS:
         print(f"{a:14s} AUC {agg[a].mean():.3f}  worst {worst[a]['fault']} ({worst[a]['auc']:.2f})  wrong stops {res['wrong_object_stop_rate'][a]:.3f}")
     b = best_other
     print(f"ring - best other ({res['best_other_point']}): {b['est']:+.3f} [{b['lo']:+.3f}, {b['hi']:+.3f}] -> {gate}")
+
+
+def agg_from_parquet(path=ROOT / "results/runs/kt2_test.parquet"):
+    """Per-seed equal-weight aggregate AUC [n_seeds] per arm, rebuilt from the test run records (no simulation)."""
+    import pandas as pd
+    df = pd.read_parquet(path)
+    key = {f"{c[0]}|{c[2]}": i for i, c in enumerate(CONDS)}
+    df["cond"] = [key[f"{f}|{s}"] for f, s in zip(df.fault, df.severity)]
+    seeds = np.sort(df.seed.unique())
+    out = {}
+    for a in ARBITERS:
+        d = df[df.arbiter == a].sort_values(["cond", "seed"])
+        assert len(d) == len(CONDS) * len(seeds) and np.array_equal(d.seed.to_numpy()[:len(seeds)], seeds)
+        auc = auc_per_seed({"success": (d.success_target & d.success_home).to_numpy()}, len(seeds))
+        out[a] = np.mean([v for v in auc.values()], 0)
+    return out
+
+
+def posthoc():
+    """Post hoc (prompted by an independent review): the pre-registered H1 statistic, ring minus the best of the other
+    five arms, is biased against the ring when arms are tied (max of noisy means). Calibrate it with a within-seed
+    arm-label permutation null (stats.arm_permutation_test, the decision rule later fixed for the 3D H1). Reads the
+    test parquet only; writes results/kt2.json key "posthoc_permutation" and leaves every other key untouched."""
+    from stats import arm_permutation_test
+    agg = agg_from_parquet()
+    path = ROOT / "results/kt2.json"
+    res = json.loads(path.read_text())
+    others = [a for a in ARBITERS if a != "ring"]
+    obs = float(agg["ring"].mean() - max(agg[a].mean() for a in others))
+    assert abs(obs - res["ring_minus_best_other"]["est"]) < 1e-12, (obs, res["ring_minus_best_other"]["est"])
+    t = arm_permutation_test(agg["ring"], [agg[a] for a in others], n_perm=5000, seed=0)
+    res["posthoc_permutation"] = {
+        "label": "POST HOC (not pre-registered for KT2): within-seed arm-label permutation test of ring minus best other",
+        "statistic": "mean(ring) - max over the 5 other arms of mean(arm), per-seed equal-weight aggregate AUC, test seeds 1000-1299",
+        "null": "arm labels permuted independently within each seed (all six arms exchangeable), 5,000 permutations, numpy seed 0",
+        "percentile_note": "percentile = fraction of the null <= observed (one-sided lower tail); p_two_sided uses |null - null mean| >= |observed - null mean|",
+        "source": "results/runs/kt2_test.parquet (no re-simulation)", **t,
+        "provenance": stamp(seed="test 1000-1299", param_source="results/runs/kt2_test.parquet")}
+    path.write_text(json.dumps(res, indent=1))
+    print(f"post hoc permutation: ring - best other {t['est']:+.4f}; null mean {t['null_mean']:+.4f} "
+          f"[{t['null_lo']:+.4f}, {t['null_hi']:+.4f}]; percentile {t['percentile']:.3f}; two-sided p {t['p_two_sided']:.3f}")
+    return t
 
 
 COLORS = {"ring": "C1", "ring_static": "0.25", "vote": "C0", "sum": "C2", "accumulator": "C3", "state_machine": "C4"}
@@ -395,4 +441,4 @@ def selfcheck():
 
 
 if __name__ == "__main__":
-    {"--pilot": pilot, "--tune": tune, "--test": test, "--selfcheck": selfcheck}[sys.argv[1]]()
+    {"--pilot": pilot, "--tune": tune, "--test": test, "--posthoc": posthoc, "--selfcheck": selfcheck}[sys.argv[1]]()

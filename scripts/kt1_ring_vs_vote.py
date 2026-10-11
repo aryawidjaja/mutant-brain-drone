@@ -9,13 +9,14 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 from brain.arbiters import Ring, make, wrap, _obs
-from provenance import stamp
+from provenance import assert_reproduces, stamp
 
 ROOT = Path(__file__).resolve().parents[1]
 DT = 0.02
 DELTAS = np.arange(60, 181, 15)
 RATIOS = np.array([0.25, 1 / 3, 0.5, 2 / 3, 0.8, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0])
 KAPPA_GRID = np.geomspace(0.25, 16, 25)
+KAPPA_FINE = np.geomspace(0.25, 16, 800)   # post hoc: same range, 800 points
 
 
 def grid():
@@ -67,6 +68,18 @@ def compare(ring_params):
             "cells": [{"delta_deg": float(d), "ratio": float(r), "ring_deg": float(a), "vote_best_deg": float(b),
                        "vote_same_deg": float(c), "vecsum_deg": float(s), "valid": bool(v)}
                       for d, r, a, b, c, s, v in zip(D, R, ring, vote_best, vote_same, vs, valid)]}
+
+
+def fine_grid(ring_params, kappas=KAPPA_FINE):
+    """Post hoc (prompted by an independent review): D* is jagged in the vote width because equal-strength cells are
+    argmax tie-breaks. Recompute D* on a fine kappa grid, with and without the equal-certainty (ratio 1) cells."""
+    D, R, w1, w2, valid = grid()
+    ring = steady("ring", ring_params, D, w1, w2)
+    vp = lambda k: {k2: ring_params[k2] for k2 in ("g_obj", "g_home", "g_search")} | {"kappa": float(k)}
+    devs = np.array([dev(ring, steady("vote", vp(k), D, w1, w2, T=DT)) for k in kappas])      # [K, cells]
+    md, mdn = devs[:, valid].max(1), devs[:, valid & (R != 1.0)].max(1)
+    return {"D_star_deg": float(md.min()), "kappa_v_best": float(kappas[md.argmin()]),
+            "D_star_excl_ratio1_deg": float(mdn.min()), "kappa_v_best_excl_ratio1": float(kappas[mdn.argmin()])}
 
 
 def hysteresis(name, params, delta_deg, up=(0.5, 0.75, 1, 1.25, 1.5, 2, 2.5), w1=0.4, t_step=3.0):
@@ -142,6 +155,15 @@ def main():
         tp = json.loads(tuned.read_text())["arms"]["ring"]["params"]
         s = compare(tp)
         res["secondary_tuned_ring"] = {k: s[k] for k in ("ring_params", "D_star_deg", "kappa_v_best", "same_kappa_maxdev_deg", "vecsum_maxdev_deg", "posthoc_D_star_excl_ratio1_deg", "ring_converged_maxchange_deg")}
+    assert_reproduces(ROOT / "results/kt1.json", res, skip=("provenance", "posthoc_fine_grid"))
+    fg = fine_grid(dict(Ring.DEFAULTS))
+    res["posthoc_fine_grid"] = {
+        "label": "POST HOC (not pre-registered): D* recomputed on a fine vote-width grid; primary ring (Ring.DEFAULTS)",
+        "kappa_grid": "numpy geomspace(0.25, 16, 800) (pre-registered grid: geomspace(0.25, 16, 25) plus the ring's kappa)",
+        **fg, "bracket_D_star_deg": sorted([fg["D_star_deg"], primary["D_star_deg"]]),
+        "bracket_D_star_excl_ratio1_deg": sorted([fg["D_star_excl_ratio1_deg"], primary["posthoc_D_star_excl_ratio1_deg"]]),
+        "note": "D* is a min over vote widths of the max deviation over cells; it depends on the grid resolution because "
+                "equal-strength (ratio 1) cells are argmax tie-breaks. Gate rule (kill if D* <= 5 deg) unchanged."}
     res["provenance"] = stamp(seed=None, param_source="arbiters.Ring.DEFAULTS (primary); results/kt2_tuned_params.json (secondary)")
     (ROOT / "results/kt1.json").write_text(json.dumps(res, indent=1))
     figure(res, ROOT / "results/fig_kt1.png")
@@ -151,6 +173,9 @@ def main():
     for d, h in hyst.items():
         print(f"  hysteresis cue2 at {d}: ring up {h['ring']['switch_up_ratio']} back {h['ring']['switch_back_ratio']} | "
               f"vote up {h['vote']['switch_up_ratio']} back {h['vote']['switch_back_ratio']}")
+    f = res["posthoc_fine_grid"]
+    print(f"  post hoc fine grid (800 kappa): D*={f['D_star_deg']:.2f} at {f['kappa_v_best']:.3f}; excl. ratio 1: "
+          f"{f['D_star_excl_ratio1_deg']:.2f} at {f['kappa_v_best_excl_ratio1']:.3f}")
     if "secondary_tuned_ring" in res:
         print(f"  secondary (tuned ring): D*={res['secondary_tuned_ring']['D_star_deg']:.2f}")
     return res
@@ -165,6 +190,11 @@ if __name__ == "__main__":
         assert np.all(dev(v, [30, 60]) < 3), v
         h = hysteresis("vote", {"kappa": 4.0}, 120)
         assert h["switch_up_ratio"] == 1.25 and h["switch_back_ratio"] == 1.0, h  # no memory: on cue 2 only while ratio > 1
+        # fine grid on the pre-registered kappas reproduces compare(); a finer grid can only lower D*
+        c = compare(dict(Ring.DEFAULTS))
+        kap = np.array(list(map(float, c["maxdev_by_kappa"])))
+        assert abs(fine_grid(dict(Ring.DEFAULTS), kap)["D_star_deg"] - c["D_star_deg"]) < 1e-9
+        assert fine_grid(dict(Ring.DEFAULTS), np.append(KAPPA_FINE[::40], kap))["D_star_deg"] <= c["D_star_deg"]
         print("kt1 self-check OK")
     else:
         main()
