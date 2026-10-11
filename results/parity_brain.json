@@ -1,0 +1,347 @@
+{
+ "pass": true,
+ "tolerances": "Module outputs are compared on recorded inputs (exact or <= 1e-9); full closed-loop missions are compared on the\ntrajectory with a stated tolerance (closed loops amplify floating-point order differences between numpy and V8):\n  scenarios, hashes, worlds ............ exact\n  eye panorama pixels .................. <= 0.5 % of pixels differ, by <= 1 level\n  object looks (grey) .................. max |diff| <= 1e-9\n  MB familiarity on Python's looks ..... exact;  on each side's own looks + same noise: max |diff| <= 0.02\n  path integrator (recorded inputs) .... heading <= 1e-9 rad, home vector <= 1e-6 m\n  six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9\n  avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact\n  missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags\nRun: uv run python scripts/parity_brain.py\n",
+ "results": {
+  "scenarios": {
+   "n": 6,
+   "diffs": [],
+   "pass": true
+  },
+  "worlds": {
+   "n": 4,
+   "diffs": [],
+   "pass": true
+  },
+  "eye_panorama": {
+   "n_images": 3,
+   "pixels_per_image": 2592,
+   "max_level_diff": 0,
+   "frac_values_differing": 0.0,
+   "pass": true
+  },
+  "eye_looks": {
+   "max_abs_diff": 5.551115123125783e-16,
+   "pass": 1.0
+  },
+  "mb_familiarity": {
+   "recorded_inputs_max_diff": 0.0,
+   "own_looks_max_diff": 0.0,
+   "wiring_first25_equal": true,
+   "familiarities_py": [
+    [
+     0.624390243902439,
+     0.49,
+     0.1393034825870647,
+     0.6950000000000001
+    ],
+    [
+     0.13235294117647056,
+     0.07499999999999996,
+     0.10344827586206895,
+     0.10344827586206895
+    ],
+    [
+     0.2524752475247525,
+     0.015000000000000013,
+     0.07462686567164178,
+     0.17733990147783252
+    ],
+    [
+     0.0,
+     0.009852216748768461,
+     0.010000000000000009,
+     0.019704433497536922
+    ]
+   ],
+   "pass": true
+  },
+  "path_integrator": {
+   "steps": 3000,
+   "heading_max_diff": 0.0,
+   "home_max_diff_m": 4.263256414560601e-14,
+   "final_home_vector_py": [
+    -56.13652285903161,
+    -0.00988685742928603
+   ],
+   "pass": true
+  },
+  "arbiters": {
+   "ring": {
+    "steps": 600,
+    "heading_max_diff": 8.881784197001252e-16,
+    "commit_max_diff": 0.0,
+    "pass": true
+   },
+   "ring_static": {
+    "steps": 600,
+    "heading_max_diff": 8.881784197001252e-16,
+    "commit_max_diff": 2.220446049250313e-16,
+    "pass": true
+   },
+   "vote": {
+    "steps": 600,
+    "heading_max_diff": 3.552713678800501e-15,
+    "commit_max_diff": 6.661338147750939e-16,
+    "pass": true
+   },
+   "sum": {
+    "steps": 600,
+    "heading_max_diff": 8.881784197001252e-16,
+    "commit_max_diff": 2.220446049250313e-16,
+    "pass": true
+   },
+   "accumulator": {
+    "steps": 600,
+    "heading_max_diff": 0.0,
+    "commit_max_diff": 0.0,
+    "pass": true
+   },
+   "state_machine": {
+    "steps": 600,
+    "heading_max_diff": 8.881784197001252e-16,
+    "commit_max_diff": 0.0,
+    "pass": true
+   }
+  },
+  "avoid": {
+   "cases": 20,
+   "max_diff": 2.7755575615628914e-17,
+   "pass": true
+  },
+  "mind": {
+   "cases": 3,
+   "py": [
+    [
+     "home is 25 m behind; target familiarity 0.62; committed to object 2",
+     "truth: home 27 m behind; object 2 is a look-alike, 6 m away; faults: false_sun"
+    ],
+    [
+     "home is here; target familiarity 0.12; delivered, flying home",
+     "truth: home here"
+    ],
+    [
+     "home is 14 m right; target familiarity 0.00; searching",
+     "truth: home 14 m right; faults: occlusion, speed_scale"
+    ]
+   ],
+   "js": [
+    [
+     "home is 25 m behind; target familiarity 0.62; committed to object 2",
+     "truth: home 27 m behind; object 2 is a look-alike, 6 m away; faults: false_sun"
+    ],
+    [
+     "home is here; target familiarity 0.12; delivered, flying home",
+     "truth: home here"
+    ],
+    [
+     "home is 14 m right; target familiarity 0.00; searching",
+     "truth: home 14 m right; faults: occlusion, speed_scale"
+    ]
+   ],
+   "pass": true
+  },
+  "missions": [
+   {
+    "seed": 5,
+    "arbiter": "ring",
+    "python_batch": "ring x3",
+    "frames": 323,
+    "frames_py": 403,
+    "frames_js": 323,
+    "max_pos_err_first_20s_m": 7.32410687763558e-15,
+    "max_pos_err_all_m": 1.764451434939851e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     32.24,
+     32.24
+    ],
+    "eye_values_differing_frac": 0.0,
+    "pass": true
+   },
+   {
+    "seed": 8,
+    "arbiter": "ring",
+    "python_batch": "ring x3",
+    "frames": 403,
+    "frames_py": 403,
+    "frames_js": 403,
+    "max_pos_err_first_20s_m": 1.2932072993408848e-14,
+    "max_pos_err_all_m": 1.7213828090336052e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      false,
+      false
+     ],
+     "success_home": [
+      false,
+      false
+     ],
+     "wrong_object_stop": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     40.22,
+     40.22
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 13,
+    "arbiter": "ring",
+    "python_batch": "ring x3",
+    "frames": 324,
+    "frames_py": 403,
+    "frames_js": 324,
+    "max_pos_err_first_20s_m": 7.105427357601002e-15,
+    "max_pos_err_all_m": 4.6833551270946324e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     32.34,
+     32.34
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 21,
+    "arbiter": "state_machine",
+    "python_batch": "single",
+    "frames": 311,
+    "frames_py": 311,
+    "frames_js": 311,
+    "max_pos_err_first_20s_m": 3.7474919966821894e-14,
+    "max_pos_err_all_m": 3.7474919966821894e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     31.0,
+     31
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 34,
+    "arbiter": "vote",
+    "python_batch": "single",
+    "frames": 600,
+    "frames_py": 600,
+    "frames_js": 600,
+    "max_pos_err_first_20s_m": 1.1243440757244517e-14,
+    "max_pos_err_all_m": 3.776586443654626e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      false,
+      false
+     ],
+     "success_home": [
+      false,
+      false
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     60.0,
+     60
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 55,
+    "arbiter": "accumulator",
+    "python_batch": "single",
+    "frames": 362,
+    "frames_py": 362,
+    "frames_js": 362,
+    "max_pos_err_first_20s_m": 1.0058400026574543e-14,
+    "max_pos_err_all_m": 3.102273850532274e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      false,
+      false
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     36.18,
+     36.18
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   }
+  ]
+ },
+ "js_seconds": 9.105286121368408,
+ "wall_seconds": 85.04090809822083,
+ "git": "4270b27",
+ "sim_version": "0.1.0",
+ "created": "2026-10-11T18:25:53",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "seed": "fixed set (see results)",
+ "param_source": "scripts/parity_brain.py"
+}
