@@ -189,8 +189,10 @@ function blurMat(sigma, n) {
   return G;
 }
 
-/** Look of object slot k from eye position e. -> [grey Float64Array(LH*LW) (pre-noise), range]. */
-export function look(sc, k, e, tNow) {
+/** Look of object slot k from eye position e. -> [grey Float64Array(LH*LW) (pre-noise), range].
+ *  v2 options (eye.py looks): halfM sizes the window to +/- halfM metres at the object's range; rgb = true returns the
+ *  acuity-blurred colour window at the sub-pixel size, Float64Array(LH*SS * LW*SS * 3) in [row][col][channel] order. */
+export function look(sc, k, e, tNow, { halfM = null, rgb = false } = {}) {
   const c = sc.obj[k];
   const ctr = objCentre(c);
   let f = [ctr[0] - e[0], ctr[1] - e[1], ctr[2] - e[2]];
@@ -201,25 +203,37 @@ export function look(sc, k, e, tNow) {
   const rn = Math.max(norm3(rt), 1e-9);
   rt = [rt[0] / rn, rt[1] / rn, 0];
   const up = [rt[1] * f[2] - rt[2] * f[1], rt[2] * f[0] - rt[0] * f[2], rt[0] * f[1] - rt[1] * f[0]];
-  const win = 2 * Math.atan(0.8 * objDiag(c) / Math.max(rng, 1e-3));
+  const win = 2 * Math.atan((halfM === null ? 0.8 * objDiag(c) : halfM) / Math.max(rng, 1e-3));
   const W = LW * SS, H = LH * SS, pitch = win / W;
-  const grey = [];
+  const grey = [], col = [[], [], []];
   const objs = [c];
   for (let j = 0; j < H; j++) {
-    const row = new Float64Array(W);
+    const row = new Float64Array(W), cr = [new Float64Array(W), new Float64Array(W), new Float64Array(W)];
     const ty = Math.tan(((H - 1) / 2 - j) * pitch);
     for (let i = 0; i < W; i++) {
       const tx = Math.tan((i - (W - 1) / 2) * pitch);
       let d = [f[0] + tx * rt[0] + ty * up[0], f[1] + tx * rt[1] + ty * up[1], f[2] + tx * rt[2] + ty * up[2]];
       const dn = norm3(d);
       d = [d[0] / dn, d[1] / dn, d[2] / dn];
-      const [rgb] = shade(sc, e, d, tNow, { obstacles: false, objs });
-      row[i] = (rgb[0] + rgb[1] + rgb[2]) / 3;
+      const [px] = shade(sc, e, d, tNow, { obstacles: false, objs });
+      row[i] = (px[0] + px[1] + px[2]) / 3;
+      for (let ch = 0; ch < 3; ch++) cr[ch][i] = px[ch];
     }
     grey.push(row);
+    for (let ch = 0; ch < 3; ch++) col[ch].push(cr[ch]);
   }
   const sig = (ACUITY_DEG * D2R) / pitch;
   const gx = blurMat(sig, W), gy = blurMat(sig, H);
+  const blur = (X) => {
+    const tmp = [];
+    for (let j = 0; j < H; j++) { const o = new Float64Array(W); for (let i = 0; i < W; i++) { let s = 0; for (let m = 0; m < H; m++) s += gy[j][m] * X[m][i]; o[i] = s; } tmp.push(o); }
+    return tmp.map((r) => { const o = new Float64Array(W); for (let i = 0; i < W; i++) { let s = 0; for (let m = 0; m < W; m++) s += r[m] * gx[i][m]; o[i] = s; } return o; });
+  };
+  if (rgb) {
+    const bc = col.map(blur), out = new Float64Array(H * W * 3);
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) for (let ch = 0; ch < 3; ch++) out[(j * W + i) * 3 + ch] = bc[ch][j][i];
+    return [out, rng];
+  }
   // (gy @ grey) @ gx^T, the same association as eye.py
   const tmp = [];
   for (let j = 0; j < H; j++) { const o = new Float64Array(W); for (let i = 0; i < W; i++) { let s = 0; for (let m = 0; m < H; m++) s += gy[j][m] * grey[m][i]; o[i] = s; } tmp.push(o); }
@@ -289,9 +303,9 @@ export function learningPoses(sc, learningFlightS) {
   return out;
 }
 
-export function learningLooks(sc, learningFlightS) {
+export function learningLooks(sc, learningFlightS, opts = {}) {
   const k = sc.role.indexOf(1);
-  return learningPoses(sc, learningFlightS).map((p) => look(sc, k, p, 1e9)[0]);
+  return learningPoses(sc, learningFlightS).map((p) => look(sc, k, p, 1e9, opts)[0]);
 }
 
 /** n sequential Rng.normal() draws (same order as eye.py normals()). */

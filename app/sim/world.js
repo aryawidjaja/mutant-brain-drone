@@ -14,6 +14,9 @@ export const GALLERY = {
     [[0.95, 0.60, 0.05], [0.20, 0.20, 0.20], 'chevron', 0.20], [[0.30, 0.55, 0.20], [0.90, 0.90, 0.85], 'stripes', 0.12]],
 };
 export const CLEAR_M = 3.0;
+// v2 only: the home landing pad (see scripts/world.py HOME_PAD); not an object slot.
+export const HOME_PAD = { role: 'home', kind: 'home_pad', yaw_deg: 0.0, dims: [1.0, 1.0, 0.06], t_s: 0.0, slot: 0,
+  appearance: { base: [0.75, 0.10, 0.60], accent: [0.97, 0.97, 0.97], pattern: 'stripes', period_m: 0.25, similarity: 1.0 } };
 
 const lerp = (a, b, s) => a.map((x, i) => x + (b[i] - x) * s);
 
@@ -71,6 +74,8 @@ export function buildWorld(sc) {
       if (ok) { obstacles.push(o); break; }
     }
   }
-  return { size: [W, H], ground: { rgb: GROUND[land] }, obstacles, objects, home: sc.home.slice(), sun,
+  const w = { size: [W, H], ground: { rgb: GROUND[land] }, obstacles, objects, home: sc.home.slice(), sun,
     light: sc.world.light, fog_m: sc.world.fog_m };
+  if ((sc.brain.version ?? 1) === 2) w.home_pad = { ...JSON.parse(JSON.stringify(HOME_PAD)), x: sc.home[0], y: sc.home[1], z: sc.home[2] };
+  return w;
 }

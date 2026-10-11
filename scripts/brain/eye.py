@@ -277,8 +277,12 @@ def _blur_mats(sigma, n):
     return g / g.sum(-1, keepdims=True)
 
 
-def looks(sc, eye_pos, t_now, k_mask=None):
-    """Object looks from eye_pos [B,3] (or [B,K,3]): -> grey [B,K,LH*LW] (pre-noise, 0..1 times light), range [B,K]."""
+def looks(sc, eye_pos, t_now, k_mask=None, half_m=None, rgb=False):
+    """Object looks from eye_pos [B,3] (or [B,K,3]): -> grey [B,K,LH*LW] (pre-noise, 0..1 times light), range [B,K].
+    v2 options: half_m sizes the window to +/- half_m metres at the object's range (mb_front.crop_box) instead of
+    0.8 x the object diagonal; rgb=True returns the colour window at the sub-pixel size, acuity-blurred per channel,
+    [B,K,LH*SS,LW*SS,3], instead of the grey look."""
+    rgb_out = rgb
     B, K = sc.B, sc.K
     c = obj_centre(sc)
     e = np.broadcast_to(eye_pos if eye_pos.ndim == 3 else eye_pos[:, None, :], (B, K, 3))
@@ -288,7 +292,7 @@ def looks(sc, eye_pos, t_now, k_mask=None):
     rt = np.stack([f[..., 1], -f[..., 0], np.zeros_like(f[..., 0])], -1)    # f x z
     rt = rt / np.maximum(np.linalg.norm(rt, axis=-1), 1e-9)[..., None]
     up = np.cross(rt, f)
-    win = 2 * np.arctan(0.8 * obj_diag(sc) / np.maximum(rng_, 1e-3))     # window width (rad)
+    win = 2 * np.arctan((0.8 * obj_diag(sc) if half_m is None else half_m) / np.maximum(rng_, 1e-3))     # window width (rad)
     W, H = LW * SS, LH * SS
     pitch = win / W
     ix = (np.arange(W) - (W - 1) / 2)[None, None, None, :] * pitch[..., None, None]
@@ -304,6 +308,8 @@ def looks(sc, eye_pos, t_now, k_mask=None):
         rgb[:, k] = shade(sub, e[:, k][:, None, :], d[:, k].reshape(B, H * W, 3), t_now, obstacles=False)[0].reshape(B, H, W, 3)
     sig = np.radians(ACUITY_DEG) / pitch                                    # [B,K] sub-pixels
     gx, gy = _blur_mats(sig, W), _blur_mats(sig, H)
+    if rgb_out:
+        return np.stack([gy @ rgb[..., c] @ np.swapaxes(gx, -1, -2) for c in range(3)], -1), rng_
     grey = rgb.mean(-1)
     grey = gy @ grey @ np.swapaxes(gx, -1, -2)
     grey = grey.reshape(B, K, LH, SS, LW, SS).mean((3, 5)).reshape(B, K, LH * LW)
@@ -374,13 +380,13 @@ def learning_poses(sc, learning_flight_s):
                      np.broadcast_to(alt, (sc.B, V))], -1)
 
 
-def learning_looks(sc, learning_flight_s):
-    """Noise-free looks of the target from the learning poses -> grey [B, V, LH*LW]."""
+def learning_looks(sc, learning_flight_s, **kw):
+    """Noise-free looks of the target from the learning poses -> grey [B, V, LH*LW] (kw: looks() v2 options)."""
     P = learning_poses(sc, learning_flight_s)
     tk = np.argmax(sc.role, 1)
     out = []
     for v in range(P.shape[1]):
-        g, _ = looks(sc, np.repeat(P[:, v][:, None, :], sc.K, 1), 1e9)
+        g, _ = looks(sc, np.repeat(P[:, v][:, None, :], sc.K, 1), 1e9, **kw)
         out.append(g[np.arange(sc.B), tk])
     return np.stack(out, 1)
 

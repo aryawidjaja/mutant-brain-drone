@@ -16,6 +16,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA = json.load(open(os.path.join(ROOT, "schema", "scenario.schema.json")))
 FAULTS = ["occlusion", "decoy", "compass_half", "eye_columns", "false_sun", "speed_scale", "gust"]  # PLAN neutral list
 ARBITERS = ["ring", "ring_static", "vote", "sum", "accumulator", "state_machine"]
+MODULES = ["heading", "home", "landing", "front", "inspect", "gated_arbiter"]          # v2 brain modules
+TRAIN_SEEDS = {1: range(0, 100), 2: range(100, 200)}                                  # by study (v1, v2)
+TEST_SEEDS = {1: range(1000, 1300), 2: range(2000, 2300)}
 
 
 def _check(v, s, path, root):
@@ -97,13 +100,16 @@ def fault_params(fault, sev):
 
 def sample_scenario(seed, split="train", fault=None, severity=None, arbiter="ring", ring_gain=1.0,
                     learning_flight_s=10.0, landscape="meadow", obstacle_density=0.3, params=None,
-                    max_time_s=300.0, dist_m=(25.0, 40.0)):
+                    max_time_s=300.0, dist_m=(25.0, 40.0), version=1, modules=None, module_params=None):
     """One scenario per (seed, condition). Draw order on Rng(seed, 5) is fixed (mirrored in scenario.js):
     u0 target distance, u1 target bearing, u2 target yaw, u3 fault pick (used only if fault is None),
     u4 severity (only if severity is None), u5 fault onset, u6 sign / swap offset angle, u7 swap offset distance,
-    u8 wind direction, u9 dead-column start. fault='none' gives the no-fault baseline."""
+    u8 wind direction, u9 dead-column start. fault='none' gives the no-fault baseline.
+    version=2 adds brain.version/modules (and module_params when given); the world draws are unchanged. Seeds must lie
+    in a train or test range of either study (v1: train 0-99, test 1000-1299; v2: train 100-199, test 2000-2299)."""
     assert split in ("train", "test")
-    assert (0 <= seed <= 99) if split == "train" else (1000 <= seed <= 1299), f"seed {seed} not in {split} split"
+    ok = any(seed in r for r in (TRAIN_SEEDS if split == "train" else TEST_SEEDS).values())
+    assert ok, f"seed {seed} not in {split} split"
     r = Rng([seed], 5)
     u = [float(r.uniform()[0]) for _ in range(10)]
     d = dist_m[0] + (dist_m[1] - dist_m[0]) * u[0]
@@ -120,6 +126,11 @@ def sample_scenario(seed, split="train", fault=None, severity=None, arbiter="rin
          "brain": {"arbiter": arbiter, "ring_gain": float(ring_gain), "learning_flight_s": float(learning_flight_s),
                    "params": params or {}},
          "mission": {"max_time_s": float(max_time_s), "dt_s": 0.002}}
+    if version == 2:
+        s["brain"]["version"] = 2
+        s["brain"]["modules"] = list(MODULES if modules is None else modules)
+        if module_params:
+            s["brain"]["module_params"] = module_params
     t_on = 5 + 20 * u[5]                                          # onset of PI/eye faults: 5-25 s
     if fault != "none":
         p = fault_params(fault, sev)
@@ -181,6 +192,17 @@ if __name__ == "__main__":
         sample_scenario(5, split="test"); raise AssertionError("train seed accepted as test")
     except AssertionError as e:
         assert "not in test" in str(e)
+    # v2 fields: optional, so v1 scenarios (and their hashes) are unchanged; v2 seeds and modules validate
+    v2 = sample_scenario(150, fault="decoy", severity=0.5, version=2)
+    assert v2["brain"]["version"] == 2 and v2["brain"]["modules"] == MODULES and "version" not in s["brain"]
+    assert {k: v for k, v in strip(v2).items() if k != "brain"} == {k: v for k, v in strip(sample_scenario(150, fault="decoy", severity=0.5)).items() if k != "brain"}
+    assert scenario_hash(strip(v2)) != scenario_hash(strip(sample_scenario(150, fault="decoy", severity=0.5)))
+    sample_scenario(2299, split="test", version=2)
+    for bad in [{**m, "brain": {"arbiter": "ring", "version": 3}}, {**m, "brain": {"arbiter": "ring", "modules": ["wings"]}}]:
+        try:
+            load(bad); raise AssertionError(f"accepted bad scenario {bad}")
+        except ValueError:
+            pass
     # the JS copy of the schema is identical to the schema file
     js = open(os.path.join(ROOT, "app", "sim", "scenario.js")).read()
     emb = re.search(r"/\*SCHEMA\*/(.*?)/\*END\*/", js, re.S).group(1)

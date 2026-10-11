@@ -9,7 +9,7 @@ import { PathIntegrator } from '../app/sim/brain/pi.js';
 import { reflex } from '../app/sim/brain/avoid.js';
 import { say } from '../app/sim/brain/mind.js';
 import { make } from '../app/sim/brain/arbiters.js';
-import { createMission, DT_B } from '../app/sim/mission.js';
+import { createMission, DT_B, HEADING_TUNED } from '../app/sim/mission.js';
 
 const spec = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const out = {};
@@ -44,6 +44,12 @@ for (const L of spec.looks) {
   out.mb.push({ recorded: famOn(L.py_learn, L.py_probes), own: famOn(learnOwn, own.map((g, i) => g.map((v, j) => v + eye.NOISE * L.noise[i][j]))) });
 }
 out.mb_first_idx = Array.from(mbBase.idx.slice(0, 25));
+// 5b. v2 RGB crops
+out.rgb_looks = spec.rgb_looks.map((c) => {
+  const w = buildWorld(load(c.scenario));
+  const S = new eye.Scene(c.pad ? { ...w, objects: [w.home_pad] } : w);
+  return Array.from(eye.look(S, c.slot, c.pos, 0.0, { halfM: 1.1, rgb: true })[0]);
+});
 // 6. path integrator on a recorded input sequence
 {
   const p = new PathIntegrator();
@@ -80,4 +86,5 @@ out.missions = spec.missions.map((c) => {
   }
   return { frames: fr, outcome: m.finish() };
 });
+out.heading_tuned = HEADING_TUNED;
 writeFileSync(process.argv[3], JSON.stringify(out));

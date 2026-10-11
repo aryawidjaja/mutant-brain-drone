@@ -20,6 +20,7 @@
     "home": {"$ref": "#/$defs/vec3"},
     "target": {
       "type": "object", "required": ["kind", "pos"], "additionalProperties": false,
+      "description": "kind 'pad' is v1 only: brain.version 2 searches for 3D objects (tent, backpack) and refuses pad targets and pad decoys",
       "properties": {"kind": {"enum": ["tent", "pad", "backpack"]}, "pos": {"$ref": "#/$defs/vec3"}, "yaw_deg": {"type": "number", "default": 0}, "picture": {"type": "integer", "minimum": 0, "maximum": 3, "description": "gallery index of the target appearance; absent = drawn from the seed"}}
     },
     "decoys": {
@@ -59,7 +60,14 @@
         "arbiter": {"enum": ["ring", "ring_static", "vote", "sum", "accumulator", "state_machine"]},
         "ring_gain": {"type": "number", "minimum": 0, "default": 1.0},
         "learning_flight_s": {"type": "number", "minimum": 0, "default": 10},
-        "params": {"type": "object", "default": {}, "description": "frozen tuned parameters for the chosen arbiter (results/tuned_params.json)"}
+        "params": {"type": "object", "default": {}, "description": "frozen tuned parameters for the chosen arbiter (results/tuned_params.json)"},
+        "version": {"enum": [1, 2], "description": "brain version; absent = 1 (the v1 brain, unchanged)"},
+        "modules": {"type": "array", "items": {"enum": ["heading", "home", "landing", "front", "inspect", "gated_arbiter"]},
+                    "description": "v2 modules switched on (ablations); absent with version 2 = all six"},
+        "module_params": {"type": "object", "description": "frozen parameters of the v2 modules, e.g. {heading: {...}}; absent = module defaults"},
+        "tip": {"type": ["object", "null"], "required": ["bearing_sd_deg", "dist_sd"], "additionalProperties": false,
+                "properties": {"bearing_sd_deg": {"type": "number", "minimum": 0}, "dist_sd": {"type": "number", "minimum": 0}},
+                "description": "operator tip (rough vector to the reported spot): absent = bearing N(0, 8 deg), distance x (1 + N(0, 0.1)); null = no tip (spiral search from home)"}
       }
     },
     "mission": {

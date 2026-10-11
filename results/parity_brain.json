@@ -1,6 +1,6 @@
 {
  "pass": true,
- "tolerances": "Module outputs are compared on recorded inputs (exact or <= 1e-9); full closed-loop missions are compared on the\ntrajectory with a stated tolerance (closed loops amplify floating-point order differences between numpy and V8):\n  scenarios, hashes, worlds ............ exact\n  eye panorama pixels .................. <= 0.5 % of pixels differ, by <= 1 level\n  object looks (grey) .................. max |diff| <= 1e-9\n  MB familiarity on Python's looks ..... exact;  on each side's own looks + same noise: max |diff| <= 0.02\n  path integrator (recorded inputs) .... heading <= 1e-9 rad, home vector <= 1e-6 m\n  six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9\n  avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact\n  missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags\nRun: uv run python scripts/parity_brain.py\n",
+ "tolerances": "Module outputs are compared on recorded inputs (exact or <= 1e-9); full closed-loop missions are compared on the\ntrajectory with a stated tolerance (closed loops amplify floating-point order differences between numpy and V8):\n  scenarios, hashes, worlds ............ exact\n  eye panorama pixels .................. <= 0.5 % of pixels differ, by <= 1 level\n  object looks (grey) .................. max |diff| <= 1e-9\n  MB familiarity on Python's looks ..... exact;  on each side's own looks + same noise: max |diff| <= 0.02\n  path integrator (recorded inputs) .... heading <= 1e-9 rad, home vector <= 1e-6 m\n  six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9\n  avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact\n  missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags\n    v1: all six arbiters closed loop; v2 (brain.version 2, all six modules, RingGated and visibility-gated rivals,\n    HeadingRing and KalmanHeading): same rule, run to 90 s so the take-off learning flight, the pad lock and the\n    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too\n  eye RGB crops (v2 front end input) .... max |diff| <= 1e-9\nRun: uv run python scripts/parity_brain.py\n",
  "results": {
   "scenarios": {
    "n": 6,
@@ -22,6 +22,15 @@
   "eye_looks": {
    "max_abs_diff": 5.551115123125783e-16,
    "pass": 1.0
+  },
+  "eye_looks_rgb": {
+   "n": 3,
+   "max_abs_diff": 8.881784197001252e-16,
+   "pass": true
+  },
+  "heading_defaults": {
+   "js_HEADING_TUNED_equals_kt5_file": true,
+   "pass": true
   },
   "mb_familiarity": {
    "recorded_inputs_max_diff": 0.0,
@@ -144,7 +153,15 @@
    {
     "seed": 5,
     "arbiter": "ring",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
     "python_batch": "ring x3",
+    "landing_error_m_py_js": [
+     0.939058850024268,
+     0.939058850024279
+    ],
     "frames": 323,
     "frames_py": 403,
     "frames_js": 323,
@@ -164,6 +181,10 @@
      "wrong_object_stop": [
       false,
       false
+     ],
+     "landed_on_pad": [
+      false,
+      false
      ]
     },
     "time_s_py_js": [
@@ -176,7 +197,15 @@
    {
     "seed": 8,
     "arbiter": "ring",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
     "python_batch": "ring x3",
+    "landing_error_m_py_js": [
+     0.9874198603243521,
+     0.9874198603243349
+    ],
     "frames": 403,
     "frames_py": 403,
     "frames_js": 403,
@@ -196,6 +225,10 @@
      "wrong_object_stop": [
       true,
       true
+     ],
+     "landed_on_pad": [
+      false,
+      false
      ]
     },
     "time_s_py_js": [
@@ -208,7 +241,15 @@
    {
     "seed": 13,
     "arbiter": "ring",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
     "python_batch": "ring x3",
+    "landing_error_m_py_js": [
+     1.109330539712528,
+     1.1093305397125564
+    ],
     "frames": 324,
     "frames_py": 403,
     "frames_js": 324,
@@ -228,6 +269,10 @@
      "wrong_object_stop": [
       false,
       false
+     ],
+     "landed_on_pad": [
+      false,
+      false
      ]
     },
     "time_s_py_js": [
@@ -240,7 +285,15 @@
    {
     "seed": 21,
     "arbiter": "state_machine",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
     "python_batch": "single",
+    "landing_error_m_py_js": [
+     1.2198912879152475,
+     1.2198912879152326
+    ],
     "frames": 311,
     "frames_py": 311,
     "frames_js": 311,
@@ -260,6 +313,10 @@
      "wrong_object_stop": [
       false,
       false
+     ],
+     "landed_on_pad": [
+      false,
+      false
      ]
     },
     "time_s_py_js": [
@@ -272,7 +329,15 @@
    {
     "seed": 34,
     "arbiter": "vote",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
     "python_batch": "single",
+    "landing_error_m_py_js": [
+     NaN,
+     null
+    ],
     "frames": 600,
     "frames_py": 600,
     "frames_js": 600,
@@ -292,6 +357,10 @@
      "wrong_object_stop": [
       false,
       false
+     ],
+     "landed_on_pad": [
+      false,
+      false
      ]
     },
     "time_s_py_js": [
@@ -304,7 +373,15 @@
    {
     "seed": 55,
     "arbiter": "accumulator",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
     "python_batch": "single",
+    "landing_error_m_py_js": [
+     20.947319267294425,
+     20.947319267294453
+    ],
     "frames": 362,
     "frames_py": 362,
     "frames_js": 362,
@@ -324,6 +401,10 @@
      "wrong_object_stop": [
       false,
       false
+     ],
+     "landed_on_pad": [
+      false,
+      false
      ]
     },
     "time_s_py_js": [
@@ -332,33 +413,532 @@
     ],
     "eye_values_differing_frac": null,
     "pass": true
+   },
+   {
+    "seed": 62,
+    "arbiter": "ring_static",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     1.2475914187692896,
+     1.2475914187693153
+    ],
+    "frames": 415,
+    "frames_py": 415,
+    "frames_js": 415,
+    "max_pos_err_first_20s_m": 2.0114655421281033e-15,
+    "max_pos_err_all_m": 2.6555051780134624e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     41.4,
+     41.4
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 77,
+    "arbiter": "sum",
+    "version": 1,
+    "tip": "v1",
+    "modules": null,
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     8.235623644284837,
+     8.235623644284836
+    ],
+    "frames": 389,
+    "frames_py": 389,
+    "frames_js": 389,
+    "max_pos_err_first_20s_m": 6.420123230733026e-15,
+    "max_pos_err_all_m": 9.930136612989092e-15,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      false,
+      false
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     38.82,
+     38.82
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 101,
+    "arbiter": "ring",
+    "version": 2,
+    "tip": "v1",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": null,
+    "python_batch": "ring x3",
+    "landing_error_m_py_js": [
+     0.027277920816761614,
+     0.02727792081676312
+    ],
+    "frames": 521,
+    "frames_py": 594,
+    "frames_js": 521,
+    "max_pos_err_first_20s_m": 6.44664935441834e-14,
+    "max_pos_err_all_m": 6.44664935441834e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     52.06,
+     52.06
+    ],
+    "eye_values_differing_frac": 0.0,
+    "pass": true
+   },
+   {
+    "seed": 104,
+    "arbiter": "ring",
+    "version": 2,
+    "tip": "v1",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": null,
+    "python_batch": "ring x3",
+    "landing_error_m_py_js": [
+     0.005925077163375026,
+     0.00592507716337812
+    ],
+    "frames": 547,
+    "frames_py": 594,
+    "frames_js": 547,
+    "max_pos_err_first_20s_m": 4.737755620105828e-14,
+    "max_pos_err_all_m": 7.455013274641658e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     54.620000000000005,
+     54.620000000000005
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 108,
+    "arbiter": "ring",
+    "version": 2,
+    "tip": "v1",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": null,
+    "python_batch": "ring x3",
+    "landing_error_m_py_js": [
+     0.0008363490223618172,
+     0.0008363490223664204
+    ],
+    "frames": 594,
+    "frames_py": 594,
+    "frames_js": 594,
+    "max_pos_err_first_20s_m": 1.5119657156790167e-14,
+    "max_pos_err_all_m": 2.3902562845986155e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     59.32,
+     59.32
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 103,
+    "arbiter": "state_machine",
+    "version": 2,
+    "tip": "v1",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     0.04323940411326849,
+     0.0432394041132616
+    ],
+    "frames": 541,
+    "frames_py": 541,
+    "frames_js": 541,
+    "max_pos_err_first_20s_m": 6.680406691258825e-14,
+    "max_pos_err_all_m": 1.043760811504651e-13,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     54.02,
+     54.02
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 106,
+    "arbiter": "vote",
+    "version": 2,
+    "tip": "v1",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": "kf",
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     0.06646420705494936,
+     0.06646420705494989
+    ],
+    "frames": 637,
+    "frames_py": 637,
+    "frames_js": 637,
+    "max_pos_err_first_20s_m": 7.515449327261664e-14,
+    "max_pos_err_all_m": 7.515449327261664e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      false,
+      false
+     ],
+     "success_home": [
+      false,
+      false
+     ],
+     "wrong_object_stop": [
+      true,
+      true
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     63.660000000000004,
+     63.660000000000004
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 109,
+    "arbiter": "accumulator",
+    "version": 2,
+    "tip": "v1",
+    "modules": [
+     "home",
+     "landing"
+    ],
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     0.023477783485855892,
+     0.023477783485858685
+    ],
+    "frames": 596,
+    "frames_py": 596,
+    "frames_js": 596,
+    "max_pos_err_first_20s_m": 4.478095270177253e-14,
+    "max_pos_err_all_m": 4.478095270177253e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     59.5,
+     59.5
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 110,
+    "arbiter": "sum",
+    "version": 2,
+    "tip": null,
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     NaN,
+     null
+    ],
+    "frames": 900,
+    "frames_py": 900,
+    "frames_js": 900,
+    "max_pos_err_first_20s_m": 4.521956393823497e-11,
+    "max_pos_err_all_m": 1.246281523556065e-10,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      false,
+      false
+     ],
+     "success_home": [
+      false,
+      false
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      false,
+      false
+     ]
+    },
+    "time_s_py_js": [
+     90.0,
+     90
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 111,
+    "arbiter": "ring_static",
+    "version": 2,
+    "tip": {
+     "bearing_sd_deg": 30.0,
+     "dist_sd": 0.3
+    },
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter"
+    ],
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     0.0007095401009083029,
+     0.0007095401009084377
+    ],
+    "frames": 638,
+    "frames_py": 638,
+    "frames_js": 638,
+    "max_pos_err_first_20s_m": 4.211844354397957e-14,
+    "max_pos_err_all_m": 4.211844354397957e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     63.78,
+     63.78
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
    }
   ]
  },
- "js_seconds": 3.704209804534912,
- "wall_seconds": 39.060575008392334,
- "git": "4476594",
+ "js_seconds": 22.61236882209778,
+ "wall_seconds": 152.14278888702393,
+ "git": "780fb4f-dirty",
  "sim_version": "0.1.0",
- "created": "2026-10-12T00:32:04",
+ "created": "2026-10-12T02:09:23",
  "python": "3.12.12",
  "numpy": "2.5.4",
  "code_sha256": {
   "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "scripts/brain/arbiters.py": "aef56df98dfc7faa9489e40ce6e0e0722fe50964133a3bad635209410cbbf383",
+  "scripts/brain/arbiters_v2.py": "be23db3a21bcdb0b6bf18b8247a11f6f5928cdab189ef701b82d23b5cf368732",
   "scripts/brain/avoid.py": "08c7686a19ac4309a80f3556cdf9ad34a629c583c7536c0f8b12366ba6303fa0",
-  "scripts/brain/eye.py": "19cf461ffc3a76b0af5575f3dfbd165aad0c059d828232f60d292094d88c2fd3",
+  "scripts/brain/eye.py": "00fa65f82b8677565b50e814270f53ada39b17095c0901d7668cbb17a454b933",
+  "scripts/brain/heading.py": "194ba420151e23c5da5a978ad7270fe766007c1c909ddb75d7e4f49c2b2864fa",
+  "scripts/brain/home.py": "36444e5e9ce3b5bc5038ba6deb4f308913be6ba60c56f353cb1286b940de5ef8",
   "scripts/brain/mb.py": "c94aada7b8b84793e8d14985cc90e6729322553f859172b00649c28c974a5ac9",
+  "scripts/brain/mb_front.py": "592f2f2895e965749aaad13283e2f5c07a4ed6f21787e47046d4071749f72aa6",
   "scripts/brain/mind.py": "09aba0091ab2f431863e5c629855324bedfc862d40ece98550b124c82f5b968b",
   "scripts/brain/pi.py": "0c6fcedf8b5f760150cf6f8d6d63db8098c867c11494ddecf687ade895aef445",
   "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
   "scripts/dryden.py": "cc577521940146fd791e45606f0773fc0b67a97679209dfd394cac3d75cbe4c8",
-  "scripts/mission.py": "1217437e1c58cd4434974baa92cc31709b20da52f2951f1029355fe31a2ce915",
-  "scripts/parity_brain.py": "a4e189f74bb232dd4d1bb53e957b56a1090c90e9c0034932602efd896e5f205e",
+  "scripts/mission.py": "a90b8a0068a59ae7f26a7e4ef162882fc49b95d56f94ab6553d8f66f94cd2639",
+  "scripts/parity_brain.py": "8e438d6f883bea4300e9827809d5712a62f57fc9ab28a28f737872e9cca250c6",
   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
   "scripts/quad.py": "78dafc0ca45bcb7d82c3e7d9d04b3269cbea7e8d4b82bc5e1e1a2520b22a4703",
   "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001",
-  "scripts/scenario.py": "3539258058aed19476a346a8a5c0e56a3fe9f2b65068ce60e1eeedca5a94ba60",
-  "scripts/world.py": "cf8f94afd398160c00b5d51cd1a1a7497417d786b3668fe2430174881d800383"
+  "scripts/scenario.py": "20ad1b26c98d9e585926792b7b7bd9976138fea2fb7e6d7f8d75041bcefdd194",
+  "scripts/world.py": "6943d19790bd9c53d7b4b4b1f1edee3ee9f4d181645dde4e4b9020386a270448"
  },
  "seed": "fixed set (see results)",
  "param_source": "scripts/parity_brain.py"

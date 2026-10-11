@@ -29,6 +29,11 @@ GALLERY = {
                  ([0.95, 0.60, 0.05], [0.20, 0.20, 0.20], "chevron", 0.20), ([0.30, 0.55, 0.20], [0.90, 0.90, 0.85], "stripes", 0.12)],
 }
 CLEAR_M = 3.0
+# v2 only: the home landing pad, a flat 1 m x 1 m mat at home with a pattern no target or decoy uses (magenta and white
+# stripes, 0.25 m period). It is not an object slot (never in the arbiter's obs or the stop rule); the home memory sees it.
+HOME_PAD = {"role": "home", "kind": "home_pad", "yaw_deg": 0.0, "dims": [1.0, 1.0, 0.06], "t_s": 0.0, "slot": 0,
+            "appearance": {"base": [0.75, 0.10, 0.60], "accent": [0.97, 0.97, 0.97], "pattern": "stripes", "period_m": 0.25,
+                           "similarity": 1.0}}
 
 
 def _lerp(a, b, s):
@@ -92,8 +97,12 @@ def build_world(sc):
             if ok:
                 obstacles.append(o)
                 break
-    return {"size": [W, H], "ground": {"rgb": GROUND[land]}, "obstacles": obstacles, "objects": objects,
-            "home": list(sc["home"]), "sun": sun, "light": sc["world"]["light"], "fog_m": sc["world"]["fog_m"]}
+    w = {"size": [W, H], "ground": {"rgb": GROUND[land]}, "obstacles": obstacles, "objects": objects,
+         "home": list(sc["home"]), "sun": sun, "light": sc["world"]["light"], "fog_m": sc["world"]["fog_m"]}
+    if sc["brain"].get("version", 1) == 2:             # no draws: the v1 layout is unchanged
+        w["home_pad"] = {**HOME_PAD, "x": sc["home"][0], "y": sc["home"][1], "z": sc["home"][2],
+                         "dims": list(HOME_PAD["dims"]), "appearance": {k: (list(v) if isinstance(v, list) else v) for k, v in HOME_PAD["appearance"].items()}}
+    return w
 
 
 if __name__ == "__main__":
@@ -115,4 +124,8 @@ if __name__ == "__main__":
     # slot order is not always target-first
     firsts = {build_world(strip(sample_scenario(s, fault="decoy")))["objects"][0]["role"] for s in range(20)}
     assert firsts == {"target", "decoy"}, firsts
+    v2 = strip(sample_scenario(7, fault="decoy", severity=0.8, version=2))
+    w2 = build_world(v2)
+    assert {k: v for k, v in w2.items() if k != "home_pad"} == build_world(strip(sample_scenario(7, fault="decoy", severity=0.8)))
+    assert w2["home_pad"]["x"] == v2["home"][0] and "home_pad" not in build_world(strip(sample_scenario(7)))
     print("world self-check OK;", len(w["obstacles"]), "urban obstacles; sun", w["sun"])

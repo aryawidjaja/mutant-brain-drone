@@ -10,6 +10,10 @@ trajectory with a stated tolerance (closed loops amplify floating-point order di
   six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9
   avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact
   missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags
+    v1: all six arbiters closed loop; v2 (brain.version 2, all six modules, RingGated and visibility-gated rivals,
+    HeadingRing and KalmanHeading): same rule, run to 90 s so the take-off learning flight, the pad lock and the
+    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too
+  eye RGB crops (v2 front end input) .... max |diff| <= 1e-9
 Run: uv run python scripts/parity_brain.py
 """
 import json, math, os, subprocess, sys, tempfile, time
@@ -108,6 +112,16 @@ def main():
                                   "noise": noise.tolist(), "py_learn": L.tolist(), "py_probes": probes.tolist()})
             py["looks"].append({"looks": g, "learn": L})
             py["mb"].append(fam)
+    # 5b. v2 RGB crops (front-end input; object windows and the home pad)
+    spec["rgb_looks"], py["rgb_looks"] = [], []
+    for sc_ in (strip(sample_scenario(105, fault="decoy", severity=0.5, landscape="forest", version=2)),):
+        w = build_world(load(sc_))
+        for slot, scene, pos in [(0, eye.Scene([w]), [w["objects"][0]["x"] + 3, w["objects"][0]["y"] + 1, 2.5]),
+                                 (1, eye.Scene([w]), [w["objects"][1]["x"] - 6, w["objects"][1]["y"] + 2, 2.5]),
+                                 (0, eye.Scene([{**w, "objects": [w["home_pad"]]}]), [2.0, 1.0, 2.5])]:
+            g, _ = eye.looks(eye.sub_scene(scene, np.zeros(1, int), np.full(1, slot)), np.array([pos]), 0.0, half_m=1.1, rgb=True)
+            spec["rgb_looks"].append({"scenario": sc_, "slot": slot, "pad": scene.K == 1 and slot == 0 and pos == [2.0, 1.0, 2.5], "pos": pos})
+            py["rgb_looks"].append(g[0, 0].reshape(-1))
     # 6. PI on a recorded input sequence (wandering flight, compass_half switched on halfway)
     n = 3000
     th = np.cumsum(rs.normal(0, 0.05, n)) + 0.4
@@ -165,14 +179,36 @@ def main():
                   for s, f in [(5, "none"), (8, "decoy"), (13, "gust")]]
     others = [sample_scenario(21, fault="occlusion", arbiter="state_machine", landscape="forest", obstacle_density=0.3),
               sample_scenario(34, fault="none", arbiter="vote", landscape="urban", obstacle_density=0.4),
-              sample_scenario(55, fault="false_sun", arbiter="accumulator")]
-    TM = 60.0
-    spec["missions"] = [{"scenario": strip(s), "T": TM, "eye": i == 0} for i, s in enumerate(ring_batch + others)]
+              sample_scenario(55, fault="false_sun", arbiter="accumulator"),
+              sample_scenario(62, fault="decoy", severity=0.6, arbiter="ring_static", landscape="forest", obstacle_density=0.3),
+              sample_scenario(77, fault="speed_scale", severity=0.8, arbiter="sum", landscape="meadow", obstacle_density=0.3)]
+    hp = json.load(open(os.path.join(ROOT, "results", "kt5_tuned_params.json")))["estimators"]
+    t3 = json.load(open(os.path.join(ROOT, "results", "tuned3d_params.json")))["arms"]
+    v2kw = dict(landscape="forest", obstacle_density=0.3, version=2)
+    v2_batch = [sample_scenario(s, fault=f, severity=v, arbiter="ring", ring_gain=0.5, params={"g_home": 3.0},
+                                module_params={"heading": hp["ring"]["params"]}, **v2kw)
+                for s, f, v in [(101, "none", None), (104, "compass_half", 1.0), (108, "speed_scale", 1.0)]]
+    v2_others = [sample_scenario(103, fault="false_sun", severity=2 / 3, arbiter="state_machine", params=t3["state_machine"]["params"],
+                                 module_params={"heading": hp["ring"]["params"]}, **v2kw),
+                 sample_scenario(106, fault="decoy", severity=2 / 3, arbiter="vote", params=t3["vote"]["params"],
+                                 module_params={"heading_estimator": "kf", "heading": hp["kf"]["params"]}, **v2kw),
+                 sample_scenario(109, fault="none", arbiter="accumulator", params=t3["accumulator"]["params"],
+                                 modules=["home", "landing"], **v2kw),
+                 sample_scenario(110, fault="occlusion", severity=1.0, arbiter="sum", params=t3["sum"]["params"],
+                                 module_params={"heading": hp["ring"]["params"]}, **v2kw),
+                 sample_scenario(111, fault="eye_columns", severity=0.5, arbiter="ring_static", params=t3["ring_static"]["params"],
+                                 module_params={"heading": hp["ring"]["params"]}, **v2kw)]
+    v2_others[3]["brain"]["tip"] = None                                  # no operator tip: spiral from home
+    v2_others[4]["brain"]["tip"] = {"bearing_sd_deg": 30.0, "dist_sd": 0.3}
+    TM, TM2 = 60.0, 90.0
+    v1_all = ring_batch + others
+    spec["missions"] = [{"scenario": strip(s), "T": TM if i < len(v1_all) else TM2, "eye": i in (0, len(v1_all))}
+                        for i, s in enumerate(v1_all + v2_batch + v2_others)]
     py_frames, py_out = [], []
-    groups = [ring_batch] + [[s] for s in others]
-    for g in groups:
+    groups = [(ring_batch, TM)] + [([s], TM) for s in others] + [(v2_batch, TM2)] + [([s], TM2) for s in v2_others]
+    for g, T_ in groups:
         m = M.Mission(g, log_rows=range(len(g)))
-        o = m.run(max_time=TM)
+        o = m.run(max_time=T_)
         for b in range(len(g)):
             py_frames.append(m.frames[b])
             py_out.append({k: (bool(v_[b]) if v_.dtype == bool else float(v_[b])) for k, v_ in o.items()})
@@ -203,6 +239,10 @@ def main():
     ld = max(max(np.abs(np.asarray(a["looks"]) - np.asarray(b["looks"])).max(), np.abs(np.asarray(a["learn"]) - np.asarray(b["learn"])).max())
              for a, b in zip(py["looks"], js["looks"]))
     R["eye_looks"] = {"max_abs_diff": float(ld), "pass": ld <= 1e-9}
+    rd = float(np.abs(np.asarray(py["rgb_looks"]) - np.asarray(js["rgb_looks"])).max())
+    R["eye_looks_rgb"] = {"n": len(spec["rgb_looks"]), "max_abs_diff": rd, "pass": rd <= 1e-9}
+    R["heading_defaults"] = {"js_HEADING_TUNED_equals_kt5_file": js["heading_tuned"] == hp["ring"]["params"],
+                             "pass": js["heading_tuned"] == hp["ring"]["params"]}
     md = max(np.abs(np.asarray(a) - np.asarray(b["recorded"])).max() for a, b in zip(py["mb"], js["mb"]))
     mo = max(np.abs(np.asarray(a) - np.asarray(b["own"])).max() for a, b in zip(py["mb"], js["mb"]))
     idx_ok = js["mb_first_idx"] == M.wiring().reshape(-1)[:25].tolist()
@@ -230,13 +270,17 @@ def main():
         err = np.linalg.norm(P - J, axis=1)
         div = tt[np.argmax(err > 0.01)] if (err > 0.01).any() else None
         e20 = float(err[tt <= 20.0].max())
-        flags = {k: (po[k], jm["outcome"][k]) for k in ("success_target", "success_home", "wrong_object_stop")}
+        flags = {k: (po[k], jm["outcome"][k]) for k in ("success_target", "success_home", "wrong_object_stop", "landed_on_pad")}
         same_flags = all(a == b for a, b in flags.values())
         eye_d = None
         if spec["missions"][i]["eye"]:
             eye_d = float(np.mean([np.mean(np.asarray(a["eye"]["rgb"]) != np.asarray(b["eye"])) for a, b in zip(pf[:nf], jf[:nf])]))
-        rec = {"seed": spec["missions"][i]["scenario"]["seed"], "arbiter": spec["missions"][i]["scenario"]["brain"]["arbiter"],
-               "python_batch": "ring x3" if i < 3 else "single", "frames": nf, "frames_py": len(pf), "frames_js": len(jf),
+        b_ = spec["missions"][i]["scenario"]["brain"]
+        rec = {"seed": spec["missions"][i]["scenario"]["seed"], "arbiter": b_["arbiter"], "version": b_.get("version", 1),
+               "tip": b_.get("tip", "v1"),
+               "modules": b_.get("modules"), "heading_estimator": b_.get("module_params", {}).get("heading_estimator"),
+               "python_batch": "ring x3" if i < 3 or len(v1_all) <= i < len(v1_all) + 3 else "single",
+               "landing_error_m_py_js": [po["landing_error_m"], jm["outcome"]["landing_error_m"]], "frames": nf, "frames_py": len(pf), "frames_js": len(jf),
                "max_pos_err_first_20s_m": e20, "max_pos_err_all_m": float(err.max()), "first_divergence_1cm_s": div,
                "phase_agreement": float(np.mean([a["phase"] == b["phase"] for a, b in zip(pf[:nf], jf[:nf])])),
                "outcome_flags_py_js": flags, "time_s_py_js": [po["time_s"], jm["outcome"]["time_s"]],
