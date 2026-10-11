@@ -439,12 +439,54 @@
   }
  },
  "provenance": {
-  "git": "2344448",
+  "git": "ccef440",
   "sim_version": "0.1.0",
-  "created": "2026-10-11T18:06:40",
+  "created": "2026-10-11T22:31:59",
   "python": "3.12.12",
   "numpy": "2.5.4",
+  "code_sha256": {
+   "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "scripts/brain/arbiters.py": "ee8b4a7c309945aa0970bd1a3f1b59d5255cd11f9c2b3afdcdd9bbabf9f548e4",
+   "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
+   "scripts/kt2_five_arms.py": "9486aba32bd90d683e259ae2d864a366c9210d9942023daa7d7733289a5620f3",
+   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+   "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001",
+   "scripts/stats.py": "da79aa65b49fcf6ef6387768552468012464a10f646e4d2784cbfc72ad486f84"
+  },
   "seed": "test 1000-1299",
   "param_source": "results/kt2_tuned_params.json"
+ },
+ "posthoc_permutation": {
+  "label": "POST HOC (not pre-registered for KT2): within-seed arm-label permutation test of ring minus best other",
+  "statistic": "mean(ring) - max over the 5 other arms of mean(arm), per-seed equal-weight aggregate AUC, test seeds 1000-1299",
+  "null": "arm labels permuted independently within each seed (all six arms exchangeable), 5,000 permutations, numpy seed 0",
+  "percentile_note": "percentile = fraction of the null <= observed (one-sided lower tail); p_two_sided uses |null - null mean| >= |observed - null mean|",
+  "source": "results/runs/kt2_test.parquet (no re-simulation)",
+  "est": -0.004960317460317665,
+  "null_mean": -0.0026123650793657646,
+  "null_lo": -0.007757936507936889,
+  "null_hi": 0.0026785714285705365,
+  "percentile": 0.1924,
+  "p_two_sided": 0.382123575284943,
+  "n": 300,
+  "n_perm": 5000,
+  "provenance": {
+   "git": "ccef440",
+   "sim_version": "0.1.0",
+   "created": "2026-10-11T22:32:04",
+   "python": "3.12.12",
+   "numpy": "2.5.4",
+   "code_sha256": {
+    "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scripts/brain/arbiters.py": "ee8b4a7c309945aa0970bd1a3f1b59d5255cd11f9c2b3afdcdd9bbabf9f548e4",
+    "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
+    "scripts/kt2_five_arms.py": "9486aba32bd90d683e259ae2d864a366c9210d9942023daa7d7733289a5620f3",
+    "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+    "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001",
+    "scripts/stats.py": "da79aa65b49fcf6ef6387768552468012464a10f646e4d2784cbfc72ad486f84"
+   },
+   "seed": "test 1000-1299",
+   "param_source": "results/runs/kt2_test.parquet"
+  }
  }
 }

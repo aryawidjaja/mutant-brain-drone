@@ -1377,12 +1377,36 @@
   "posthoc_D_star_excl_ratio1_deg": 27.861783953033413,
   "ring_converged_maxchange_deg": 0.0011337202212153975
  },
+ "posthoc_fine_grid": {
+  "label": "POST HOC (not pre-registered): D* recomputed on a fine vote-width grid; primary ring (Ring.DEFAULTS)",
+  "kappa_grid": "numpy geomspace(0.25, 16, 800) (pre-registered grid: geomspace(0.25, 16, 25) plus the ring's kappa)",
+  "D_star_deg": 48.943102024947216,
+  "kappa_v_best": 0.5074285489585101,
+  "D_star_excl_ratio1_deg": 5.442655896068669,
+  "kappa_v_best_excl_ratio1": 1.0681534354799058,
+  "bracket_D_star_deg": [
+   48.943102024947216,
+   62.888843868145926
+  ],
+  "bracket_D_star_excl_ratio1_deg": [
+   5.442655896068669,
+   6.912245949653578
+  ],
+  "note": "D* is a min over vote widths of the max deviation over cells; it depends on the grid resolution because equal-strength (ratio 1) cells are argmax tie-breaks. Gate rule (kill if D* <= 5 deg) unchanged."
+ },
  "provenance": {
-  "git": "2344448",
+  "git": "ccef440",
   "sim_version": "0.1.0",
-  "created": "2026-10-11T18:14:30",
+  "created": "2026-10-11T22:27:07",
   "python": "3.12.12",
   "numpy": "2.5.4",
+  "code_sha256": {
+   "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "scripts/brain/arbiters.py": "ee8b4a7c309945aa0970bd1a3f1b59d5255cd11f9c2b3afdcdd9bbabf9f548e4",
+   "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
+   "scripts/kt1_ring_vs_vote.py": "f2759866d90cb7d808205c8498ce94c43c492329fd7b8099b0ac653ecdd48abd",
+   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0"
+  },
   "seed": null,
   "param_source": "arbiters.Ring.DEFAULTS (primary); results/kt2_tuned_params.json (secondary)"
  }

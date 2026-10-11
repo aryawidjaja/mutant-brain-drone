@@ -1,9 +1,13 @@
 {
- "git": "953c543",
+ "git": "ccef440",
  "sim_version": "0.1.0",
- "created": "2026-10-11T17:54:36",
+ "created": "2026-10-11T22:37:45",
  "python": "3.12.12",
  "numpy": "2.5.4",
+ "code_sha256": {
+  "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+  "scripts/recog_score.py": "051b33bfdb59a31efda11f346e9ac18e61aa23fd4affbbca2e24744e18f4e571"
+ },
  "seed": [
   1000,
   1001,
@@ -18,9 +22,9 @@
  ],
  "param_source": "H4 protocol (pre-registered; paper, Protocol and amendments); results/recog_scores.parquet",
  "scores_provenance": {
-  "git": "bfb82ea",
+  "git": "525dcb2-dirty",
   "sim_version": "0.1.0",
-  "created": "2026-10-11T17:49:49",
+  "created": "2026-10-11T18:38:44",
   "python": "3.12.12",
   "numpy": "2.5.4",
   "seed": [
