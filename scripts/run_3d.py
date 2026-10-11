@@ -113,7 +113,10 @@ def run(stage, shard, nshards, procs):
 def load(stage):
     fs = sorted((OUT / stage).glob("*.parquet"))
     assert fs, f"no results for {stage}"
-    return pd.concat([pd.read_parquet(f) for f in fs], ignore_index=True)
+    df = pd.concat([pd.read_parquet(f) for f in fs], ignore_index=True)
+    if "fault" in df:                       # the sampler draws an unused severity for the no-fault condition
+        df.loc[df.fault == "none", "severity"] = np.nan
+    return df
 
 
 def success(df):
