@@ -13,3 +13,4 @@ vendor/
 results/runs/*.parquet.tmp
 .uv-cache/
 results/recog_renders/grey32.npz
+results/3d/

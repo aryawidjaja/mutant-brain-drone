@@ -1,0 +1,33 @@
+name: sim
+on:
+  workflow_dispatch:
+    inputs:
+      stage: {description: "r1 | r2 | test | h3", required: true}
+      nshards: {description: "number of parallel jobs (<= 256)", required: true, default: "64"}
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.m.outputs.shards }}
+    steps:
+      - id: m
+        run: echo "shards=$(python3 -c "import json;print(json.dumps(list(range(${{ inputs.nshards }}))))")" >> "$GITHUB_OUTPUT"
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install numpy==2.5.4 scipy==1.18.1 pandas==3.0.6 pyarrow==26.0.0
+      - run: python scripts/run_3d.py run ${{ inputs.stage }} --shard ${{ matrix.shard }} --nshards ${{ inputs.nshards }} --procs 4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.stage }}-${{ matrix.shard }}
+          path: results/3d/${{ inputs.stage }}/
+          retention-days: 7
