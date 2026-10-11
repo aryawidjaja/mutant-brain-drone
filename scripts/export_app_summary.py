@@ -9,19 +9,16 @@ re-running this script after they land fills them. Every exported leaf has an en
 a value computed here. The self-check (always run at the end) re-reads every file source and asserts equality, re-derives
 the derived values from the raw run records, and asserts that no leaf lacks a source.
 
-Expected shapes of the optional 3D files (so the integrator can match them):
-  results/mission_h1.json  same keys as results/kt2.json: n_seeds, aggregate_auc{arm:{mean,lo,hi}}, ring_minus_best_other
-                           {est,lo,hi,p}, best_other_point, ring_minus_each{arm:{est,lo,hi,p,p_holm}}, per_fault_auc{arm:
-                           {fault:auc}}, success_by_condition{arm:{"none:None", "<fault>:<severity>", ...}} (levels in
-                           ascending order), worst{arm:{fault,auc,worst_condition,worst_condition_success}},
-                           wrong_object_stop_rate{arm}, t_hold_occlusion_mean_s{arm}, t_release_decoy_mean_s{arm},
-                           tuned_params{arm:{...}}, gate, provenance.
-  results/runs/mission_test.parquet   C7 columns + fault, level (as kt2_test.parquet); used for the aggregate-curve CI.
-  results/mission_h3.json  same keys as results/kt3.json: t_cross_s, points{arm:[{knob,value,hold_mean_s,release_mean_s,
-                           hold_sem,release_sem}]}, ring_vs_rival{state_machine|accumulator:[{ring_gain,delta_s,lo,hi}]},
-                           posthoc_dominance_frontier{delta{...same...}}, spearman_vs_gain{hold,release}, gate,
-                           dead_because, provenance.
-  results/parity_brain.json   {pass, results:{missions:[{max_pos_err_first_20s_m, ...}], ...}} (as written by WS-D).
+Shapes read from the 3D files:
+  results/mission_h1.json  the keys of results/kt2.json (aggregate_auc, ring_minus_best_other, ring_minus_each,
+                           per_fault_auc, success_by_condition, worst, wrong_object_stop_rate, tuned_params, ...) plus
+                           permutation_test, gate_preregistered_ci, h1_rule, success_rate, collision_rate.
+  results/runs/mission_test.parquet   run records with fault and level; per-fault AUC intervals and the aggregate curve.
+  results/mission_h3.json  the keys of results/kt3.json plus per point n_hold, n_release, wrong_stop_rate,
+                           release_capped_by_wrong_stop, hold_ci, release_ci; n_common_seeds; optional common_seeds
+                           {gate, dead_because, delta{state_machine|accumulator:[{ring_gain,delta_s,lo,hi}]}}.
+  results/parity_brain.json   {pass, results:{missions:[{arbiter, max_pos_err_all_m, ...}], ...}}.
+README.md: the block between the RESULTS markers is regenerated from the summary (self-check asserts it is current).
 """
 import json, math, re, subprocess, sys
 from datetime import datetime, timezone
@@ -33,7 +30,7 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'results'
 OUT = ROOT / 'app' / 'data'
-REPO_URL = 'https://github.com/aryawidjaja/mutant-brain-drone'   # planned; not public until the owner approves
+REPO_URL = 'https://github.com/aryawidjaja/mutant-brain-drone'
 ARMS = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine']
 Z = 1.959963984540054   # two-sided 95% normal quantile
 RECOG = {'mb': 'mb', 'pixels': 'pixels', 'colour': 'colour', 'dino_patch': 'dino_patch', 'dino_cls': 'dino_cls',
@@ -133,6 +130,20 @@ def aggregate_curve(runs, arm):
     return v.mean(0), np.percentile(bm, 2.5, 0), np.percentile(bm, 97.5, 0)
 
 
+def seed_fault_auc(runs, arm):
+    """{fault: [seeds] AUC} with the KT2/3D definition: trapezoid over x = level / n_levels, no-fault run at x = 0."""
+    r = runs[runs.arbiter == arm].copy()
+    r['succ'] = (r.success_target & r.success_home).astype(float)
+    base = r[r.fault == 'none'].set_index('seed').succ
+    out = {}
+    for f, g in r[r.fault != 'none'].groupby('fault'):
+        L = g.level.max()
+        tab = g.pivot(index='seed', columns='level', values='succ').reindex(columns=range(1, L + 1))
+        tab.insert(0, 0, base.reindex(tab.index))
+        out[f] = np.trapezoid(tab.to_numpy(), np.arange(L + 1) / L, axis=1)
+    return out
+
+
 # ---------------------------------------------------------------- blocks
 def h1_block(o, pre, fname, d, runs_name):
     """KT2 (2D pilot) or the 3D mission factorial: same keys."""
@@ -170,11 +181,31 @@ def h1_block(o, pre, fname, d, runs_name):
             if k in d['tuned_params'][a]:
                 o.copy(f'{pre}.tuned.{a}.{k}', fname, f'tuned_params/{a}/{k}', d)
     o.put(f'{pre}.n_params', {a: len(d['tuned_params'][a]) for a in ARMS}, f'derived: len(results/{fname}:tuned_params/<arm>)')
+    o.copy(f'{pre}.tuned_all', fname, 'tuned_params', d)
+    for k in ['success_rate', 'collision_rate']:
+        if k in d:
+            for a in ARMS:
+                o.copy(f'{pre}.{k}.{a}', fname, f'{k}/{a}', d)
+    for blk in ['permutation_test', 'posthoc_permutation']:
+        if blk in d:
+            for k in ['est', 'null_mean', 'null_lo', 'null_hi', 'percentile', 'p_two_sided', 'n_perm']:
+                o.copy(f'{pre}.{blk}.{k}', fname, f'{blk}/{k}', d)
+    for k in ['gate_preregistered_ci', 'h1_rule']:
+        if k in d:
+            o.copy(f'{pre}.{k}', fname, k, d)
     o.copy(f'{pre}.git', fname, 'provenance/git', d)
     rp = RES / 'runs' / runs_name
     if rp.exists():
         runs = pd.read_parquet(rp)
         o.put(f'{pre}.n_runs', len(runs), f'derived: rows of results/runs/{runs_name}')
+        o.put(f'{pre}.row_git', sorted(runs.git.unique().tolist()), f'derived: distinct git stamps of the rows in results/runs/{runs_name}')
+        for a in ARMS:
+            fa = seed_fault_auc(runs, a)
+            for f, v in fa.items():
+                idx = np.random.default_rng(0).integers(0, len(v), (2000, len(v)))
+                o.put(f'{pre}.fault_auc_ci.{a}.{f}', list(np.percentile(v[idx].mean(1), [2.5, 97.5])),
+                      f'derived: results/runs/{runs_name}, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), '
+                      '95% percentile bootstrap over seeds (2,000, seed 0)')
         for a in ARMS:
             m, lo, hi = aggregate_curve(runs, a)
             o.put(f'{pre}.aggregate_curve.{a}', [dict(severity=x, success=y, ci=[l, h]) for x, y, l, h in zip(GRID, m, lo, hi)],
@@ -195,18 +226,33 @@ def h3_block(o, pre, fname, d):
             for k in ['knob', 'value', 'hold_mean_s', 'release_mean_s', 'hold_sem', 'release_sem']:
                 o.copy(f'{pre}.points.{a}.{i}.{k}', fname, f'points/{a}/{i}/{k}', d)
             for k in ['hold', 'release']:
-                m, s = p[f'{k}_mean_s'], p[f'{k}_sem']
-                o.put(f'{pre}.points.{a}.{i}.{k}_ci', [m - Z * s, m + Z * s], f'derived: {k}_mean_s ± 1.96 × {k}_sem (normal approximation over seeds)')
+                if f'{k}_ci' in p:
+                    o.copy(f'{pre}.points.{a}.{i}.{k}_ci', fname, f'points/{a}/{i}/{k}_ci', d)
+                else:
+                    m, sd = p[f'{k}_mean_s'], p[f'{k}_sem']
+                    o.put(f'{pre}.points.{a}.{i}.{k}_ci', [m - Z * sd, m + Z * sd], f'derived: {k}_mean_s ± 1.96 × {k}_sem (normal approximation over seeds)')
+            for k in ['n_hold', 'n_release', 'wrong_stop_rate', 'release_capped_by_wrong_stop']:
+                if k in p:
+                    o.copy(f'{pre}.points.{a}.{i}.{k}', fname, f'points/{a}/{i}/{k}', d)
     for r in ['state_machine', 'accumulator']:
         for i in range(len(d['ring_vs_rival'][r])):
             for k in ['ring_gain', 'delta_s', 'lo', 'hi']:
                 o.copy(f'{pre}.delta.{r}.{i}.{k}', fname, f'ring_vs_rival/{r}/{i}/{k}', d)
                 o.copy(f'{pre}.delta_posthoc.{r}.{i}.{k}', fname, f'posthoc_dominance_frontier/delta/{r}/{i}/{k}', d)
+    if 'n_common_seeds' in d:
+        o.copy(f'{pre}.n_common_seeds', fname, 'n_common_seeds', d)
+    if 'common_seeds' in d:
+        o.copy(f'{pre}.common_seeds.gate', fname, 'common_seeds/gate', d)
+        o.copy(f'{pre}.common_seeds.dead_because', fname, 'common_seeds/dead_because', d)
+        for r in ['state_machine', 'accumulator']:
+            for i in range(len(d['common_seeds']['delta'][r])):
+                for k in ['ring_gain', 'delta_s', 'lo', 'hi']:
+                    o.copy(f'{pre}.common_seeds.delta.{r}.{i}.{k}', fname, f'common_seeds/delta/{r}/{i}/{k}', d)
     o.copy(f'{pre}.git', fname, 'provenance/git', d)
 
 
 def app_keys(o, h1pre, h3pre, h1from, h3from):
-    """The Results tab's three charts (shapes fixed by app/app.js and app/panels.js)."""
+    """The Results tab's three charts (shapes read by app/app.js and app/panels.js)."""
     H3 = get(o.d, h3pre, '.')
     for a in ARMS:
         o.put(f'stubbornness_frontier.{a}', [dict(gain_or_knob=p['value'], hold_s=p['hold_mean_s'], hold_ci=p['hold_ci'],
@@ -276,6 +322,11 @@ def build():
     for k in ['D_star_deg', 'vecsum_maxdev_deg', 'posthoc_D_star_excl_ratio1_deg']:
         o.copy(f'kt1.tuned.{k}', 'kt1.json', f'secondary_tuned_ring/{k}', k1)
 
+    fg = k1.get('posthoc_fine_grid')
+    if fg:
+        for k in ['D_star_deg', 'kappa_v_best', 'D_star_excl_ratio1_deg', 'kappa_v_best_excl_ratio1', 'bracket_D_star_deg', 'bracket_D_star_excl_ratio1_deg']:
+            o.copy(f'kt1.fine.{k}', 'kt1.json', f'posthoc_fine_grid/{k}', k1)
+
     # ---- KT2 (H1 pilot)
     k2, tp = load('kt2.json'), load('kt2_tuned_params.json')
     h1_block(o, 'kt2', 'kt2.json', k2, 'kt2_test.parquet')
@@ -289,6 +340,54 @@ def build():
     # ---- KT3 (H3, 2D)
     k3 = load('kt3.json')
     h3_block(o, 'kt3', 'kt3.json', k3)
+
+    un = k3.get('posthoc_unclamped')
+    if un:
+        for a, pts in un['points'].items():
+            for i, q in enumerate(pts):
+                for k in ['value', 'release_signed_mean_s', 'frac_switched_before_crossing', 'ratio_at_switch_mean', 'release_signed_q05_q50_q95_s']:
+                    o.copy(f'kt3.unclamped.{a}.{i}.{k}', 'kt3.json', f'posthoc_unclamped/points/{a}/{i}/{k}', k3)
+
+    # ---- KT3 envelope (post hoc, training seeds) and the effective tuning budget
+    ev = load('kt3_envelope.json')
+    if ev:
+        for a, cs in ev['configs'].items():
+            for i, c in enumerate(cs):
+                for k in ['source', 'index', 'hold_mean_s', 'release_mean_s']:
+                    o.copy(f'env.configs.{a}.{i}.{k}', 'kt3_envelope.json', f'configs/{a}/{i}/{k}', ev)
+                if a == 'ring':
+                    o.copy(f'env.configs.{a}.{i}.ring_gain', 'kt3_envelope.json', f'configs/{a}/{i}/params/ring_gain', ev)
+        o.copy('env.envelope', 'kt3_envelope.json', 'envelope', ev)
+        o.copy('env.n_gain_ge_07', 'kt3_envelope.json', 'ring_high_gain/n_configs_gain_ge_0.7', ev)
+        o.copy('env.frac_high_gain_release_before_cap', 'kt3_envelope.json', 'ring_high_gain/frac_gain_ge_0.7_releasing_before_cap', ev)
+        for rs, rsk in [('random64', 'r64'), ('random64_plus_kt3_sweep', 'sweep')]:
+            for cmp, ck in [('accumulator|pareto_interp', 'acc'), ('state_machine|pareto_interp', 'sm'), ('accumulator|dominance_frontier', 'acc_dom'), ('state_machine|dominance_frontier', 'sm_dom')]:
+                for k in ['n_ring_configs_defined', 'n_ring_configs_delta_gt_0', 'best_ring_config_index', 'best_ring_hold_s', 'best_ring_release_s', 'delta_s', 'lo', 'hi', 'frac_resamples_defined']:
+                    o.copy(f'env.best.{rsk}.{ck}.{k}', 'kt3_envelope.json', f'best_ring_vs_rival/{rs}/{cmp}/{k}', ev)
+        bi = ev['best_ring_vs_rival']['random64']['accumulator|pareto_interp']['best_ring_config_index']
+        o.copy('env.best_gain', 'kt3_envelope.json', f'configs/ring/{bi}/params/ring_gain', ev)
+        o.copy('env.git', 'kt3_envelope.json', 'provenance/git', ev)
+        # 2D rung 2: the selected ring config and the runner-up (gain from the same random draws)
+        r2 = sorted(tp['arms']['ring']['rung2'].items(), key=lambda kv: -kv[1])
+        o.put('budget.kt2_ring_runner_up', dict(index=int(r2[1][0]), auc=r2[1][1], gain=ev['configs']['ring'][int(r2[1][0])]['params']['ring_gain'], auc_selected=r2[0][1]),
+              'derived: second-best results/kt2_tuned_params.json:arms/ring/rung2 entry; gain from results/kt3_envelope.json:configs/ring/<index>/params/ring_gain')
+    for a in ARMS:
+        r1 = tp['arms'][a]['rung1_auc']
+        o.put(f'budget.kt2.{a}', dict(n=len(r1), n_pos=sum(v > 0 for v in r1), n_half=sum(v > 0.5 for v in r1)),
+              'derived: counts of results/kt2_tuned_params.json:arms/<arm>/rung1_auc above 0 and above 0.5')
+    t31, t3 = load('tune3d_r1.json'), load('tuned3d_params.json')
+    if t31 and t3:
+        for a in ARMS:
+            sc = list(t31['scores'][a].values())
+            o.put(f'budget.t3d.{a}', dict(n=len(sc), n_pos=sum(v > 0 for v in sc), n_half=sum(v > 0.5 for v in sc)),
+                  'derived: counts of results/tune3d_r1.json:scores/<arm> above 0 and above 0.5')
+            for k in ['config_index', 'train_auc']:
+                o.copy(f'tune3d.{a}.{k}', 'tuned3d_params.json', f'arms/{a}/{k}', t3)
+        o.copy('tune3d.budget', 'tuned3d_params.json', 'budget', t3)
+        r2 = sorted(t3['arms']['ring']['rung2'].items(), key=lambda kv: -kv[1])
+        if ev:
+            o.put('budget.t3d_ring_runner_up', dict(index=int(r2[1][0]), auc=r2[1][1], gain=ev['configs']['ring'][int(r2[1][0])]['params']['ring_gain'], auc_selected=r2[0][1]),
+                  'derived: second-best results/tuned3d_params.json:arms/ring/rung2 entry; gain from results/kt3_envelope.json:configs/ring/<index>/params/ring_gain')
 
     # ---- H4 recognition
     ra, rg, rc, rd = load('recog_auroc.json'), load('recog_gate.json'), load('recog_cost.json'), load('recog_diag.json')
@@ -307,6 +406,7 @@ def build():
         for k, kk in [('gain', 'lf_gain_out_of_arc_mean_auroc'), ('gain_ci', 'ci95'), ('widening', 'widening_ratio'),
                       ('catch_off_on', 'catchment_bins_off_on')]:
             o.copy(f'h4.paired.{r}.{k}', 'recog_auroc.json', f'paired/{r}/{kk}', ra)
+    o.copy('h4.winrate', 'recog_auroc.json', 'paired_win_rate_exploratory', ra)
     for lf in ['lf0', 'lf1']:
         o.copy(f'h4.mb_minus_pixels.{lf}', 'recog_auroc.json', f'paired/mb_minus_pixels_{lf}/by_angle', ra)
     for g, ks in {'a_mb_below_0.75_at_0deg': ['fires', 'value'],
@@ -361,6 +461,10 @@ def build():
         o.put('parity.brain.max_pos_err_first_20s_m', max(m['max_pos_err_first_20s_m'] for m in ms),
               'derived: max of results/parity_brain.json:results/missions/*/max_pos_err_first_20s_m')
         o.put('parity.brain.n_modules', len(pb['results']) - 1, 'derived: len(results/parity_brain.json:results) - 1 (missions)')
+        o.put('parity.brain.max_pos_err_all_m', max(m.get('max_pos_err_all_m', m['max_pos_err_first_20s_m']) for m in ms),
+              'derived: max of results/parity_brain.json:results/missions/*/max_pos_err_all_m')
+        o.put('parity.brain.arbiters', sorted({m['arbiter'] for m in ms}), 'derived: set of results/parity_brain.json:results/missions/*/arbiter')
+        o.put('parity.brain.max_mission_s', max(m['time_s_py_js'][0] for m in ms), 'derived: max of results/parity_brain.json:results/missions/*/time_s_py_js[0]')
     else:
         o.put('parity.brain', None, 'derived: results/parity_brain.json missing (pending)')
 
@@ -372,6 +476,11 @@ def build():
         o.put('mission.h1', None, 'derived: results/mission_h1.json missing (pending)')
     if m3:
         h3_block(o, 'mission.h3', 'mission_h3.json', m3)
+        h3u = sorted((RES / '3d' / 'h3').glob('*.parquet'))
+        if h3u:
+            g = pd.concat([pd.read_parquet(f, columns=['git']) for f in h3u]).git
+            o.put('mission.h3.row_git', sorted(g.unique().tolist()), 'derived: distinct git stamps of the rows in results/3d/h3/*.parquet')
+            o.put('mission.h3.n_units', len(h3u), 'derived: count of results/3d/h3/*.parquet')
     else:
         o.put('mission.h3', None, 'derived: results/mission_h3.json missing (pending)')
 
@@ -382,6 +491,65 @@ def build():
     app_keys(o, h1pre, h3pre, 'results/mission_h1.json (3D)' if h1pre != 'kt2' else 'results/kt2.json (2D pilot)',
              'results/mission_h3.json (3D)' if m3 else 'results/kt3.json (2D)')
     return o
+
+
+# ---------------------------------------------------------------- README key-results block
+RB, RE = '<!-- RESULTS:BEGIN (generated by scripts/export_app_summary.py; do not edit) -->', '<!-- RESULTS:END -->'
+
+
+def readme_block(d):
+    """Markdown table of the headline numbers, built only from the summary (so the README cannot drift from it)."""
+    f = lambda x, k=3: f'{x:.{k}f}'.replace('-', '−')
+    K1, K2, K3 = d['kt1'], d['kt2'], d['kt3']
+    rows = [('H2, 2D kill test', 'Ring vs best-matching static vote, max heading difference D* (kill if ≤ 5°)',
+             f"{f(K1['D_star_deg'], 1)}° pre-registered; {f(K1['fine']['bracket_D_star_deg'][0], 1)}–{f(K1['fine']['bracket_D_star_deg'][1], 1)}° by vote-width grid; "
+             f"{f(K1['fine']['bracket_D_star_excl_ratio1_deg'][0], 1)}–{f(K1['fine']['bracket_D_star_excl_ratio1_deg'][1], 1)}° without equal-certainty cells (post hoc)", 'Passed as written; at the kill line outside ties')]
+    r, pp = K2['ring_minus_best_other'], K2['posthoc_permutation']
+    rows.append(('H1, 2D pilot', f"Aggregate AUC, ring − best other arm ({K2['n_seeds']} test seeds)",
+                 f"{f(r['est'])} [{f(r['lo'])}, {f(r['hi'])}]; permutation p = {f(pp['p_two_sided'], 2)} (post hoc)", 'Pre-registered CI excludes 0 (against the ring); consistent with exchangeable arms'))
+    M1 = d['mission']['h1']
+    if M1:
+        r1, p1 = M1['ring_minus_best_other'], M1['permutation_test']
+        rows.append(('H1, 3D mission', f"Aggregate AUC, ring ({f(M1['aggregate_auc']['ring']['mean'])}) − best other ({f(M1['aggregate_auc'][M1['best_other_point']]['mean'])}), {M1['n_seeds']} test seeds",
+                     f"{f(r1['est'])} [{f(r1['lo'])}, {f(r1['hi'])}]; permutation p = {f(p1['p_two_sided'])}; decoy fault AUC ring {f(M1['per_fault_auc']['ring']['decoy'])} vs state machine {f(M1['per_fault_auc']['state_machine']['decoy'])}",
+                     'Holds, against the ring' if p1['p_two_sided'] < 0.05 and p1['est'] < p1['null_mean'] else 'Holds' if p1['p_two_sided'] < 0.05 else 'Null'))
+    acc = [q for q in K3['delta']['accumulator'] if q['delta_s'] is not None]
+    ring = K3['points']['ring']
+    env = d.get('env')
+    rows.append(('H3, 2D kill test', 'Hold of a hidden target vs release of a fading look-alike; accumulator − ring release at the ring’s hold',
+                 f"ring gain {ring[0]['value']:.0f}→{ring[-1]['value']:.0f}: release {f(ring[0]['release_mean_s'], 2)} s → {f(max(p['release_mean_s'] for p in ring), 0)} s cap (other parameters fixed); "
+                 f"Δ {f(max(q['delta_s'] for q in acc), 2)} to {f(min(q['delta_s'] for q in acc), 1)} s"
+                 + (f"; best of {len(env['configs']['ring'])} ring configurations {f(env['best']['r64']['acc']['delta_s'], 2)} s (post hoc, training seeds)" if env else ''),
+                 'Better-trade-off claim rejected' if K3['gate'] == 'DEAD' else K3['gate']))
+    M3 = d['mission']['h3']
+    if M3:
+        r3 = M3['points']['ring']
+        pk = max(r3, key=lambda p: p['hold_mean_s'])
+        rows.append(('H3, 3D mission', 'Same sweeps in the mission (wrong stops before the crossing count as the 20 s cap)',
+                     f"ring hold peaks at {f(pk['hold_mean_s'], 2)} s (gain {pk['value']:.1f}) then falls to {f(r3[-1]['hold_mean_s'], 2)} s (Spearman with gain {f(M3['spearman']['hold'], 2)}); "
+                     f"release rises {f(r3[0]['release_mean_s'], 2)} → {f(r3[-1]['release_mean_s'], 2)} s ({f(M3['spearman']['release'], 2)})",
+                     'Better-trade-off claim rejected' if M3['gate'] == 'DEAD' else 'Inconclusive (pre-registered rule and both sensitivities)' if M3['gate'] == 'INCONCLUSIVE' else M3['gate']))
+    else:
+        rows.append(('H3, 3D mission', 'Same sweeps in the mission', 'Pending', 'Pending'))
+    R = d['h4']['rec']
+    rows.append(('H4, renders', 'AUROC, target vs look-alikes on the same spot, at the stored azimuth (0°), no flight → with learning flight',
+                 f"mushroom body {f(R['mb']['lf_off']['auroc'][0])} → {f(R['mb']['lf_on']['auroc'][0])}; raw pixels {f(R['pixels']['lf_off']['auroc'][0])}; DINOv2 {f(R['dino_patch']['lf_off']['auroc'][0])} → {f(R['dino_patch']['lf_on']['auroc'][0])}",
+                 'Learning-flight claim rejected for the mushroom body' if d['h4']['claim'] == 'KILLED' else d['h4']['claim']))
+    out = [RB, '', '| Hypothesis | Measure | Result | Verdict |', '| --- | --- | --- | --- |']
+    out += [f'| {a} | {b} | {c} | {e} |' for a, b, c, e in rows]
+    return '\n'.join(out + ['', RE])
+
+
+def write_readme(d):
+    p = ROOT / 'README.md'
+    if not p.exists():
+        return False
+    t = p.read_text()
+    if RB not in t:
+        return False
+    a, b = t.index(RB), t.index(RE) + len(RE)
+    p.write_text(t[:a] + readme_block(d) + t[b:])
+    return True
 
 
 # ---------------------------------------------------------------- self-check
@@ -436,6 +604,19 @@ def selfcheck(doc):
             # the curve's area is the pre-registered aggregate AUC (trapezoid per fault), up to the grid for 3-level gust
             auc = np.trapezoid([q['success'] for q in agg], GRID)
             assert abs(auc - k2['aggregate_auc'][a]['mean']) < 0.01, (a, auc)
+    for blk, fname, rname in [('kt2', 'kt2.json', 'kt2_test.parquet'), ('mission.h1', 'mission_h1.json', 'mission_test.parquet')]:
+        H, rp = get(d, blk, '.'), RES / 'runs' / rname
+        if H is None or not rp.exists():
+            continue
+        rr = pd.read_parquet(rp)
+        for a in ARMS:
+            fa = seed_fault_auc(rr, a)
+            for f in H['faults']:
+                assert abs(fa[f].mean() - H['per_fault_auc'][a][f]) < 1e-9, (blk, a, f)            # same success definition
+                lo, hi = H['fault_auc_ci'][a][f]
+                assert lo <= H['per_fault_auc'][a][f] <= hi
+            agg = np.mean([fa[f] for f in H['faults']], 0).mean()
+            assert abs(agg - H['aggregate_auc'][a]['mean']) < 1e-9, (blk, a, agg)
     for a in ARMS:
         for p, q in zip(d['kt3']['points'][a], load('kt3.json')['points'][a]):
             assert abs(p['hold_ci'][0] - (q['hold_mean_s'] - Z * q['hold_sem'])) < 1e-12
@@ -461,6 +642,9 @@ def selfcheck(doc):
             assert 0 <= q['severity'] <= 1 and 0 <= q['success'] <= 1 and len(q['ci']) == 2
     for m in APP_RECOG:
         assert set(d['recog_auroc'][m]) == {'no_flight', 'flight'}
+    rp = ROOT / 'README.md'
+    if rp.exists() and RB in rp.read_text():
+        assert readme_block(d) in rp.read_text(), 'README key-results block is stale'
     s = (OUT / 'summary.js').read_text()
     assert json.loads(s[s.index('=') + 1:].strip().rstrip(';')) == json.loads((OUT / 'summary.json').read_text())
     return n_file
@@ -473,6 +657,7 @@ def main():
     txt = json.dumps(doc, indent=1, ensure_ascii=False, allow_nan=False)
     (OUT / 'summary.json').write_text(txt + '\n')
     (OUT / 'summary.js').write_text('// Generated by scripts/export_app_summary.py; do not edit.\nwindow.APP_SUMMARY = ' + txt + ';\n')
+    write_readme(json.loads((OUT / 'summary.json').read_text()))
     n_file = selfcheck(json.loads((OUT / 'summary.json').read_text()))
     pend = [k for k, v in [('mission_h1', doc['mission']['h1']), ('mission_h3', doc['mission']['h3']), ('parity_brain', doc['parity']['brain'])] if v is None]
     print(f'wrote app/data/summary.json (+ summary.js): {len(o.src)} sources, {n_file} re-read from result files; '

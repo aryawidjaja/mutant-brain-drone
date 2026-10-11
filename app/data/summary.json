@@ -1,9 +1,9 @@
 {
  "meta": {
-  "generated": "2026-10-11T16:48:19+00:00",
+  "generated": "2026-10-11T17:07:47+00:00",
   "repo_url": "https://github.com/aryawidjaja/mutant-brain-drone",
-  "code_git": "dee81f8",
-  "n_result_files": 702,
+  "code_git": "ff0217f",
+  "n_result_files": 723,
   "result_git": {
    "kt1.json": "ccef440",
    "kt2.json": "ccef440",
@@ -11,6 +11,7 @@
    "kt3.json": "ccef440",
    "kt3_envelope.json": "ccef440",
    "mission_h1.json": "b8a1be2",
+   "mission_h3.json": "cbfcc02-dirty",
    "parity.json": "5558aec",
    "parity_brain.json": "7f27826-dirty",
    "quad_mujoco_check.json": "bfb82ea",
@@ -30,6 +31,7 @@
    "kt3.json": "0efe455",
    "kt3_envelope.json": "b8a1be2",
    "mission_h1.json": "dee81f8",
+   "mission_h3.json": "a6f55cb",
    "parity.json": "953c543",
    "parity_brain.json": "525dcb2",
    "quad_mujoco_check.json": "953c543",
@@ -2602,6 +2604,9 @@
   },
   "git": "ccef440",
   "n_runs": 50400,
+  "row_git": [
+   "ccef440"
+  ],
   "fault_auc_ci": {
    "ring": {
     "compass_half": [
@@ -9412,6 +9417,14 @@
    "h1_rule": "Amendment 4: H1 holds if the within-seed arm-permutation p for ring minus best other < 0.05 (the pre-registered bootstrap CI is reported as gate_preregistered_ci)",
    "git": "b8a1be2",
    "n_runs": 45000,
+   "row_git": [
+    "3f8a0cd",
+    "3f8a0cd-dirty",
+    "b8a1be2",
+    "ccef440",
+    "de9b1e7",
+    "de9b1e7-dirty"
+   ],
    "fault_auc_ci": {
     "ring": {
      "compass_half": [
@@ -9849,660 +9862,2274 @@
     ]
    }
   },
-  "h3": null
+  "h3": {
+   "t_cross_s": null,
+   "gate": "INCONCLUSIVE",
+   "dead_because": [],
+   "posthoc_gate": "INCONCLUSIVE",
+   "posthoc_dead_because": [],
+   "spearman": {
+    "hold": -0.9058823529411765,
+    "release": 0.9941176470588234
+   },
+   "points": {
+    "ring": [
+     {
+      "knob": "ring_gain",
+      "value": 0.0,
+      "hold_mean_s": 2.503367003367004,
+      "release_mean_s": 6.5944250871080135,
+      "hold_sem": 0.07274290836076124,
+      "release_sem": 0.5417466319709081,
+      "hold_ci": [
+       2.361029966555184,
+       2.6428445945945946
+      ],
+      "release_ci": [
+       5.548964714610868,
+       7.7135739626227435
+      ],
+      "n_hold": 297,
+      "n_release": 287,
+      "wrong_stop_rate": 0.5766666666666667,
+      "release_capped_by_wrong_stop": 87
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.1,
+      "hold_mean_s": 2.917324414715719,
+      "release_mean_s": 6.4921799307958485,
+      "hold_sem": 0.06895035218835562,
+      "release_sem": 0.538374630095063,
+      "hold_ci": [
+       2.7740743866579876,
+       3.0454733333333337
+      ],
+      "release_ci": [
+       5.460063940479539,
+       7.594388912671234
+      ],
+      "n_hold": 299,
+      "n_release": 289,
+      "wrong_stop_rate": 0.5866666666666667,
+      "release_capped_by_wrong_stop": 86
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.2,
+      "hold_mean_s": 3.1471140939597313,
+      "release_mean_s": 6.6771724137931034,
+      "hold_sem": 0.07358821827958939,
+      "release_sem": 0.5426068280203084,
+      "hold_ci": [
+       2.9953992281879196,
+       3.2837073266219243
+      ],
+      "release_ci": [
+       5.640858532143508,
+       7.78364236111111
+      ],
+      "n_hold": 298,
+      "n_release": 290,
+      "wrong_stop_rate": 0.58,
+      "release_capped_by_wrong_stop": 87
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.3,
+      "hold_mean_s": 3.253825503355704,
+      "release_mean_s": 7.119656357388315,
+      "hold_sem": 0.07722717036217704,
+      "release_sem": 0.5480348887559715,
+      "hold_ci": [
+       3.0977597547380156,
+       3.397492406661661
+      ],
+      "release_ci": [
+       6.121135449673813,
+       8.243704533458448
+      ],
+      "n_hold": 298,
+      "n_release": 291,
+      "wrong_stop_rate": 0.5766666666666667,
+      "release_capped_by_wrong_stop": 91
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.4,
+      "hold_mean_s": 3.124481605351171,
+      "release_mean_s": 7.433680555555556,
+      "hold_sem": 0.08319096612405144,
+      "release_sem": 0.556891753562397,
+      "hold_ci": [
+       2.9587108695652176,
+       3.2788591557989717
+      ],
+      "release_ci": [
+       6.395390193965517,
+       8.579773060344827
+      ],
+      "n_hold": 299,
+      "n_release": 288,
+      "wrong_stop_rate": 0.57,
+      "release_capped_by_wrong_stop": 91
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.5,
+      "hold_mean_s": 2.9883612040133785,
+      "release_mean_s": 7.498137931034483,
+      "hold_sem": 0.0890570768031046,
+      "release_sem": 0.5538778931363354,
+      "hold_ci": [
+       2.8126778523489935,
+       3.151377224978115
+      ],
+      "release_ci": [
+       6.455559806275451,
+       8.633995757326113
+      ],
+      "n_hold": 299,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5766666666666667,
+      "release_capped_by_wrong_stop": 95
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.6,
+      "hold_mean_s": 2.767290969899666,
+      "release_mean_s": 8.013517241379311,
+      "hold_sem": 0.09216146782446574,
+      "release_sem": 0.5656658237569532,
+      "hold_ci": [
+       2.5863775362318844,
+       2.939269140682184
+      ],
+      "release_ci": [
+       6.9441994554037505,
+       9.191010793575815
+      ],
+      "n_hold": 299,
+      "n_release": 290,
+      "wrong_stop_rate": 0.58,
+      "release_capped_by_wrong_stop": 98
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.7,
+      "hold_mean_s": 2.491638795986622,
+      "release_mean_s": 8.157716262975779,
+      "hold_sem": 0.09661861193702545,
+      "release_sem": 0.5668736093884836,
+      "hold_ci": [
+       2.299493737373737,
+       2.671144297658863
+      ],
+      "release_ci": [
+       7.096012330683157,
+       9.276600783934706
+      ],
+      "n_hold": 299,
+      "n_release": 289,
+      "wrong_stop_rate": 0.5933333333333334,
+      "release_capped_by_wrong_stop": 101
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.8,
+      "hold_mean_s": 2.2207333333333334,
+      "release_mean_s": 8.515684931506849,
+      "hold_sem": 0.10069930147979438,
+      "release_sem": 0.571931766737766,
+      "hold_ci": [
+       2.0149266666666668,
+       2.3999449999999998
+      ],
+      "release_ci": [
+       7.474657528321562,
+       9.67061813392634
+      ],
+      "n_hold": 300,
+      "n_release": 292,
+      "wrong_stop_rate": 0.6,
+      "release_capped_by_wrong_stop": 100
+     },
+     {
+      "knob": "ring_gain",
+      "value": 0.9,
+      "hold_mean_s": 2.0040133779264218,
+      "release_mean_s": 9.32472602739726,
+      "hold_sem": 0.10424190576206843,
+      "release_sem": 0.5833180109760825,
+      "hold_ci": [
+       1.7968413210702339,
+       2.1890016666666665
+      ],
+      "release_ci": [
+       8.171348790886219,
+       10.483863258317024
+      ],
+      "n_hold": 299,
+      "n_release": 292,
+      "wrong_stop_rate": 0.5133333333333333,
+      "release_capped_by_wrong_stop": 97
+     },
+     {
+      "knob": "ring_gain",
+      "value": 1.0,
+      "hold_mean_s": 1.8505119453924916,
+      "release_mean_s": 9.736054421768708,
+      "hold_sem": 0.10510356375667844,
+      "release_sem": 0.5825448174462516,
+      "hold_ci": [
+       1.6535645976745532,
+       2.0426726179344525
+      ],
+      "release_ci": [
+       8.588754066332415,
+       10.864960761624234
+      ],
+      "n_hold": 293,
+      "n_release": 294,
+      "wrong_stop_rate": 0.37333333333333335,
+      "release_capped_by_wrong_stop": 74
+     },
+     {
+      "knob": "ring_gain",
+      "value": 1.25,
+      "hold_mean_s": 1.5818493150684934,
+      "release_mean_s": 10.248941979522183,
+      "hold_sem": 0.1033903713337067,
+      "release_sem": 0.5834661137866772,
+      "hold_ci": [
+       1.3886568965517243,
+       1.7717211707518876
+      ],
+      "release_ci": [
+       9.105989287207358,
+       11.372942794240984
+      ],
+      "n_hold": 292,
+      "n_release": 293,
+      "wrong_stop_rate": 0.36666666666666664,
+      "release_capped_by_wrong_stop": 71
+     },
+     {
+      "knob": "ring_gain",
+      "value": 1.5,
+      "hold_mean_s": 1.525068493150685,
+      "release_mean_s": 10.313898305084745,
+      "hold_sem": 0.1035302746253731,
+      "release_sem": 0.5814329880933798,
+      "hold_ci": [
+       1.3296878000809857,
+       1.7172631578947366
+      ],
+      "release_ci": [
+       9.205015826228912,
+       11.482619023732095
+      ],
+      "n_hold": 292,
+      "n_release": 295,
+      "wrong_stop_rate": 0.37666666666666665,
+      "release_capped_by_wrong_stop": 70
+     },
+     {
+      "knob": "ring_gain",
+      "value": 2.0,
+      "hold_mean_s": 1.4765277777777779,
+      "release_mean_s": 10.55349315068493,
+      "hold_sem": 0.10269707134006786,
+      "release_sem": 0.5839879387559564,
+      "hold_ci": [
+       1.2833378911195517,
+       1.6730356914212547
+      ],
+      "release_ci": [
+       9.389757817666508,
+       11.674713310580204
+      ],
+      "n_hold": 288,
+      "n_release": 292,
+      "wrong_stop_rate": 0.35,
+      "release_capped_by_wrong_stop": 61
+     },
+     {
+      "knob": "ring_gain",
+      "value": 2.5,
+      "hold_mean_s": 1.3577622377622378,
+      "release_mean_s": 10.45757785467128,
+      "hold_sem": 0.10176179035634654,
+      "release_sem": 0.5871704131290755,
+      "hold_ci": [
+       1.167084248455731,
+       1.5480052937221098
+      ],
+      "release_ci": [
+       9.321206896551724,
+       11.574855400696864
+      ],
+      "n_hold": 286,
+      "n_release": 289,
+      "wrong_stop_rate": 0.31,
+      "release_capped_by_wrong_stop": 53
+     },
+     {
+      "knob": "ring_gain",
+      "value": 3.0,
+      "hold_mean_s": 1.2925874125874126,
+      "release_mean_s": 10.595640138408305,
+      "hold_sem": 0.10083845070423729,
+      "release_sem": 0.5867617908078221,
+      "hold_ci": [
+       1.1030416666666665,
+       1.4806329501915707
+      ],
+      "release_ci": [
+       9.48089589041096,
+       11.735821554770318
+      ],
+      "n_hold": 286,
+      "n_release": 289,
+      "wrong_stop_rate": 0.3,
+      "release_capped_by_wrong_stop": 50
+     }
+    ],
+    "ring_static": [
+     {
+      "knob": null,
+      "value": null,
+      "hold_mean_s": 2.5786577181208057,
+      "release_mean_s": 6.510486111111111,
+      "hold_sem": 0.07220443084030254,
+      "release_sem": 0.5391809320602883,
+      "hold_ci": [
+       2.4336202237136466,
+       2.716105252525253
+      ],
+      "release_ci": [
+       5.468543779904306,
+       7.594217678515255
+      ],
+      "n_hold": 298,
+      "n_release": 288,
+      "wrong_stop_rate": 0.5766666666666667,
+      "release_capped_by_wrong_stop": 86
+     }
+    ],
+    "vote": [
+     {
+      "knob": null,
+      "value": null,
+      "hold_mean_s": 1.238989898989899,
+      "release_mean_s": 6.027708333333333,
+      "hold_sem": 0.08637434690312769,
+      "release_sem": 0.5379843506541392,
+      "hold_ci": [
+       1.0762461311717022,
+       1.4032421191783608
+      ],
+      "release_ci": [
+       4.999274938423646,
+       7.133586000485673
+      ],
+      "n_hold": 297,
+      "n_release": 288,
+      "wrong_stop_rate": 0.5533333333333333,
+      "release_capped_by_wrong_stop": 86
+     }
+    ],
+    "sum": [
+     {
+      "knob": null,
+      "value": null,
+      "hold_mean_s": 1.2376430976430979,
+      "release_mean_s": 6.8127272727272725,
+      "hold_sem": 0.08845544959550987,
+      "release_sem": 0.5409261558453684,
+      "hold_ci": [
+       1.0695952647278153,
+       1.4105522061491023
+      ],
+      "release_ci": [
+       5.811365336718077,
+       7.9155420273082076
+      ],
+      "n_hold": 297,
+      "n_release": 286,
+      "wrong_stop_rate": 0.5666666666666667,
+      "release_capped_by_wrong_stop": 90
+     }
+    ],
+    "accumulator": [
+     {
+      "knob": "tau_leak_s",
+      "value": 0.05,
+      "hold_mean_s": 1.2682154882154881,
+      "release_mean_s": 6.0703114186851215,
+      "hold_sem": 0.08785455464014551,
+      "release_sem": 0.5240231455620191,
+      "hold_ci": [
+       1.1021466182091182,
+       1.4383246875535012
+      ],
+      "release_ci": [
+       5.083110726643598,
+       7.1401519736842065
+      ],
+      "n_hold": 297,
+      "n_release": 289,
+      "wrong_stop_rate": 0.5366666666666666,
+      "release_capped_by_wrong_stop": 82
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 0.07670637023171953,
+      "hold_mean_s": 1.2748148148148146,
+      "release_mean_s": 6.253588850174216,
+      "hold_sem": 0.08730179497419362,
+      "release_sem": 0.5276709282072355,
+      "hold_ci": [
+       1.1114910399529965,
+       1.4432547547547545
+      ],
+      "release_ci": [
+       5.242501890289103,
+       7.344959062394847
+      ],
+      "n_hold": 297,
+      "n_release": 287,
+      "wrong_stop_rate": 0.5366666666666666,
+      "release_capped_by_wrong_stop": 83
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 0.11767734468251262,
+      "hold_mean_s": 1.2853872053872053,
+      "release_mean_s": 6.438885017421603,
+      "hold_sem": 0.08598291522776805,
+      "release_sem": 0.5304195872583672,
+      "hold_ci": [
+       1.1244923362960277,
+       1.4519503720951468
+      ],
+      "release_ci": [
+       5.458529780377888,
+       7.514557607323231
+      ],
+      "n_hold": 297,
+      "n_release": 287,
+      "wrong_stop_rate": 0.5366666666666666,
+      "release_capped_by_wrong_stop": 85
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 0.1805320393820497,
+      "hold_mean_s": 1.3039730639730638,
+      "release_mean_s": 6.471180555555555,
+      "hold_sem": 0.08492709947557543,
+      "release_sem": 0.5300279744744979,
+      "hold_ci": [
+       1.1436030950626381,
+       1.4716251836033714
+      ],
+      "release_ci": [
+       5.46087162178628,
+       7.526210815047022
+      ],
+      "n_hold": 297,
+      "n_release": 288,
+      "wrong_stop_rate": 0.5133333333333333,
+      "release_capped_by_wrong_stop": 86
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 0.2769591490305376,
+      "hold_mean_s": 1.346127946127946,
+      "release_mean_s": 6.686228373702422,
+      "hold_sem": 0.08323731141942824,
+      "release_sem": 0.5332728639500849,
+      "hold_ci": [
+       1.1890910417274583,
+       1.510814951314951
+      ],
+      "release_ci": [
+       5.688965132343053,
+       7.754315517241378
+      ],
+      "n_hold": 297,
+      "n_release": 289,
+      "wrong_stop_rate": 0.5266666666666666,
+      "release_capped_by_wrong_stop": 89
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 0.42489062049196813,
+      "hold_mean_s": 1.4124579124579124,
+      "release_mean_s": 6.883767123287671,
+      "hold_sem": 0.08095390222067404,
+      "release_sem": 0.5352188756839563,
+      "hold_ci": [
+       1.260063764000808,
+       1.5715359975594874
+      ],
+      "release_ci": [
+       5.894570821293951,
+       7.956855670103092
+      ],
+      "n_hold": 297,
+      "n_release": 292,
+      "wrong_stop_rate": 0.5366666666666666,
+      "release_capped_by_wrong_stop": 93
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 0.6518363448688389,
+      "hold_mean_s": 1.4984511784511783,
+      "release_mean_s": 6.95848275862069,
+      "hold_sem": 0.07828297219798419,
+      "release_sem": 0.5374389806628792,
+      "hold_ci": [
+       1.3496090254076603,
+       1.6500883838383835
+      ],
+      "release_ci": [
+       5.959764604810997,
+       8.01643039447308
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5466666666666666,
+      "release_capped_by_wrong_stop": 93
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 1.0,
+      "hold_mean_s": 1.6433670033670036,
+      "release_mean_s": 7.096996587030717,
+      "hold_sem": 0.07584284262465489,
+      "release_sem": 0.537145676660848,
+      "hold_ci": [
+       1.4993098772964548,
+       1.7891954048313112
+      ],
+      "release_ci": [
+       6.099140890902672,
+       8.156991891255737
+      ],
+      "n_hold": 297,
+      "n_release": 293,
+      "wrong_stop_rate": 0.54,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 1.5341274046343907,
+      "hold_mean_s": 1.8512457912457914,
+      "release_mean_s": 7.2495890410958905,
+      "hold_sem": 0.07543022722333563,
+      "release_sem": 0.5390774686024055,
+      "hold_ci": [
+       1.7076466002304929,
+       1.9932940604026845
+      ],
+      "release_ci": [
+       6.24096272927792,
+       8.337085140368416
+      ],
+      "n_hold": 297,
+      "n_release": 292,
+      "wrong_stop_rate": 0.5366666666666666,
+      "release_capped_by_wrong_stop": 97
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 2.3535468936502513,
+      "hold_mean_s": 2.1484459459459457,
+      "release_mean_s": 7.398762886597938,
+      "hold_sem": 0.08218961281402282,
+      "release_sem": 0.5390238141971951,
+      "hold_ci": [
+       1.9850844935844938,
+       2.3033175675675674
+      ],
+      "release_ci": [
+       6.3929723183391,
+       8.481821835866969
+      ],
+      "n_hold": 296,
+      "n_release": 291,
+      "wrong_stop_rate": 0.55,
+      "release_capped_by_wrong_stop": 97
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 3.6106407876409943,
+      "hold_mean_s": 2.4883108108108107,
+      "release_mean_s": 7.636206896551724,
+      "hold_sem": 0.0976917185826264,
+      "release_sem": 0.5419993136306123,
+      "hold_ci": [
+       2.2966607744107748,
+       2.6661729723580936
+      ],
+      "release_ci": [
+       6.630679010912468,
+       8.72582681819781
+      ],
+      "n_hold": 296,
+      "n_release": 290,
+      "wrong_stop_rate": 0.55,
+      "release_capped_by_wrong_stop": 99
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 5.539182980610754,
+      "hold_mean_s": 2.6589864864864863,
+      "release_mean_s": 7.841374570446736,
+      "hold_sem": 0.10769346665662954,
+      "release_sem": 0.5405918747033097,
+      "hold_ci": [
+       2.4438367003367008,
+       2.852985126834262
+      ],
+      "release_ci": [
+       6.806372728872207,
+       8.929878424163782
+      ],
+      "n_hold": 296,
+      "n_release": 291,
+      "wrong_stop_rate": 0.56,
+      "release_capped_by_wrong_stop": 100
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 8.49781240983936,
+      "hold_mean_s": 2.656621621621622,
+      "release_mean_s": 7.859106529209622,
+      "hold_sem": 0.11096371195555477,
+      "release_sem": 0.5392487358212091,
+      "hold_ci": [
+       2.4346017120356103,
+       2.854883680317764
+      ],
+      "release_ci": [
+       6.833703820779003,
+       8.92632513611615
+      ],
+      "n_hold": 296,
+      "n_release": 291,
+      "wrong_stop_rate": 0.5733333333333334,
+      "release_capped_by_wrong_stop": 99
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 13.03672689737678,
+      "hold_mean_s": 2.6192592592592594,
+      "release_mean_s": 8.014551724137933,
+      "hold_sem": 0.11379966503240396,
+      "release_sem": 0.5427597050302901,
+      "hold_ci": [
+       2.3946778573405285,
+       2.8222665790790793
+      ],
+      "release_ci": [
+       6.984711293825629,
+       9.120696864111498
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5833333333333334,
+      "release_capped_by_wrong_stop": 100
+     },
+     {
+      "knob": "tau_leak_s",
+      "value": 20.0,
+      "hold_mean_s": 2.545589225589226,
+      "release_mean_s": 8.061172413793102,
+      "hold_sem": 0.11429487820466569,
+      "release_sem": 0.5409392633004333,
+      "hold_ci": [
+       2.3189547773444583,
+       2.7503841603959045
+      ],
+      "release_ci": [
+       7.020995268383493,
+       9.165464803402482
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5766666666666667,
+      "release_capped_by_wrong_stop": 98
+     }
+    ],
+    "state_machine": [
+     {
+      "knob": "timeout_s",
+      "value": 0.2,
+      "hold_mean_s": 1.3375084175084175,
+      "release_mean_s": 6.968965517241379,
+      "hold_sem": 0.08480257404079328,
+      "release_sem": 0.543641090091042,
+      "hold_ci": [
+       1.1833321978170972,
+       1.5021597349332247
+      ],
+      "release_ci": [
+       5.929278350515465,
+       8.099156719061845
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.52,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 0.26447522542500196,
+      "hold_mean_s": 1.362289562289562,
+      "release_mean_s": 6.969310344827586,
+      "hold_sem": 0.08380124683539439,
+      "release_sem": 0.5436264811755427,
+      "hold_ci": [
+       1.207229705077531,
+       1.5258528856800668
+      ],
+      "release_ci": [
+       5.929286941580757,
+       8.099498134085994
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.52,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 0.3497357243180281,
+      "hold_mean_s": 1.3904377104377106,
+      "release_mean_s": 6.969655172413793,
+      "hold_sem": 0.08234878336947328,
+      "release_sem": 0.5436151521040536,
+      "hold_ci": [
+       1.2378432466557465,
+       1.5512964530315867
+      ],
+      "release_ci": [
+       5.9299656357388315,
+       8.099830898591115
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.52,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 0.462482172640934,
+      "hold_mean_s": 1.4428956228956227,
+      "release_mean_s": 6.969310344827586,
+      "hold_sem": 0.08039024337265835,
+      "release_sem": 0.5436297620782263,
+      "hold_ci": [
+       1.2945558517205,
+       1.599686817842858
+      ],
+      "release_ci": [
+       5.9299570446735395,
+       8.099489483566963
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.52,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 0.6115753843212784,
+      "hold_mean_s": 1.512837837837838,
+      "release_mean_s": 6.969793103448277,
+      "hold_sem": 0.07814024987876876,
+      "release_sem": 0.543614268667157,
+      "hold_ci": [
+       1.3647746298602463,
+       1.6658958256985799
+      ],
+      "release_ci": [
+       5.9309072164948455,
+       8.099955353874133
+      ],
+      "n_hold": 296,
+      "n_release": 290,
+      "wrong_stop_rate": 0.52,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 0.8087326881637615,
+      "hold_mean_s": 1.6049831649831652,
+      "release_mean_s": 6.894068965517242,
+      "hold_sem": 0.07534705268418784,
+      "release_sem": 0.5425253167966335,
+      "hold_ci": [
+       1.4630018427518425,
+       1.7529836654836657
+      ],
+      "release_ci": [
+       5.872383192301311,
+       8.039536882913643
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 95
+     },
+     {
+      "knob": "timeout_s",
+      "value": 1.069448800053393,
+      "hold_mean_s": 1.7389225589225588,
+      "release_mean_s": 6.894000000000001,
+      "hold_sem": 0.07177917801446204,
+      "release_sem": 0.5425272385036812,
+      "hold_ci": [
+       1.6038093645484948,
+       1.878672818791946
+      ],
+      "release_ci": [
+       5.872245603119296,
+       8.039469465784608
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 95
+     },
+     {
+      "knob": "timeout_s",
+      "value": 1.4142135623730951,
+      "hold_mean_s": 1.9232323232323234,
+      "release_mean_s": 6.893172413793104,
+      "hold_sem": 0.06827420244576772,
+      "release_sem": 0.5425628670498007,
+      "hold_ci": [
+       1.7937968442817436,
+       2.056312871118189
+      ],
+      "release_ci": [
+       5.872245603119296,
+       8.038112456726893
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 95
+     },
+     {
+      "knob": "timeout_s",
+      "value": 1.8701222535385968,
+      "hold_mean_s": 2.1824915824915827,
+      "release_mean_s": 6.904827586206897,
+      "hold_sem": 0.06445884638205597,
+      "release_sem": 0.5421764967637713,
+      "hold_ci": [
+       2.06026511196981,
+       2.3046810169491527
+      ],
+      "release_ci": [
+       5.88653046133129,
+       8.050165481344052
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 95
+     },
+     {
+      "knob": "timeout_s",
+      "value": 2.473005022884665,
+      "hold_mean_s": 2.54006734006734,
+      "release_mean_s": 6.835793103448276,
+      "hold_sem": 0.06336829135374895,
+      "release_sem": 0.5408039119644299,
+      "hold_ci": [
+       2.4193958711228007,
+       2.6630498512591085
+      ],
+      "release_ci": [
+       5.79607709020078,
+       7.950881919926565
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 94
+     },
+     {
+      "knob": "timeout_s",
+      "value": 3.27024280452292,
+      "hold_mean_s": 3.027138047138047,
+      "release_mean_s": 6.9045517241379315,
+      "hold_sem": 0.06825493584053006,
+      "release_sem": 0.542184259824971,
+      "hold_ci": [
+       2.8897918669508433,
+       3.1560557457882483
+      ],
+      "release_ci": [
+       5.886257447006106,
+       8.049896052360335
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 95
+     },
+     {
+      "knob": "timeout_s",
+      "value": 4.324491014603449,
+      "hold_mean_s": 3.6417508417508424,
+      "release_mean_s": 6.965103448275863,
+      "hold_sem": 0.08295317085248671,
+      "release_sem": 0.5438320066430661,
+      "hold_ci": [
+       3.4785218855218862,
+       3.798797370740306
+      ],
+      "release_ci": [
+       5.940444393619518,
+       8.11746209324915
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 5.718603679678211,
+      "hold_mean_s": 3.8225000000000002,
+      "release_mean_s": 6.965103448275863,
+      "hold_sem": 0.08825913454754178,
+      "release_sem": 0.5438320066430661,
+      "hold_ci": [
+       3.6396882959230417,
+       3.9861830394721873
+      ],
+      "release_ci": [
+       5.940444393619518,
+       8.11746209324915
+      ],
+      "n_hold": 296,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 7.562144986495705,
+      "hold_mean_s": 3.8220875420875418,
+      "release_mean_s": 6.965103448275863,
+      "hold_sem": 0.08796292950067224,
+      "release_sem": 0.5438320066430661,
+      "hold_ci": [
+       3.6398868243243245,
+       3.985912235415591
+      ],
+      "release_ci": [
+       5.940444393619518,
+       8.11746209324915
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 96
+     },
+     {
+      "knob": "timeout_s",
+      "value": 10.0,
+      "hold_mean_s": 3.8220875420875418,
+      "release_mean_s": 6.965103448275863,
+      "hold_sem": 0.08796292950067224,
+      "release_sem": 0.5438320066430661,
+      "hold_ci": [
+       3.6398868243243245,
+       3.985912235415591
+      ],
+      "release_ci": [
+       5.940444393619518,
+       8.11746209324915
+      ],
+      "n_hold": 297,
+      "n_release": 290,
+      "wrong_stop_rate": 0.5233333333333333,
+      "release_capped_by_wrong_stop": 96
+     }
+    ]
+   },
+   "delta": {
+    "state_machine": [
+     {
+      "ring_gain": 0.0,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.1,
+      "delta_s": 0.39686966236054566,
+      "lo": -0.1660945686606432,
+      "hi": 0.9213945003241598
+     },
+     {
+      "ring_gain": 0.2,
+      "delta_s": 0.23651321028078254,
+      "lo": -0.3950936696086389,
+      "hi": 0.8209561475950427
+     },
+     {
+      "ring_gain": 0.3,
+      "delta_s": -0.1978466838789945,
+      "lo": -0.698844381606184,
+      "hi": 0.27108298968609545
+     },
+     {
+      "ring_gain": 0.4,
+      "delta_s": -0.5217179661350748,
+      "lo": -1.1344458232597736,
+      "hi": 0.013229359202881708
+     },
+     {
+      "ring_gain": 0.5,
+      "delta_s": -0.5990602422044571,
+      "lo": -1.2456315119741994,
+      "hi": -0.03274090809758332
+     },
+     {
+      "ring_gain": 0.6,
+      "delta_s": -1.1456475150741001,
+      "lo": -1.9277934017343457,
+      "hi": -0.4489948641214328
+     },
+     {
+      "ring_gain": 0.7,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.8,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.9,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 1.0,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 1.25,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 1.5,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 2.0,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 2.5,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 3.0,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     }
+    ],
+    "accumulator": [
+     {
+      "ring_gain": 0.0,
+      "delta_s": 1.0598807212672057,
+      "lo": 0.4351995807994021,
+      "hi": 1.7065522642940392
+     },
+     {
+      "ring_gain": 0.1,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.2,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.3,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.4,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.5,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.6,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.7,
+      "delta_s": -0.5175088257812526,
+      "lo": -1.3620834292125337,
+      "hi": 0.3059876598449036
+     },
+     {
+      "ring_gain": 0.8,
+      "delta_s": -1.0664190100124715,
+      "lo": -1.9857182141699683,
+      "hi": -0.16568694588518368
+     },
+     {
+      "ring_gain": 0.9,
+      "delta_s": -1.9984582631822354,
+      "lo": -2.845685621177039,
+      "hi": -1.1996108675363977
+     },
+     {
+      "ring_gain": 1.0,
+      "delta_s": -2.4870040567965495,
+      "lo": -3.4210781496858016,
+      "hi": -1.6424993335289746
+     },
+     {
+      "ring_gain": 1.25,
+      "delta_s": -3.2107453926026395,
+      "lo": -4.200125169622435,
+      "hi": -2.275508723558832
+     },
+     {
+      "ring_gain": 1.5,
+      "delta_s": -3.329974114079671,
+      "lo": -4.339666494926783,
+      "hi": -2.376031501497853
+     },
+     {
+      "ring_gain": 2.0,
+      "delta_s": -3.6140586371919667,
+      "lo": -4.651462814227188,
+      "hi": -2.6682602307873107
+     },
+     {
+      "ring_gain": 2.5,
+      "delta_s": -3.736701138011539,
+      "lo": -4.824204533670253,
+      "hi": -2.687463589824141
+     },
+     {
+      "ring_gain": 3.0,
+      "delta_s": -4.144243750304931,
+      "lo": -5.095049476857814,
+      "hi": -2.8624878961957076
+     }
+    ]
+   },
+   "delta_posthoc": {
+    "state_machine": [
+     {
+      "ring_gain": 0.0,
+      "delta_s": 0.24136801634026295,
+      "lo": -0.2883142110053042,
+      "hi": 0.823056212612296
+     },
+     {
+      "ring_gain": 0.1,
+      "delta_s": 0.41237179334208296,
+      "lo": -0.13343983056335174,
+      "hi": 0.9869811163871358
+     },
+     {
+      "ring_gain": 0.2,
+      "delta_s": 0.28793103448275925,
+      "lo": -0.3240114662598564,
+      "hi": 0.891449270865398
+     },
+     {
+      "ring_gain": 0.3,
+      "delta_s": -0.15455290911245267,
+      "lo": -0.6666000145636936,
+      "hi": 0.3404242452712147
+     },
+     {
+      "ring_gain": 0.4,
+      "delta_s": -0.4685771072796934,
+      "lo": -1.0478291875748427,
+      "hi": 0.10279922256977123
+     },
+     {
+      "ring_gain": 0.5,
+      "delta_s": -0.5935862068965516,
+      "lo": -1.1864038906883319,
+      "hi": 0.015304417003768596
+     },
+     {
+      "ring_gain": 0.6,
+      "delta_s": -1.10896551724138,
+      "lo": -1.8672403615900377,
+      "hi": -0.3925777690341766
+     },
+     {
+      "ring_gain": 0.7,
+      "delta_s": -1.3219231595275023,
+      "lo": -2.200200742140258,
+      "hi": -0.4497092641668594
+     },
+     {
+      "ring_gain": 0.8,
+      "delta_s": -1.6798918280585724,
+      "lo": -2.643006557281027,
+      "hi": -0.7643970855973288
+     },
+     {
+      "ring_gain": 0.9,
+      "delta_s": -2.4889329239489832,
+      "lo": -3.3694943370359907,
+      "hi": -1.7089042711613016
+     },
+     {
+      "ring_gain": 1.0,
+      "delta_s": -2.9002613183204318,
+      "lo": -3.8361452568419847,
+      "hi": -2.02817743636154
+     },
+     {
+      "ring_gain": 1.25,
+      "delta_s": -3.4131488760739064,
+      "lo": -4.395576682152774,
+      "hi": -2.4812585140559786
+     },
+     {
+      "ring_gain": 1.5,
+      "delta_s": -3.4781052016364686,
+      "lo": -4.4834054945276405,
+      "hi": -2.55616869945233
+     },
+     {
+      "ring_gain": 2.0,
+      "delta_s": -3.7177000472366544,
+      "lo": -4.727425544501094,
+      "hi": -2.758265184256931
+     },
+     {
+      "ring_gain": 2.5,
+      "delta_s": -3.6217847512230037,
+      "lo": -4.653274130416112,
+      "hi": -2.6074360704717465
+     },
+     {
+      "ring_gain": 3.0,
+      "delta_s": -3.7598470349600284,
+      "lo": -4.797180836964339,
+      "hi": -2.71285991166817
+     }
+    ],
+    "accumulator": [
+     {
+      "ring_gain": 0.0,
+      "delta_s": 1.2469494833387227,
+      "lo": 0.5094396211305802,
+      "hi": 1.8127476087289796
+     },
+     {
+      "ring_gain": 0.1,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.2,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.3,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.4,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.5,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.6,
+      "delta_s": null,
+      "lo": null,
+      "hi": null
+     },
+     {
+      "ring_gain": 0.7,
+      "delta_s": -0.31634169252904254,
+      "lo": -1.3050491058278928,
+      "hi": 0.36054673796072445
+     },
+     {
+      "ring_gain": 0.8,
+      "delta_s": -0.8794780349551248,
+      "lo": -1.8627535880871515,
+      "hi": -0.014181797241895451
+     },
+     {
+      "ring_gain": 0.9,
+      "delta_s": -1.9259631407993218,
+      "lo": -2.785721753892988,
+      "hi": -1.1381344564362088
+     },
+     {
+      "ring_gain": 1.0,
+      "delta_s": -2.4864653806728176,
+      "lo": -3.365937232298203,
+      "hi": -1.5220507278760542
+     },
+     {
+      "ring_gain": 1.25,
+      "delta_s": -3.1519453924914655,
+      "lo": -4.174987301019237,
+      "hi": -2.2016641091396956
+     },
+     {
+      "ring_gain": 1.5,
+      "delta_s": -3.216901718054028,
+      "lo": -4.3102900507890425,
+      "hi": -2.3286081407806054
+     },
+     {
+      "ring_gain": 2.0,
+      "delta_s": -3.595010392064241,
+      "lo": -4.643763179774918,
+      "hi": -2.5809957469884353
+     },
+     {
+      "ring_gain": 2.5,
+      "delta_s": -3.5738107313836087,
+      "lo": -5.126466443211609,
+      "hi": -2.6119095228453277
+     },
+     {
+      "ring_gain": 3.0,
+      "delta_s": -4.12445958285275,
+      "lo": -5.418837979860459,
+      "hi": -2.9027594224271707
+     }
+    ]
+   },
+   "n_common_seeds": 243,
+   "common_seeds": {
+    "gate": "INCONCLUSIVE",
+    "dead_because": [],
+    "delta": {
+     "state_machine": [
+      {
+       "ring_gain": 0.0,
+       "delta_s": 0.3542404210911245,
+       "lo": -0.18056908014584722,
+       "hi": 0.8063337715867855
+      },
+      {
+       "ring_gain": 0.1,
+       "delta_s": 0.5131016285493786,
+       "lo": -0.016340236588658866,
+       "hi": 0.9789263386853744
+      },
+      {
+       "ring_gain": 0.2,
+       "delta_s": 0.37137508859324075,
+       "lo": -0.19925929868040168,
+       "hi": 0.9005642526774268
+      },
+      {
+       "ring_gain": 0.3,
+       "delta_s": -0.1427127374017596,
+       "lo": -0.5793847066290135,
+       "hi": 0.22054144730454103
+      },
+      {
+       "ring_gain": 0.4,
+       "delta_s": -0.38340297043292093,
+       "lo": -0.9393865601630244,
+       "hi": 0.08223608203043926
+      },
+      {
+       "ring_gain": 0.5,
+       "delta_s": -0.6024836077192557,
+       "lo": -1.1790599101744126,
+       "hi": -0.11445839703043931
+      },
+      {
+       "ring_gain": 0.6,
+       "delta_s": -1.1331035021903837,
+       "lo": -1.9159626447071643,
+       "hi": -0.4824626249065092
+      },
+      {
+       "ring_gain": 0.7,
+       "delta_s": -1.4606846348839007,
+       "lo": -2.4053456808229616,
+       "hi": -0.6447251884719335
+      },
+      {
+       "ring_gain": 0.8,
+       "delta_s": -1.5454802061134325,
+       "lo": -2.5762798316086633,
+       "hi": -0.6638042756351012
+      },
+      {
+       "ring_gain": 0.9,
+       "delta_s": -2.320199258490419,
+       "lo": -3.231618275646639,
+       "hi": -1.5137517699221814
+      },
+      {
+       "ring_gain": 1.0,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 1.25,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 1.5,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 2.0,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 2.5,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 3.0,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      }
+     ],
+     "accumulator": [
+      {
+       "ring_gain": 0.0,
+       "delta_s": 1.0423073466847894,
+       "lo": 0.4312177831627661,
+       "hi": 1.6468671549737752
+      },
+      {
+       "ring_gain": 0.1,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 0.2,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 0.3,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 0.4,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 0.5,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 0.6,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      },
+      {
+       "ring_gain": 0.7,
+       "delta_s": -0.7684151020722778,
+       "lo": -1.691948678928694,
+       "hi": 0.08439452056761985
+      },
+      {
+       "ring_gain": 0.8,
+       "delta_s": -1.0092211173722765,
+       "lo": -1.9759729625967035,
+       "hi": -0.06726771838934699
+      },
+      {
+       "ring_gain": 0.9,
+       "delta_s": -1.8653732576073194,
+       "lo": -2.747460094955117,
+       "hi": -1.0065699114890496
+      },
+      {
+       "ring_gain": 1.0,
+       "delta_s": -2.2466024165076854,
+       "lo": -3.2085886959044103,
+       "hi": -1.3326061472215074
+      },
+      {
+       "ring_gain": 1.25,
+       "delta_s": -2.8445333723548174,
+       "lo": -3.89484596647279,
+       "hi": -1.905632681223539
+      },
+      {
+       "ring_gain": 1.5,
+       "delta_s": -2.859374064575424,
+       "lo": -3.9244625388243053,
+       "hi": -1.9029402680351946
+      },
+      {
+       "ring_gain": 2.0,
+       "delta_s": -3.480959732639157,
+       "lo": -4.563506330002407,
+       "hi": -2.528869592547172
+      },
+      {
+       "ring_gain": 2.5,
+       "delta_s": -3.628386644219977,
+       "lo": -4.7367167302017315,
+       "hi": -2.5113063885584297
+      },
+      {
+       "ring_gain": 3.0,
+       "delta_s": null,
+       "lo": null,
+       "hi": null
+      }
+     ]
+    }
+   },
+   "git": "cbfcc02-dirty",
+   "row_git": [
+    "3f8a0cd",
+    "b8a1be2",
+    "ccef440",
+    "de9b1e7",
+    "de9b1e7-dirty",
+    "dee81f8",
+    "dee81f8-dirty"
+   ],
+   "n_units": 98
+  }
  },
  "stubbornness_frontier": {
   "ring": [
    {
     "gain_or_knob": 0.0,
-    "hold_s": 0.42460000000000014,
+    "hold_s": 2.503367003367004,
     "hold_ci": [
-     0.40808291525782847,
-     0.4411170847421718
+     2.361029966555184,
+     2.6428445945945946
     ],
-    "release_s": 1.215212121212121,
+    "release_s": 6.5944250871080135,
     "release_ci": [
-     1.184461384436363,
-     1.245962857987879
+     5.548964714610868,
+     7.7135739626227435
     ]
    },
    {
     "gain_or_knob": 0.1,
-    "hold_s": 1.4916,
+    "hold_s": 2.917324414715719,
     "hold_ci": [
-     1.4662050108747777,
-     1.5169949891252223
+     2.7740743866579876,
+     3.0454733333333337
     ],
-    "release_s": 1.8692121212121209,
+    "release_s": 6.4921799307958485,
     "release_ci": [
-     1.8307789056989323,
-     1.9076453367253094
+     5.460063940479539,
+     7.594388912671234
     ]
    },
    {
     "gain_or_knob": 0.2,
-    "hold_s": 2.247733333333333,
+    "hold_s": 3.1471140939597313,
     "hold_ci": [
-     2.2177695508679185,
-     2.277697115798748
+     2.9953992281879196,
+     3.2837073266219243
     ],
-    "release_s": 2.5762121212121207,
+    "release_s": 6.6771724137931034,
     "release_ci": [
-     2.5294140770885574,
-     2.623010165335684
+     5.640858532143508,
+     7.78364236111111
     ]
    },
    {
     "gain_or_knob": 0.3,
-    "hold_s": 2.9888666666666666,
+    "hold_s": 3.253825503355704,
     "hold_ci": [
-     2.948975733763313,
-     3.02875759957002
+     3.0977597547380156,
+     3.397492406661661
     ],
-    "release_s": 3.6038121212121217,
+    "release_s": 7.119656357388315,
     "release_ci": [
-     3.5292726987986867,
-     3.6783515436255567
+     6.121135449673813,
+     8.243704533458448
     ]
    },
    {
     "gain_or_knob": 0.4,
-    "hold_s": 3.8924000000000003,
+    "hold_s": 3.124481605351171,
     "hold_ci": [
-     3.830783980177154,
-     3.9540160198228467
+     2.9587108695652176,
+     3.2788591557989717
     ],
-    "release_s": 5.307145454545455,
+    "release_s": 7.433680555555556,
     "release_ci": [
-     5.170115830693407,
-     5.444175078397502
+     6.395390193965517,
+     8.579773060344827
     ]
    },
    {
     "gain_or_knob": 0.5,
-    "hold_s": 5.089933333333334,
+    "hold_s": 2.9883612040133785,
     "hold_ci": [
-     4.983166075775039,
-     5.196700590891628
+     2.8126778523489935,
+     3.151377224978115
     ],
-    "release_s": 8.87761212121212,
+    "release_s": 7.498137931034483,
     "release_ci": [
-     8.63877360725414,
-     9.1164506351701
+     6.455559806275451,
+     8.633995757326113
     ]
    },
    {
     "gain_or_knob": 0.6,
-    "hold_s": 6.691933333333334,
+    "hold_s": 2.767290969899666,
     "hold_ci": [
-     6.504125361331544,
-     6.8797413053351235
+     2.5863775362318844,
+     2.939269140682184
     ],
-    "release_s": 18.226709090909093,
+    "release_s": 8.013517241379311,
     "release_ci": [
-     17.931854689506903,
-     18.521563492311284
+     6.9441994554037505,
+     9.191010793575815
     ]
    },
    {
     "gain_or_knob": 0.7,
-    "hold_s": 8.0304,
+    "hold_s": 2.491638795986622,
     "hold_ci": [
-     7.801846464895025,
-     8.258953535104975
+     2.299493737373737,
+     2.671144297658863
     ],
-    "release_s": 20.0,
+    "release_s": 8.157716262975779,
     "release_ci": [
-     20.0,
-     20.0
+     7.096012330683157,
+     9.276600783934706
     ]
    },
    {
     "gain_or_knob": 0.8,
-    "hold_s": 8.589333333333334,
+    "hold_s": 2.2207333333333334,
     "hold_ci": [
-     8.389393409027118,
-     8.78927325763955
+     2.0149266666666668,
+     2.3999449999999998
     ],
-    "release_s": 20.0,
+    "release_s": 8.515684931506849,
     "release_ci": [
-     20.0,
-     20.0
+     7.474657528321562,
+     9.67061813392634
     ]
    },
    {
     "gain_or_knob": 0.9,
-    "hold_s": 8.995933333333333,
+    "hold_s": 2.0040133779264218,
     "hold_ci": [
-     8.830448261061996,
-     9.161418405604671
+     1.7968413210702339,
+     2.1890016666666665
     ],
-    "release_s": 20.0,
+    "release_s": 9.32472602739726,
     "release_ci": [
-     20.0,
-     20.0
+     8.171348790886219,
+     10.483863258317024
     ]
    },
    {
     "gain_or_knob": 1.0,
-    "hold_s": 9.202133333333334,
+    "hold_s": 1.8505119453924916,
     "hold_ci": [
-     9.055151158256148,
-     9.34911550841052
+     1.6535645976745532,
+     2.0426726179344525
     ],
-    "release_s": 20.0,
+    "release_s": 9.736054421768708,
     "release_ci": [
-     20.0,
-     20.0
+     8.588754066332415,
+     10.864960761624234
     ]
    },
    {
     "gain_or_knob": 1.25,
-    "hold_s": 9.282266666666667,
+    "hold_s": 1.5818493150684934,
     "hold_ci": [
-     9.12210904270825,
-     9.442424290625084
+     1.3886568965517243,
+     1.7717211707518876
     ],
-    "release_s": 20.0,
+    "release_s": 10.248941979522183,
     "release_ci": [
-     20.0,
-     20.0
+     9.105989287207358,
+     11.372942794240984
     ]
    },
    {
     "gain_or_knob": 1.5,
-    "hold_s": 9.301066666666667,
+    "hold_s": 1.525068493150685,
     "hold_ci": [
-     9.144698542240102,
-     9.457434791093233
+     1.3296878000809857,
+     1.7172631578947366
     ],
-    "release_s": 20.0,
+    "release_s": 10.313898305084745,
     "release_ci": [
-     20.0,
-     20.0
+     9.205015826228912,
+     11.482619023732095
     ]
    },
    {
     "gain_or_knob": 2.0,
-    "hold_s": 9.514,
+    "hold_s": 1.4765277777777779,
     "hold_ci": [
-     9.404664299242452,
-     9.623335700757547
+     1.2833378911195517,
+     1.6730356914212547
     ],
-    "release_s": 20.0,
+    "release_s": 10.55349315068493,
     "release_ci": [
-     20.0,
-     20.0
+     9.389757817666508,
+     11.674713310580204
     ]
    },
    {
     "gain_or_knob": 2.5,
-    "hold_s": 9.453600000000002,
+    "hold_s": 1.3577622377622378,
     "hold_ci": [
-     9.324596229964033,
-     9.58260377003597
+     1.167084248455731,
+     1.5480052937221098
     ],
-    "release_s": 20.0,
+    "release_s": 10.45757785467128,
     "release_ci": [
-     20.0,
-     20.0
+     9.321206896551724,
+     11.574855400696864
     ]
    },
    {
     "gain_or_knob": 3.0,
-    "hold_s": 9.104266666666666,
+    "hold_s": 1.2925874125874126,
     "hold_ci": [
-     8.899147309401009,
-     9.309386023932323
+     1.1030416666666665,
+     1.4806329501915707
     ],
-    "release_s": 20.0,
+    "release_s": 10.595640138408305,
     "release_ci": [
-     20.0,
-     20.0
+     9.48089589041096,
+     11.735821554770318
     ]
    }
   ],
   "ring_static": [
    {
     "gain_or_knob": null,
-    "hold_s": 0.13886666666666678,
+    "hold_s": 2.5786577181208057,
     "hold_ci": [
-     0.12342060475736162,
-     0.15431272857597195
+     2.4336202237136466,
+     2.716105252525253
     ],
-    "release_s": 1.4261454545454542,
+    "release_s": 6.510486111111111,
     "release_ci": [
-     1.3853474170542546,
-     1.4669434920366538
+     5.468543779904306,
+     7.594217678515255
     ]
    }
   ],
   "vote": [
    {
     "gain_or_knob": null,
-    "hold_s": 0.0,
+    "hold_s": 1.238989898989899,
     "hold_ci": [
-     0.0,
-     0.0
+     1.0762461311717022,
+     1.4032421191783608
     ],
-    "release_s": 0.016478787878787853,
+    "release_s": 6.027708333333333,
     "release_ci": [
-     0.011854044151792881,
-     0.021103531605782825
+     4.999274938423646,
+     7.133586000485673
     ]
    }
   ],
   "sum": [
    {
     "gain_or_knob": null,
-    "hold_s": 0.0,
+    "hold_s": 1.2376430976430979,
     "hold_ci": [
-     0.0,
-     0.0
+     1.0695952647278153,
+     1.4105522061491023
     ],
-    "release_s": 3.0942909090909088,
+    "release_s": 6.8127272727272725,
     "release_ci": [
-     2.341200283835529,
-     3.8473815343462885
+     5.811365336718077,
+     7.9155420273082076
     ]
    }
   ],
   "accumulator": [
    {
     "gain_or_knob": 0.05,
-    "hold_s": 0.1588000000000001,
+    "hold_s": 1.2682154882154881,
     "hold_ci": [
-     0.1582625265557108,
-     0.15933747344428942
+     1.1021466182091182,
+     1.4383246875535012
     ],
-    "release_s": 0.0,
+    "release_s": 6.0703114186851215,
     "release_ci": [
-     0.0,
-     0.0
+     5.083110726643598,
+     7.1401519736842065
     ]
    },
    {
     "gain_or_knob": 0.07670637023171953,
-    "hold_s": 0.24000000000000024,
+    "hold_s": 1.2748148148148146,
     "hold_ci": [
-     0.24000000000000024,
-     0.24000000000000024
+     1.1114910399529965,
+     1.4432547547547545
     ],
-    "release_s": 0.0,
+    "release_s": 6.253588850174216,
     "release_ci": [
-     0.0,
-     0.0
+     5.242501890289103,
+     7.344959062394847
     ]
    },
    {
     "gain_or_knob": 0.11767734468251262,
-    "hold_s": 0.3777999999999999,
+    "hold_s": 1.2853872053872053,
     "hold_ci": [
-     0.37709187682940887,
-     0.37850812317059096
+     1.1244923362960277,
+     1.4519503720951468
     ],
-    "release_s": 0.0,
+    "release_s": 6.438885017421603,
     "release_ci": [
-     0.0,
-     0.0
+     5.458529780377888,
+     7.514557607323231
     ]
    },
    {
     "gain_or_knob": 0.1805320393820497,
-    "hold_s": 0.5798666666666668,
+    "hold_s": 1.3039730639730638,
     "hold_ci": [
-     0.5796824964773738,
-     0.5800508368559597
+     1.1436030950626381,
+     1.4716251836033714
     ],
-    "release_s": 0.0,
+    "release_s": 6.471180555555555,
     "release_ci": [
-     0.0,
-     0.0
+     5.46087162178628,
+     7.526210815047022
     ]
    },
    {
     "gain_or_knob": 0.2769591490305376,
-    "hold_s": 0.8955333333333336,
+    "hold_s": 1.346127946127946,
     "hold_ci": [
-     0.8945907677749507,
-     0.8964758988917165
+     1.1890910417274583,
+     1.510814951314951
     ],
-    "release_s": 0.0,
+    "release_s": 6.686228373702422,
     "release_ci": [
-     0.0,
-     0.0
+     5.688965132343053,
+     7.754315517241378
     ]
    },
    {
     "gain_or_knob": 0.42489062049196813,
-    "hold_s": 1.377333333333333,
+    "hold_s": 1.4124579124579124,
     "hold_ci": [
-     1.376500081803015,
-     1.378166584863651
+     1.260063764000808,
+     1.5715359975594874
     ],
-    "release_s": 0.0,
+    "release_s": 6.883767123287671,
     "release_ci": [
-     0.0,
-     0.0
+     5.894570821293951,
+     7.956855670103092
     ]
    },
    {
     "gain_or_knob": 0.6518363448688389,
-    "hold_s": 2.116600000000001,
+    "hold_s": 1.4984511784511783,
     "hold_ci": [
-     2.1155358279930674,
-     2.1176641720069345
+     1.3496090254076603,
+     1.6500883838383835
     ],
-    "release_s": 0.0019212121212121176,
+    "release_s": 6.95848275862069,
     "release_ci": [
-     0.0009425422094100186,
-     0.0028998820330142167
+     5.959764604810997,
+     8.01643039447308
     ]
    },
    {
     "gain_or_knob": 1.0,
-    "hold_s": 3.2373333333333334,
+    "hold_s": 1.6433670033670036,
     "hold_ci": [
-     3.2359838386006596,
-     3.238682828066007
+     1.4993098772964548,
+     1.7891954048313112
     ],
-    "release_s": 0.23647878787878748,
+    "release_s": 7.096996587030717,
     "release_ci": [
-     0.23208606462611114,
-     0.24087151113146382
+     6.099140890902672,
+     8.156991891255737
     ]
    },
    {
     "gain_or_knob": 1.5341274046343907,
-    "hold_s": 4.887333333333334,
+    "hold_s": 1.8512457912457914,
     "hold_ci": [
-     4.885724163423831,
-     4.888942503242838
+     1.7076466002304929,
+     1.9932940604026845
     ],
-    "release_s": 0.6302121212121208,
+    "release_s": 7.2495890410958905,
     "release_ci": [
-     0.6265142609336428,
-     0.6339099814905987
+     6.24096272927792,
+     8.337085140368416
     ]
    },
    {
     "gain_or_knob": 2.3535468936502513,
-    "hold_s": 7.222066666666667,
+    "hold_s": 2.1484459459459457,
     "hold_ci": [
-     7.219920442297159,
-     7.224212891036174
+     1.9850844935844938,
+     2.3033175675675674
     ],
-    "release_s": 1.107612121212121,
+    "release_s": 7.398762886597938,
     "release_ci": [
-     1.1040915819693218,
-     1.1111326604549203
+     6.3929723183391,
+     8.481821835866969
     ]
    },
    {
     "gain_or_knob": 3.6106407876409943,
-    "hold_s": 10.0,
+    "hold_s": 2.4883108108108107,
     "hold_ci": [
-     10.0,
-     10.0
+     2.2966607744107748,
+     2.6661729723580936
     ],
-    "release_s": 1.6354121212121209,
+    "release_s": 7.636206896551724,
     "release_ci": [
-     1.632105420216155,
-     1.6387188222080868
+     6.630679010912468,
+     8.72582681819781
     ]
    },
    {
     "gain_or_knob": 5.539182980610754,
-    "hold_s": 10.0,
+    "hold_s": 2.6589864864864863,
     "hold_ci": [
-     10.0,
-     10.0
+     2.4438367003367008,
+     2.852985126834262
     ],
-    "release_s": 2.2465454545454544,
+    "release_s": 7.841374570446736,
     "release_ci": [
-     2.242368283299131,
-     2.2507226257917776
+     6.806372728872207,
+     8.929878424163782
     ]
    },
    {
     "gain_or_knob": 8.49781240983936,
-    "hold_s": 10.0,
+    "hold_s": 2.656621621621622,
     "hold_ci": [
-     10.0,
-     10.0
+     2.4346017120356103,
+     2.854883680317764
     ],
-    "release_s": 2.8919454545454544,
+    "release_s": 7.859106529209622,
     "release_ci": [
-     2.886878224241627,
-     2.897012684849282
+     6.833703820779003,
+     8.92632513611615
     ]
    },
    {
     "gain_or_knob": 13.03672689737678,
-    "hold_s": 10.0,
+    "hold_s": 2.6192592592592594,
     "hold_ci": [
-     10.0,
-     10.0
+     2.3946778573405285,
+     2.8222665790790793
     ],
-    "release_s": 3.499878787878788,
+    "release_s": 8.014551724137933,
     "release_ci": [
-     3.493999379886809,
-     3.5057581958707664
+     6.984711293825629,
+     9.120696864111498
     ]
    },
    {
     "gain_or_knob": 20.0,
-    "hold_s": 10.0,
+    "hold_s": 2.545589225589226,
     "hold_ci": [
-     10.0,
-     10.0
+     2.3189547773444583,
+     2.7503841603959045
     ],
-    "release_s": 4.020278787878788,
+    "release_s": 8.061172413793102,
     "release_ci": [
-     4.013578696023587,
-     4.026978879733989
+     7.020995268383493,
+     9.165464803402482
     ]
    }
   ],
   "state_machine": [
    {
     "gain_or_knob": 0.2,
-    "hold_s": 0.20000000000000018,
+    "hold_s": 1.3375084175084175,
     "hold_ci": [
-     0.20000000000000018,
-     0.20000000000000018
+     1.1833321978170972,
+     1.5021597349332247
     ],
-    "release_s": 0.0,
+    "release_s": 6.968965517241379,
     "release_ci": [
-     0.0,
-     0.0
+     5.929278350515465,
+     8.099156719061845
     ]
    },
    {
     "gain_or_knob": 0.26447522542500196,
-    "hold_s": 0.2599999999999998,
+    "hold_s": 1.362289562289562,
     "hold_ci": [
-     0.2599999999999998,
-     0.2599999999999998
+     1.207229705077531,
+     1.5258528856800668
     ],
-    "release_s": 0.0,
+    "release_s": 6.969310344827586,
     "release_ci": [
-     0.0,
-     0.0
+     5.929286941580757,
+     8.099498134085994
     ]
    },
    {
     "gain_or_knob": 0.3497357243180281,
-    "hold_s": 0.33999999999999986,
+    "hold_s": 1.3904377104377106,
     "hold_ci": [
-     0.33999999999999986,
-     0.33999999999999986
+     1.2378432466557465,
+     1.5512964530315867
     ],
-    "release_s": 0.0,
+    "release_s": 6.969655172413793,
     "release_ci": [
-     0.0,
-     0.0
+     5.9299656357388315,
+     8.099830898591115
     ]
    },
    {
     "gain_or_knob": 0.462482172640934,
-    "hold_s": 0.46,
+    "hold_s": 1.4428956228956227,
     "hold_ci": [
-     0.46,
-     0.46
+     1.2945558517205,
+     1.599686817842858
     ],
-    "release_s": 0.0,
+    "release_s": 6.969310344827586,
     "release_ci": [
-     0.0,
-     0.0
+     5.9299570446735395,
+     8.099489483566963
     ]
    },
    {
     "gain_or_knob": 0.6115753843212784,
-    "hold_s": 0.6000000000000005,
+    "hold_s": 1.512837837837838,
     "hold_ci": [
-     0.6000000000000005,
-     0.6000000000000005
+     1.3647746298602463,
+     1.6658958256985799
     ],
-    "release_s": 0.0,
+    "release_s": 6.969793103448277,
     "release_ci": [
-     0.0,
-     0.0
+     5.9309072164948455,
+     8.099955353874133
     ]
    },
    {
     "gain_or_knob": 0.8087326881637615,
-    "hold_s": 0.7999999999999998,
+    "hold_s": 1.6049831649831652,
     "hold_ci": [
-     0.7999999999999998,
-     0.7999999999999998
+     1.4630018427518425,
+     1.7529836654836657
     ],
-    "release_s": 0.0,
+    "release_s": 6.894068965517242,
     "release_ci": [
-     0.0,
-     0.0
+     5.872383192301311,
+     8.039536882913643
     ]
    },
    {
     "gain_or_knob": 1.069448800053393,
-    "hold_s": 1.0600000000000003,
+    "hold_s": 1.7389225589225588,
     "hold_ci": [
-     1.0600000000000003,
-     1.0600000000000003
+     1.6038093645484948,
+     1.878672818791946
     ],
-    "release_s": 0.0,
+    "release_s": 6.894000000000001,
     "release_ci": [
-     0.0,
-     0.0
+     5.872245603119296,
+     8.039469465784608
     ]
    },
    {
     "gain_or_knob": 1.4142135623730951,
-    "hold_s": 1.4000000000000004,
+    "hold_s": 1.9232323232323234,
     "hold_ci": [
-     1.4000000000000004,
-     1.4000000000000004
+     1.7937968442817436,
+     2.056312871118189
     ],
-    "release_s": 0.0,
+    "release_s": 6.893172413793104,
     "release_ci": [
-     0.0,
-     0.0
+     5.872245603119296,
+     8.038112456726893
     ]
    },
    {
     "gain_or_knob": 1.8701222535385968,
-    "hold_s": 1.86,
+    "hold_s": 2.1824915824915827,
     "hold_ci": [
-     1.86,
-     1.86
+     2.06026511196981,
+     2.3046810169491527
     ],
-    "release_s": 0.0,
+    "release_s": 6.904827586206897,
     "release_ci": [
-     0.0,
-     0.0
+     5.88653046133129,
+     8.050165481344052
     ]
    },
    {
     "gain_or_knob": 2.473005022884665,
-    "hold_s": 2.460000000000001,
+    "hold_s": 2.54006734006734,
     "hold_ci": [
-     2.460000000000001,
-     2.460000000000001
+     2.4193958711228007,
+     2.6630498512591085
     ],
-    "release_s": 0.0,
+    "release_s": 6.835793103448276,
     "release_ci": [
-     0.0,
-     0.0
+     5.79607709020078,
+     7.950881919926565
     ]
    },
    {
     "gain_or_knob": 3.27024280452292,
-    "hold_s": 3.2599999999999985,
+    "hold_s": 3.027138047138047,
     "hold_ci": [
-     3.2599999999999985,
-     3.2599999999999985
+     2.8897918669508433,
+     3.1560557457882483
     ],
-    "release_s": 0.0,
+    "release_s": 6.9045517241379315,
     "release_ci": [
-     0.0,
-     0.0
+     5.886257447006106,
+     8.049896052360335
     ]
    },
    {
     "gain_or_knob": 4.324491014603449,
-    "hold_s": 4.32,
+    "hold_s": 3.6417508417508424,
     "hold_ci": [
-     4.32,
-     4.32
+     3.4785218855218862,
+     3.798797370740306
     ],
-    "release_s": 0.0,
+    "release_s": 6.965103448275863,
     "release_ci": [
-     0.0,
-     0.0
+     5.940444393619518,
+     8.11746209324915
     ]
    },
    {
     "gain_or_knob": 5.718603679678211,
-    "hold_s": 5.700000000000002,
+    "hold_s": 3.8225000000000002,
     "hold_ci": [
-     5.700000000000002,
-     5.700000000000002
+     3.6396882959230417,
+     3.9861830394721873
     ],
-    "release_s": 0.0,
+    "release_s": 6.965103448275863,
     "release_ci": [
-     0.0,
-     0.0
+     5.940444393619518,
+     8.11746209324915
     ]
    },
    {
     "gain_or_knob": 7.562144986495705,
-    "hold_s": 7.56,
+    "hold_s": 3.8220875420875418,
     "hold_ci": [
-     7.56,
-     7.56
+     3.6398868243243245,
+     3.985912235415591
     ],
-    "release_s": 0.0,
+    "release_s": 6.965103448275863,
     "release_ci": [
-     0.0,
-     0.0
+     5.940444393619518,
+     8.11746209324915
     ]
    },
    {
     "gain_or_knob": 10.0,
-    "hold_s": 10.0,
+    "hold_s": 3.8220875420875418,
     "hold_ci": [
-     10.0,
-     10.0
+     3.6398868243243245,
+     3.985912235415591
     ],
-    "release_s": 0.0,
+    "release_s": 6.965103448275863,
     "release_ci": [
-     0.0,
-     0.0
+     5.940444393619518,
+     8.11746209324915
     ]
    }
   ]
  },
- "stubbornness_frontier_from": "results/kt3.json (2D)",
+ "stubbornness_frontier_from": "results/mission_h3.json (3D)",
  "h1_success_vs_severity": {
   "ring": [
    {
@@ -11375,6 +13002,7 @@
   "kt2.posthoc_permutation.n_perm": "results/kt2.json:posthoc_permutation/n_perm",
   "kt2.git": "results/kt2.json:provenance/git",
   "kt2.n_runs": "derived: rows of results/runs/kt2_test.parquet",
+  "kt2.row_git": "derived: distinct git stamps of the rows in results/runs/kt2_test.parquet",
   "kt2.fault_auc_ci.ring.compass_half": "derived: results/runs/kt2_test.parquet, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), 95% percentile bootstrap over seeds (2,000, seed 0)",
   "kt2.fault_auc_ci.ring.decoy": "derived: results/runs/kt2_test.parquet, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), 95% percentile bootstrap over seeds (2,000, seed 0)",
   "kt2.fault_auc_ci.ring.eye_columns": "derived: results/runs/kt2_test.parquet, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), 95% percentile bootstrap over seeds (2,000, seed 0)",
@@ -14265,6 +15893,7 @@
   "mission.h1.h1_rule": "results/mission_h1.json:h1_rule",
   "mission.h1.git": "results/mission_h1.json:provenance/git",
   "mission.h1.n_runs": "derived: rows of results/runs/mission_test.parquet",
+  "mission.h1.row_git": "derived: distinct git stamps of the rows in results/runs/mission_test.parquet",
   "mission.h1.fault_auc_ci.ring.compass_half": "derived: results/runs/mission_test.parquet, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), 95% percentile bootstrap over seeds (2,000, seed 0)",
   "mission.h1.fault_auc_ci.ring.decoy": "derived: results/runs/mission_test.parquet, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), 95% percentile bootstrap over seeds (2,000, seed 0)",
   "mission.h1.fault_auc_ci.ring.eye_columns": "derived: results/runs/mission_test.parquet, per-seed fault AUC (trapezoid over level/n_levels, no-fault at 0), 95% percentile bootstrap over seeds (2,000, seed 0)",
@@ -14313,13 +15942,997 @@
   "mission.h1.aggregate_curve.sum": "derived: results/runs/mission_test.parquet, per seed mean over faults of success interpolated at severity [0.0, 0.25, 0.5, 0.75, 1.0] (x = level/n_levels), mean over seeds, 95% percentile bootstrap over seeds (2,000, seed 0)",
   "mission.h1.aggregate_curve.accumulator": "derived: results/runs/mission_test.parquet, per seed mean over faults of success interpolated at severity [0.0, 0.25, 0.5, 0.75, 1.0] (x = level/n_levels), mean over seeds, 95% percentile bootstrap over seeds (2,000, seed 0)",
   "mission.h1.aggregate_curve.state_machine": "derived: results/runs/mission_test.parquet, per seed mean over faults of success interpolated at severity [0.0, 0.25, 0.5, 0.75, 1.0] (x = level/n_levels), mean over seeds, 95% percentile bootstrap over seeds (2,000, seed 0)",
-  "mission.h3": "derived: results/mission_h3.json missing (pending)",
-  "stubbornness_frontier.ring": "derived: copy of kt3.points.ring (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
-  "stubbornness_frontier.ring_static": "derived: copy of kt3.points.ring_static (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
-  "stubbornness_frontier.vote": "derived: copy of kt3.points.vote (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
-  "stubbornness_frontier.sum": "derived: copy of kt3.points.sum (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
-  "stubbornness_frontier.accumulator": "derived: copy of kt3.points.accumulator (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
-  "stubbornness_frontier.state_machine": "derived: copy of kt3.points.state_machine (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
+  "mission.h3.t_cross_s": "results/mission_h3.json:t_cross_s",
+  "mission.h3.gate": "results/mission_h3.json:gate",
+  "mission.h3.dead_because": "results/mission_h3.json:dead_because",
+  "mission.h3.posthoc_gate": "results/mission_h3.json:posthoc_dominance_frontier/gate",
+  "mission.h3.posthoc_dead_because": "results/mission_h3.json:posthoc_dominance_frontier/dead_because",
+  "mission.h3.spearman.hold": "results/mission_h3.json:spearman_vs_gain/hold",
+  "mission.h3.spearman.release": "results/mission_h3.json:spearman_vs_gain/release",
+  "mission.h3.points.ring.0.knob": "results/mission_h3.json:points/ring/0/knob",
+  "mission.h3.points.ring.0.value": "results/mission_h3.json:points/ring/0/value",
+  "mission.h3.points.ring.0.hold_mean_s": "results/mission_h3.json:points/ring/0/hold_mean_s",
+  "mission.h3.points.ring.0.release_mean_s": "results/mission_h3.json:points/ring/0/release_mean_s",
+  "mission.h3.points.ring.0.hold_sem": "results/mission_h3.json:points/ring/0/hold_sem",
+  "mission.h3.points.ring.0.release_sem": "results/mission_h3.json:points/ring/0/release_sem",
+  "mission.h3.points.ring.0.hold_ci": "results/mission_h3.json:points/ring/0/hold_ci",
+  "mission.h3.points.ring.0.release_ci": "results/mission_h3.json:points/ring/0/release_ci",
+  "mission.h3.points.ring.0.n_hold": "results/mission_h3.json:points/ring/0/n_hold",
+  "mission.h3.points.ring.0.n_release": "results/mission_h3.json:points/ring/0/n_release",
+  "mission.h3.points.ring.0.wrong_stop_rate": "results/mission_h3.json:points/ring/0/wrong_stop_rate",
+  "mission.h3.points.ring.0.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/0/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.1.knob": "results/mission_h3.json:points/ring/1/knob",
+  "mission.h3.points.ring.1.value": "results/mission_h3.json:points/ring/1/value",
+  "mission.h3.points.ring.1.hold_mean_s": "results/mission_h3.json:points/ring/1/hold_mean_s",
+  "mission.h3.points.ring.1.release_mean_s": "results/mission_h3.json:points/ring/1/release_mean_s",
+  "mission.h3.points.ring.1.hold_sem": "results/mission_h3.json:points/ring/1/hold_sem",
+  "mission.h3.points.ring.1.release_sem": "results/mission_h3.json:points/ring/1/release_sem",
+  "mission.h3.points.ring.1.hold_ci": "results/mission_h3.json:points/ring/1/hold_ci",
+  "mission.h3.points.ring.1.release_ci": "results/mission_h3.json:points/ring/1/release_ci",
+  "mission.h3.points.ring.1.n_hold": "results/mission_h3.json:points/ring/1/n_hold",
+  "mission.h3.points.ring.1.n_release": "results/mission_h3.json:points/ring/1/n_release",
+  "mission.h3.points.ring.1.wrong_stop_rate": "results/mission_h3.json:points/ring/1/wrong_stop_rate",
+  "mission.h3.points.ring.1.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/1/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.2.knob": "results/mission_h3.json:points/ring/2/knob",
+  "mission.h3.points.ring.2.value": "results/mission_h3.json:points/ring/2/value",
+  "mission.h3.points.ring.2.hold_mean_s": "results/mission_h3.json:points/ring/2/hold_mean_s",
+  "mission.h3.points.ring.2.release_mean_s": "results/mission_h3.json:points/ring/2/release_mean_s",
+  "mission.h3.points.ring.2.hold_sem": "results/mission_h3.json:points/ring/2/hold_sem",
+  "mission.h3.points.ring.2.release_sem": "results/mission_h3.json:points/ring/2/release_sem",
+  "mission.h3.points.ring.2.hold_ci": "results/mission_h3.json:points/ring/2/hold_ci",
+  "mission.h3.points.ring.2.release_ci": "results/mission_h3.json:points/ring/2/release_ci",
+  "mission.h3.points.ring.2.n_hold": "results/mission_h3.json:points/ring/2/n_hold",
+  "mission.h3.points.ring.2.n_release": "results/mission_h3.json:points/ring/2/n_release",
+  "mission.h3.points.ring.2.wrong_stop_rate": "results/mission_h3.json:points/ring/2/wrong_stop_rate",
+  "mission.h3.points.ring.2.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/2/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.3.knob": "results/mission_h3.json:points/ring/3/knob",
+  "mission.h3.points.ring.3.value": "results/mission_h3.json:points/ring/3/value",
+  "mission.h3.points.ring.3.hold_mean_s": "results/mission_h3.json:points/ring/3/hold_mean_s",
+  "mission.h3.points.ring.3.release_mean_s": "results/mission_h3.json:points/ring/3/release_mean_s",
+  "mission.h3.points.ring.3.hold_sem": "results/mission_h3.json:points/ring/3/hold_sem",
+  "mission.h3.points.ring.3.release_sem": "results/mission_h3.json:points/ring/3/release_sem",
+  "mission.h3.points.ring.3.hold_ci": "results/mission_h3.json:points/ring/3/hold_ci",
+  "mission.h3.points.ring.3.release_ci": "results/mission_h3.json:points/ring/3/release_ci",
+  "mission.h3.points.ring.3.n_hold": "results/mission_h3.json:points/ring/3/n_hold",
+  "mission.h3.points.ring.3.n_release": "results/mission_h3.json:points/ring/3/n_release",
+  "mission.h3.points.ring.3.wrong_stop_rate": "results/mission_h3.json:points/ring/3/wrong_stop_rate",
+  "mission.h3.points.ring.3.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/3/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.4.knob": "results/mission_h3.json:points/ring/4/knob",
+  "mission.h3.points.ring.4.value": "results/mission_h3.json:points/ring/4/value",
+  "mission.h3.points.ring.4.hold_mean_s": "results/mission_h3.json:points/ring/4/hold_mean_s",
+  "mission.h3.points.ring.4.release_mean_s": "results/mission_h3.json:points/ring/4/release_mean_s",
+  "mission.h3.points.ring.4.hold_sem": "results/mission_h3.json:points/ring/4/hold_sem",
+  "mission.h3.points.ring.4.release_sem": "results/mission_h3.json:points/ring/4/release_sem",
+  "mission.h3.points.ring.4.hold_ci": "results/mission_h3.json:points/ring/4/hold_ci",
+  "mission.h3.points.ring.4.release_ci": "results/mission_h3.json:points/ring/4/release_ci",
+  "mission.h3.points.ring.4.n_hold": "results/mission_h3.json:points/ring/4/n_hold",
+  "mission.h3.points.ring.4.n_release": "results/mission_h3.json:points/ring/4/n_release",
+  "mission.h3.points.ring.4.wrong_stop_rate": "results/mission_h3.json:points/ring/4/wrong_stop_rate",
+  "mission.h3.points.ring.4.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/4/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.5.knob": "results/mission_h3.json:points/ring/5/knob",
+  "mission.h3.points.ring.5.value": "results/mission_h3.json:points/ring/5/value",
+  "mission.h3.points.ring.5.hold_mean_s": "results/mission_h3.json:points/ring/5/hold_mean_s",
+  "mission.h3.points.ring.5.release_mean_s": "results/mission_h3.json:points/ring/5/release_mean_s",
+  "mission.h3.points.ring.5.hold_sem": "results/mission_h3.json:points/ring/5/hold_sem",
+  "mission.h3.points.ring.5.release_sem": "results/mission_h3.json:points/ring/5/release_sem",
+  "mission.h3.points.ring.5.hold_ci": "results/mission_h3.json:points/ring/5/hold_ci",
+  "mission.h3.points.ring.5.release_ci": "results/mission_h3.json:points/ring/5/release_ci",
+  "mission.h3.points.ring.5.n_hold": "results/mission_h3.json:points/ring/5/n_hold",
+  "mission.h3.points.ring.5.n_release": "results/mission_h3.json:points/ring/5/n_release",
+  "mission.h3.points.ring.5.wrong_stop_rate": "results/mission_h3.json:points/ring/5/wrong_stop_rate",
+  "mission.h3.points.ring.5.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/5/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.6.knob": "results/mission_h3.json:points/ring/6/knob",
+  "mission.h3.points.ring.6.value": "results/mission_h3.json:points/ring/6/value",
+  "mission.h3.points.ring.6.hold_mean_s": "results/mission_h3.json:points/ring/6/hold_mean_s",
+  "mission.h3.points.ring.6.release_mean_s": "results/mission_h3.json:points/ring/6/release_mean_s",
+  "mission.h3.points.ring.6.hold_sem": "results/mission_h3.json:points/ring/6/hold_sem",
+  "mission.h3.points.ring.6.release_sem": "results/mission_h3.json:points/ring/6/release_sem",
+  "mission.h3.points.ring.6.hold_ci": "results/mission_h3.json:points/ring/6/hold_ci",
+  "mission.h3.points.ring.6.release_ci": "results/mission_h3.json:points/ring/6/release_ci",
+  "mission.h3.points.ring.6.n_hold": "results/mission_h3.json:points/ring/6/n_hold",
+  "mission.h3.points.ring.6.n_release": "results/mission_h3.json:points/ring/6/n_release",
+  "mission.h3.points.ring.6.wrong_stop_rate": "results/mission_h3.json:points/ring/6/wrong_stop_rate",
+  "mission.h3.points.ring.6.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/6/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.7.knob": "results/mission_h3.json:points/ring/7/knob",
+  "mission.h3.points.ring.7.value": "results/mission_h3.json:points/ring/7/value",
+  "mission.h3.points.ring.7.hold_mean_s": "results/mission_h3.json:points/ring/7/hold_mean_s",
+  "mission.h3.points.ring.7.release_mean_s": "results/mission_h3.json:points/ring/7/release_mean_s",
+  "mission.h3.points.ring.7.hold_sem": "results/mission_h3.json:points/ring/7/hold_sem",
+  "mission.h3.points.ring.7.release_sem": "results/mission_h3.json:points/ring/7/release_sem",
+  "mission.h3.points.ring.7.hold_ci": "results/mission_h3.json:points/ring/7/hold_ci",
+  "mission.h3.points.ring.7.release_ci": "results/mission_h3.json:points/ring/7/release_ci",
+  "mission.h3.points.ring.7.n_hold": "results/mission_h3.json:points/ring/7/n_hold",
+  "mission.h3.points.ring.7.n_release": "results/mission_h3.json:points/ring/7/n_release",
+  "mission.h3.points.ring.7.wrong_stop_rate": "results/mission_h3.json:points/ring/7/wrong_stop_rate",
+  "mission.h3.points.ring.7.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/7/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.8.knob": "results/mission_h3.json:points/ring/8/knob",
+  "mission.h3.points.ring.8.value": "results/mission_h3.json:points/ring/8/value",
+  "mission.h3.points.ring.8.hold_mean_s": "results/mission_h3.json:points/ring/8/hold_mean_s",
+  "mission.h3.points.ring.8.release_mean_s": "results/mission_h3.json:points/ring/8/release_mean_s",
+  "mission.h3.points.ring.8.hold_sem": "results/mission_h3.json:points/ring/8/hold_sem",
+  "mission.h3.points.ring.8.release_sem": "results/mission_h3.json:points/ring/8/release_sem",
+  "mission.h3.points.ring.8.hold_ci": "results/mission_h3.json:points/ring/8/hold_ci",
+  "mission.h3.points.ring.8.release_ci": "results/mission_h3.json:points/ring/8/release_ci",
+  "mission.h3.points.ring.8.n_hold": "results/mission_h3.json:points/ring/8/n_hold",
+  "mission.h3.points.ring.8.n_release": "results/mission_h3.json:points/ring/8/n_release",
+  "mission.h3.points.ring.8.wrong_stop_rate": "results/mission_h3.json:points/ring/8/wrong_stop_rate",
+  "mission.h3.points.ring.8.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/8/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.9.knob": "results/mission_h3.json:points/ring/9/knob",
+  "mission.h3.points.ring.9.value": "results/mission_h3.json:points/ring/9/value",
+  "mission.h3.points.ring.9.hold_mean_s": "results/mission_h3.json:points/ring/9/hold_mean_s",
+  "mission.h3.points.ring.9.release_mean_s": "results/mission_h3.json:points/ring/9/release_mean_s",
+  "mission.h3.points.ring.9.hold_sem": "results/mission_h3.json:points/ring/9/hold_sem",
+  "mission.h3.points.ring.9.release_sem": "results/mission_h3.json:points/ring/9/release_sem",
+  "mission.h3.points.ring.9.hold_ci": "results/mission_h3.json:points/ring/9/hold_ci",
+  "mission.h3.points.ring.9.release_ci": "results/mission_h3.json:points/ring/9/release_ci",
+  "mission.h3.points.ring.9.n_hold": "results/mission_h3.json:points/ring/9/n_hold",
+  "mission.h3.points.ring.9.n_release": "results/mission_h3.json:points/ring/9/n_release",
+  "mission.h3.points.ring.9.wrong_stop_rate": "results/mission_h3.json:points/ring/9/wrong_stop_rate",
+  "mission.h3.points.ring.9.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/9/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.10.knob": "results/mission_h3.json:points/ring/10/knob",
+  "mission.h3.points.ring.10.value": "results/mission_h3.json:points/ring/10/value",
+  "mission.h3.points.ring.10.hold_mean_s": "results/mission_h3.json:points/ring/10/hold_mean_s",
+  "mission.h3.points.ring.10.release_mean_s": "results/mission_h3.json:points/ring/10/release_mean_s",
+  "mission.h3.points.ring.10.hold_sem": "results/mission_h3.json:points/ring/10/hold_sem",
+  "mission.h3.points.ring.10.release_sem": "results/mission_h3.json:points/ring/10/release_sem",
+  "mission.h3.points.ring.10.hold_ci": "results/mission_h3.json:points/ring/10/hold_ci",
+  "mission.h3.points.ring.10.release_ci": "results/mission_h3.json:points/ring/10/release_ci",
+  "mission.h3.points.ring.10.n_hold": "results/mission_h3.json:points/ring/10/n_hold",
+  "mission.h3.points.ring.10.n_release": "results/mission_h3.json:points/ring/10/n_release",
+  "mission.h3.points.ring.10.wrong_stop_rate": "results/mission_h3.json:points/ring/10/wrong_stop_rate",
+  "mission.h3.points.ring.10.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/10/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.11.knob": "results/mission_h3.json:points/ring/11/knob",
+  "mission.h3.points.ring.11.value": "results/mission_h3.json:points/ring/11/value",
+  "mission.h3.points.ring.11.hold_mean_s": "results/mission_h3.json:points/ring/11/hold_mean_s",
+  "mission.h3.points.ring.11.release_mean_s": "results/mission_h3.json:points/ring/11/release_mean_s",
+  "mission.h3.points.ring.11.hold_sem": "results/mission_h3.json:points/ring/11/hold_sem",
+  "mission.h3.points.ring.11.release_sem": "results/mission_h3.json:points/ring/11/release_sem",
+  "mission.h3.points.ring.11.hold_ci": "results/mission_h3.json:points/ring/11/hold_ci",
+  "mission.h3.points.ring.11.release_ci": "results/mission_h3.json:points/ring/11/release_ci",
+  "mission.h3.points.ring.11.n_hold": "results/mission_h3.json:points/ring/11/n_hold",
+  "mission.h3.points.ring.11.n_release": "results/mission_h3.json:points/ring/11/n_release",
+  "mission.h3.points.ring.11.wrong_stop_rate": "results/mission_h3.json:points/ring/11/wrong_stop_rate",
+  "mission.h3.points.ring.11.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/11/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.12.knob": "results/mission_h3.json:points/ring/12/knob",
+  "mission.h3.points.ring.12.value": "results/mission_h3.json:points/ring/12/value",
+  "mission.h3.points.ring.12.hold_mean_s": "results/mission_h3.json:points/ring/12/hold_mean_s",
+  "mission.h3.points.ring.12.release_mean_s": "results/mission_h3.json:points/ring/12/release_mean_s",
+  "mission.h3.points.ring.12.hold_sem": "results/mission_h3.json:points/ring/12/hold_sem",
+  "mission.h3.points.ring.12.release_sem": "results/mission_h3.json:points/ring/12/release_sem",
+  "mission.h3.points.ring.12.hold_ci": "results/mission_h3.json:points/ring/12/hold_ci",
+  "mission.h3.points.ring.12.release_ci": "results/mission_h3.json:points/ring/12/release_ci",
+  "mission.h3.points.ring.12.n_hold": "results/mission_h3.json:points/ring/12/n_hold",
+  "mission.h3.points.ring.12.n_release": "results/mission_h3.json:points/ring/12/n_release",
+  "mission.h3.points.ring.12.wrong_stop_rate": "results/mission_h3.json:points/ring/12/wrong_stop_rate",
+  "mission.h3.points.ring.12.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/12/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.13.knob": "results/mission_h3.json:points/ring/13/knob",
+  "mission.h3.points.ring.13.value": "results/mission_h3.json:points/ring/13/value",
+  "mission.h3.points.ring.13.hold_mean_s": "results/mission_h3.json:points/ring/13/hold_mean_s",
+  "mission.h3.points.ring.13.release_mean_s": "results/mission_h3.json:points/ring/13/release_mean_s",
+  "mission.h3.points.ring.13.hold_sem": "results/mission_h3.json:points/ring/13/hold_sem",
+  "mission.h3.points.ring.13.release_sem": "results/mission_h3.json:points/ring/13/release_sem",
+  "mission.h3.points.ring.13.hold_ci": "results/mission_h3.json:points/ring/13/hold_ci",
+  "mission.h3.points.ring.13.release_ci": "results/mission_h3.json:points/ring/13/release_ci",
+  "mission.h3.points.ring.13.n_hold": "results/mission_h3.json:points/ring/13/n_hold",
+  "mission.h3.points.ring.13.n_release": "results/mission_h3.json:points/ring/13/n_release",
+  "mission.h3.points.ring.13.wrong_stop_rate": "results/mission_h3.json:points/ring/13/wrong_stop_rate",
+  "mission.h3.points.ring.13.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/13/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.14.knob": "results/mission_h3.json:points/ring/14/knob",
+  "mission.h3.points.ring.14.value": "results/mission_h3.json:points/ring/14/value",
+  "mission.h3.points.ring.14.hold_mean_s": "results/mission_h3.json:points/ring/14/hold_mean_s",
+  "mission.h3.points.ring.14.release_mean_s": "results/mission_h3.json:points/ring/14/release_mean_s",
+  "mission.h3.points.ring.14.hold_sem": "results/mission_h3.json:points/ring/14/hold_sem",
+  "mission.h3.points.ring.14.release_sem": "results/mission_h3.json:points/ring/14/release_sem",
+  "mission.h3.points.ring.14.hold_ci": "results/mission_h3.json:points/ring/14/hold_ci",
+  "mission.h3.points.ring.14.release_ci": "results/mission_h3.json:points/ring/14/release_ci",
+  "mission.h3.points.ring.14.n_hold": "results/mission_h3.json:points/ring/14/n_hold",
+  "mission.h3.points.ring.14.n_release": "results/mission_h3.json:points/ring/14/n_release",
+  "mission.h3.points.ring.14.wrong_stop_rate": "results/mission_h3.json:points/ring/14/wrong_stop_rate",
+  "mission.h3.points.ring.14.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/14/release_capped_by_wrong_stop",
+  "mission.h3.points.ring.15.knob": "results/mission_h3.json:points/ring/15/knob",
+  "mission.h3.points.ring.15.value": "results/mission_h3.json:points/ring/15/value",
+  "mission.h3.points.ring.15.hold_mean_s": "results/mission_h3.json:points/ring/15/hold_mean_s",
+  "mission.h3.points.ring.15.release_mean_s": "results/mission_h3.json:points/ring/15/release_mean_s",
+  "mission.h3.points.ring.15.hold_sem": "results/mission_h3.json:points/ring/15/hold_sem",
+  "mission.h3.points.ring.15.release_sem": "results/mission_h3.json:points/ring/15/release_sem",
+  "mission.h3.points.ring.15.hold_ci": "results/mission_h3.json:points/ring/15/hold_ci",
+  "mission.h3.points.ring.15.release_ci": "results/mission_h3.json:points/ring/15/release_ci",
+  "mission.h3.points.ring.15.n_hold": "results/mission_h3.json:points/ring/15/n_hold",
+  "mission.h3.points.ring.15.n_release": "results/mission_h3.json:points/ring/15/n_release",
+  "mission.h3.points.ring.15.wrong_stop_rate": "results/mission_h3.json:points/ring/15/wrong_stop_rate",
+  "mission.h3.points.ring.15.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring/15/release_capped_by_wrong_stop",
+  "mission.h3.points.ring_static.0.knob": "results/mission_h3.json:points/ring_static/0/knob",
+  "mission.h3.points.ring_static.0.value": "results/mission_h3.json:points/ring_static/0/value",
+  "mission.h3.points.ring_static.0.hold_mean_s": "results/mission_h3.json:points/ring_static/0/hold_mean_s",
+  "mission.h3.points.ring_static.0.release_mean_s": "results/mission_h3.json:points/ring_static/0/release_mean_s",
+  "mission.h3.points.ring_static.0.hold_sem": "results/mission_h3.json:points/ring_static/0/hold_sem",
+  "mission.h3.points.ring_static.0.release_sem": "results/mission_h3.json:points/ring_static/0/release_sem",
+  "mission.h3.points.ring_static.0.hold_ci": "results/mission_h3.json:points/ring_static/0/hold_ci",
+  "mission.h3.points.ring_static.0.release_ci": "results/mission_h3.json:points/ring_static/0/release_ci",
+  "mission.h3.points.ring_static.0.n_hold": "results/mission_h3.json:points/ring_static/0/n_hold",
+  "mission.h3.points.ring_static.0.n_release": "results/mission_h3.json:points/ring_static/0/n_release",
+  "mission.h3.points.ring_static.0.wrong_stop_rate": "results/mission_h3.json:points/ring_static/0/wrong_stop_rate",
+  "mission.h3.points.ring_static.0.release_capped_by_wrong_stop": "results/mission_h3.json:points/ring_static/0/release_capped_by_wrong_stop",
+  "mission.h3.points.vote.0.knob": "results/mission_h3.json:points/vote/0/knob",
+  "mission.h3.points.vote.0.value": "results/mission_h3.json:points/vote/0/value",
+  "mission.h3.points.vote.0.hold_mean_s": "results/mission_h3.json:points/vote/0/hold_mean_s",
+  "mission.h3.points.vote.0.release_mean_s": "results/mission_h3.json:points/vote/0/release_mean_s",
+  "mission.h3.points.vote.0.hold_sem": "results/mission_h3.json:points/vote/0/hold_sem",
+  "mission.h3.points.vote.0.release_sem": "results/mission_h3.json:points/vote/0/release_sem",
+  "mission.h3.points.vote.0.hold_ci": "results/mission_h3.json:points/vote/0/hold_ci",
+  "mission.h3.points.vote.0.release_ci": "results/mission_h3.json:points/vote/0/release_ci",
+  "mission.h3.points.vote.0.n_hold": "results/mission_h3.json:points/vote/0/n_hold",
+  "mission.h3.points.vote.0.n_release": "results/mission_h3.json:points/vote/0/n_release",
+  "mission.h3.points.vote.0.wrong_stop_rate": "results/mission_h3.json:points/vote/0/wrong_stop_rate",
+  "mission.h3.points.vote.0.release_capped_by_wrong_stop": "results/mission_h3.json:points/vote/0/release_capped_by_wrong_stop",
+  "mission.h3.points.sum.0.knob": "results/mission_h3.json:points/sum/0/knob",
+  "mission.h3.points.sum.0.value": "results/mission_h3.json:points/sum/0/value",
+  "mission.h3.points.sum.0.hold_mean_s": "results/mission_h3.json:points/sum/0/hold_mean_s",
+  "mission.h3.points.sum.0.release_mean_s": "results/mission_h3.json:points/sum/0/release_mean_s",
+  "mission.h3.points.sum.0.hold_sem": "results/mission_h3.json:points/sum/0/hold_sem",
+  "mission.h3.points.sum.0.release_sem": "results/mission_h3.json:points/sum/0/release_sem",
+  "mission.h3.points.sum.0.hold_ci": "results/mission_h3.json:points/sum/0/hold_ci",
+  "mission.h3.points.sum.0.release_ci": "results/mission_h3.json:points/sum/0/release_ci",
+  "mission.h3.points.sum.0.n_hold": "results/mission_h3.json:points/sum/0/n_hold",
+  "mission.h3.points.sum.0.n_release": "results/mission_h3.json:points/sum/0/n_release",
+  "mission.h3.points.sum.0.wrong_stop_rate": "results/mission_h3.json:points/sum/0/wrong_stop_rate",
+  "mission.h3.points.sum.0.release_capped_by_wrong_stop": "results/mission_h3.json:points/sum/0/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.0.knob": "results/mission_h3.json:points/accumulator/0/knob",
+  "mission.h3.points.accumulator.0.value": "results/mission_h3.json:points/accumulator/0/value",
+  "mission.h3.points.accumulator.0.hold_mean_s": "results/mission_h3.json:points/accumulator/0/hold_mean_s",
+  "mission.h3.points.accumulator.0.release_mean_s": "results/mission_h3.json:points/accumulator/0/release_mean_s",
+  "mission.h3.points.accumulator.0.hold_sem": "results/mission_h3.json:points/accumulator/0/hold_sem",
+  "mission.h3.points.accumulator.0.release_sem": "results/mission_h3.json:points/accumulator/0/release_sem",
+  "mission.h3.points.accumulator.0.hold_ci": "results/mission_h3.json:points/accumulator/0/hold_ci",
+  "mission.h3.points.accumulator.0.release_ci": "results/mission_h3.json:points/accumulator/0/release_ci",
+  "mission.h3.points.accumulator.0.n_hold": "results/mission_h3.json:points/accumulator/0/n_hold",
+  "mission.h3.points.accumulator.0.n_release": "results/mission_h3.json:points/accumulator/0/n_release",
+  "mission.h3.points.accumulator.0.wrong_stop_rate": "results/mission_h3.json:points/accumulator/0/wrong_stop_rate",
+  "mission.h3.points.accumulator.0.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/0/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.1.knob": "results/mission_h3.json:points/accumulator/1/knob",
+  "mission.h3.points.accumulator.1.value": "results/mission_h3.json:points/accumulator/1/value",
+  "mission.h3.points.accumulator.1.hold_mean_s": "results/mission_h3.json:points/accumulator/1/hold_mean_s",
+  "mission.h3.points.accumulator.1.release_mean_s": "results/mission_h3.json:points/accumulator/1/release_mean_s",
+  "mission.h3.points.accumulator.1.hold_sem": "results/mission_h3.json:points/accumulator/1/hold_sem",
+  "mission.h3.points.accumulator.1.release_sem": "results/mission_h3.json:points/accumulator/1/release_sem",
+  "mission.h3.points.accumulator.1.hold_ci": "results/mission_h3.json:points/accumulator/1/hold_ci",
+  "mission.h3.points.accumulator.1.release_ci": "results/mission_h3.json:points/accumulator/1/release_ci",
+  "mission.h3.points.accumulator.1.n_hold": "results/mission_h3.json:points/accumulator/1/n_hold",
+  "mission.h3.points.accumulator.1.n_release": "results/mission_h3.json:points/accumulator/1/n_release",
+  "mission.h3.points.accumulator.1.wrong_stop_rate": "results/mission_h3.json:points/accumulator/1/wrong_stop_rate",
+  "mission.h3.points.accumulator.1.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/1/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.2.knob": "results/mission_h3.json:points/accumulator/2/knob",
+  "mission.h3.points.accumulator.2.value": "results/mission_h3.json:points/accumulator/2/value",
+  "mission.h3.points.accumulator.2.hold_mean_s": "results/mission_h3.json:points/accumulator/2/hold_mean_s",
+  "mission.h3.points.accumulator.2.release_mean_s": "results/mission_h3.json:points/accumulator/2/release_mean_s",
+  "mission.h3.points.accumulator.2.hold_sem": "results/mission_h3.json:points/accumulator/2/hold_sem",
+  "mission.h3.points.accumulator.2.release_sem": "results/mission_h3.json:points/accumulator/2/release_sem",
+  "mission.h3.points.accumulator.2.hold_ci": "results/mission_h3.json:points/accumulator/2/hold_ci",
+  "mission.h3.points.accumulator.2.release_ci": "results/mission_h3.json:points/accumulator/2/release_ci",
+  "mission.h3.points.accumulator.2.n_hold": "results/mission_h3.json:points/accumulator/2/n_hold",
+  "mission.h3.points.accumulator.2.n_release": "results/mission_h3.json:points/accumulator/2/n_release",
+  "mission.h3.points.accumulator.2.wrong_stop_rate": "results/mission_h3.json:points/accumulator/2/wrong_stop_rate",
+  "mission.h3.points.accumulator.2.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/2/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.3.knob": "results/mission_h3.json:points/accumulator/3/knob",
+  "mission.h3.points.accumulator.3.value": "results/mission_h3.json:points/accumulator/3/value",
+  "mission.h3.points.accumulator.3.hold_mean_s": "results/mission_h3.json:points/accumulator/3/hold_mean_s",
+  "mission.h3.points.accumulator.3.release_mean_s": "results/mission_h3.json:points/accumulator/3/release_mean_s",
+  "mission.h3.points.accumulator.3.hold_sem": "results/mission_h3.json:points/accumulator/3/hold_sem",
+  "mission.h3.points.accumulator.3.release_sem": "results/mission_h3.json:points/accumulator/3/release_sem",
+  "mission.h3.points.accumulator.3.hold_ci": "results/mission_h3.json:points/accumulator/3/hold_ci",
+  "mission.h3.points.accumulator.3.release_ci": "results/mission_h3.json:points/accumulator/3/release_ci",
+  "mission.h3.points.accumulator.3.n_hold": "results/mission_h3.json:points/accumulator/3/n_hold",
+  "mission.h3.points.accumulator.3.n_release": "results/mission_h3.json:points/accumulator/3/n_release",
+  "mission.h3.points.accumulator.3.wrong_stop_rate": "results/mission_h3.json:points/accumulator/3/wrong_stop_rate",
+  "mission.h3.points.accumulator.3.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/3/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.4.knob": "results/mission_h3.json:points/accumulator/4/knob",
+  "mission.h3.points.accumulator.4.value": "results/mission_h3.json:points/accumulator/4/value",
+  "mission.h3.points.accumulator.4.hold_mean_s": "results/mission_h3.json:points/accumulator/4/hold_mean_s",
+  "mission.h3.points.accumulator.4.release_mean_s": "results/mission_h3.json:points/accumulator/4/release_mean_s",
+  "mission.h3.points.accumulator.4.hold_sem": "results/mission_h3.json:points/accumulator/4/hold_sem",
+  "mission.h3.points.accumulator.4.release_sem": "results/mission_h3.json:points/accumulator/4/release_sem",
+  "mission.h3.points.accumulator.4.hold_ci": "results/mission_h3.json:points/accumulator/4/hold_ci",
+  "mission.h3.points.accumulator.4.release_ci": "results/mission_h3.json:points/accumulator/4/release_ci",
+  "mission.h3.points.accumulator.4.n_hold": "results/mission_h3.json:points/accumulator/4/n_hold",
+  "mission.h3.points.accumulator.4.n_release": "results/mission_h3.json:points/accumulator/4/n_release",
+  "mission.h3.points.accumulator.4.wrong_stop_rate": "results/mission_h3.json:points/accumulator/4/wrong_stop_rate",
+  "mission.h3.points.accumulator.4.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/4/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.5.knob": "results/mission_h3.json:points/accumulator/5/knob",
+  "mission.h3.points.accumulator.5.value": "results/mission_h3.json:points/accumulator/5/value",
+  "mission.h3.points.accumulator.5.hold_mean_s": "results/mission_h3.json:points/accumulator/5/hold_mean_s",
+  "mission.h3.points.accumulator.5.release_mean_s": "results/mission_h3.json:points/accumulator/5/release_mean_s",
+  "mission.h3.points.accumulator.5.hold_sem": "results/mission_h3.json:points/accumulator/5/hold_sem",
+  "mission.h3.points.accumulator.5.release_sem": "results/mission_h3.json:points/accumulator/5/release_sem",
+  "mission.h3.points.accumulator.5.hold_ci": "results/mission_h3.json:points/accumulator/5/hold_ci",
+  "mission.h3.points.accumulator.5.release_ci": "results/mission_h3.json:points/accumulator/5/release_ci",
+  "mission.h3.points.accumulator.5.n_hold": "results/mission_h3.json:points/accumulator/5/n_hold",
+  "mission.h3.points.accumulator.5.n_release": "results/mission_h3.json:points/accumulator/5/n_release",
+  "mission.h3.points.accumulator.5.wrong_stop_rate": "results/mission_h3.json:points/accumulator/5/wrong_stop_rate",
+  "mission.h3.points.accumulator.5.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/5/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.6.knob": "results/mission_h3.json:points/accumulator/6/knob",
+  "mission.h3.points.accumulator.6.value": "results/mission_h3.json:points/accumulator/6/value",
+  "mission.h3.points.accumulator.6.hold_mean_s": "results/mission_h3.json:points/accumulator/6/hold_mean_s",
+  "mission.h3.points.accumulator.6.release_mean_s": "results/mission_h3.json:points/accumulator/6/release_mean_s",
+  "mission.h3.points.accumulator.6.hold_sem": "results/mission_h3.json:points/accumulator/6/hold_sem",
+  "mission.h3.points.accumulator.6.release_sem": "results/mission_h3.json:points/accumulator/6/release_sem",
+  "mission.h3.points.accumulator.6.hold_ci": "results/mission_h3.json:points/accumulator/6/hold_ci",
+  "mission.h3.points.accumulator.6.release_ci": "results/mission_h3.json:points/accumulator/6/release_ci",
+  "mission.h3.points.accumulator.6.n_hold": "results/mission_h3.json:points/accumulator/6/n_hold",
+  "mission.h3.points.accumulator.6.n_release": "results/mission_h3.json:points/accumulator/6/n_release",
+  "mission.h3.points.accumulator.6.wrong_stop_rate": "results/mission_h3.json:points/accumulator/6/wrong_stop_rate",
+  "mission.h3.points.accumulator.6.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/6/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.7.knob": "results/mission_h3.json:points/accumulator/7/knob",
+  "mission.h3.points.accumulator.7.value": "results/mission_h3.json:points/accumulator/7/value",
+  "mission.h3.points.accumulator.7.hold_mean_s": "results/mission_h3.json:points/accumulator/7/hold_mean_s",
+  "mission.h3.points.accumulator.7.release_mean_s": "results/mission_h3.json:points/accumulator/7/release_mean_s",
+  "mission.h3.points.accumulator.7.hold_sem": "results/mission_h3.json:points/accumulator/7/hold_sem",
+  "mission.h3.points.accumulator.7.release_sem": "results/mission_h3.json:points/accumulator/7/release_sem",
+  "mission.h3.points.accumulator.7.hold_ci": "results/mission_h3.json:points/accumulator/7/hold_ci",
+  "mission.h3.points.accumulator.7.release_ci": "results/mission_h3.json:points/accumulator/7/release_ci",
+  "mission.h3.points.accumulator.7.n_hold": "results/mission_h3.json:points/accumulator/7/n_hold",
+  "mission.h3.points.accumulator.7.n_release": "results/mission_h3.json:points/accumulator/7/n_release",
+  "mission.h3.points.accumulator.7.wrong_stop_rate": "results/mission_h3.json:points/accumulator/7/wrong_stop_rate",
+  "mission.h3.points.accumulator.7.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/7/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.8.knob": "results/mission_h3.json:points/accumulator/8/knob",
+  "mission.h3.points.accumulator.8.value": "results/mission_h3.json:points/accumulator/8/value",
+  "mission.h3.points.accumulator.8.hold_mean_s": "results/mission_h3.json:points/accumulator/8/hold_mean_s",
+  "mission.h3.points.accumulator.8.release_mean_s": "results/mission_h3.json:points/accumulator/8/release_mean_s",
+  "mission.h3.points.accumulator.8.hold_sem": "results/mission_h3.json:points/accumulator/8/hold_sem",
+  "mission.h3.points.accumulator.8.release_sem": "results/mission_h3.json:points/accumulator/8/release_sem",
+  "mission.h3.points.accumulator.8.hold_ci": "results/mission_h3.json:points/accumulator/8/hold_ci",
+  "mission.h3.points.accumulator.8.release_ci": "results/mission_h3.json:points/accumulator/8/release_ci",
+  "mission.h3.points.accumulator.8.n_hold": "results/mission_h3.json:points/accumulator/8/n_hold",
+  "mission.h3.points.accumulator.8.n_release": "results/mission_h3.json:points/accumulator/8/n_release",
+  "mission.h3.points.accumulator.8.wrong_stop_rate": "results/mission_h3.json:points/accumulator/8/wrong_stop_rate",
+  "mission.h3.points.accumulator.8.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/8/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.9.knob": "results/mission_h3.json:points/accumulator/9/knob",
+  "mission.h3.points.accumulator.9.value": "results/mission_h3.json:points/accumulator/9/value",
+  "mission.h3.points.accumulator.9.hold_mean_s": "results/mission_h3.json:points/accumulator/9/hold_mean_s",
+  "mission.h3.points.accumulator.9.release_mean_s": "results/mission_h3.json:points/accumulator/9/release_mean_s",
+  "mission.h3.points.accumulator.9.hold_sem": "results/mission_h3.json:points/accumulator/9/hold_sem",
+  "mission.h3.points.accumulator.9.release_sem": "results/mission_h3.json:points/accumulator/9/release_sem",
+  "mission.h3.points.accumulator.9.hold_ci": "results/mission_h3.json:points/accumulator/9/hold_ci",
+  "mission.h3.points.accumulator.9.release_ci": "results/mission_h3.json:points/accumulator/9/release_ci",
+  "mission.h3.points.accumulator.9.n_hold": "results/mission_h3.json:points/accumulator/9/n_hold",
+  "mission.h3.points.accumulator.9.n_release": "results/mission_h3.json:points/accumulator/9/n_release",
+  "mission.h3.points.accumulator.9.wrong_stop_rate": "results/mission_h3.json:points/accumulator/9/wrong_stop_rate",
+  "mission.h3.points.accumulator.9.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/9/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.10.knob": "results/mission_h3.json:points/accumulator/10/knob",
+  "mission.h3.points.accumulator.10.value": "results/mission_h3.json:points/accumulator/10/value",
+  "mission.h3.points.accumulator.10.hold_mean_s": "results/mission_h3.json:points/accumulator/10/hold_mean_s",
+  "mission.h3.points.accumulator.10.release_mean_s": "results/mission_h3.json:points/accumulator/10/release_mean_s",
+  "mission.h3.points.accumulator.10.hold_sem": "results/mission_h3.json:points/accumulator/10/hold_sem",
+  "mission.h3.points.accumulator.10.release_sem": "results/mission_h3.json:points/accumulator/10/release_sem",
+  "mission.h3.points.accumulator.10.hold_ci": "results/mission_h3.json:points/accumulator/10/hold_ci",
+  "mission.h3.points.accumulator.10.release_ci": "results/mission_h3.json:points/accumulator/10/release_ci",
+  "mission.h3.points.accumulator.10.n_hold": "results/mission_h3.json:points/accumulator/10/n_hold",
+  "mission.h3.points.accumulator.10.n_release": "results/mission_h3.json:points/accumulator/10/n_release",
+  "mission.h3.points.accumulator.10.wrong_stop_rate": "results/mission_h3.json:points/accumulator/10/wrong_stop_rate",
+  "mission.h3.points.accumulator.10.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/10/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.11.knob": "results/mission_h3.json:points/accumulator/11/knob",
+  "mission.h3.points.accumulator.11.value": "results/mission_h3.json:points/accumulator/11/value",
+  "mission.h3.points.accumulator.11.hold_mean_s": "results/mission_h3.json:points/accumulator/11/hold_mean_s",
+  "mission.h3.points.accumulator.11.release_mean_s": "results/mission_h3.json:points/accumulator/11/release_mean_s",
+  "mission.h3.points.accumulator.11.hold_sem": "results/mission_h3.json:points/accumulator/11/hold_sem",
+  "mission.h3.points.accumulator.11.release_sem": "results/mission_h3.json:points/accumulator/11/release_sem",
+  "mission.h3.points.accumulator.11.hold_ci": "results/mission_h3.json:points/accumulator/11/hold_ci",
+  "mission.h3.points.accumulator.11.release_ci": "results/mission_h3.json:points/accumulator/11/release_ci",
+  "mission.h3.points.accumulator.11.n_hold": "results/mission_h3.json:points/accumulator/11/n_hold",
+  "mission.h3.points.accumulator.11.n_release": "results/mission_h3.json:points/accumulator/11/n_release",
+  "mission.h3.points.accumulator.11.wrong_stop_rate": "results/mission_h3.json:points/accumulator/11/wrong_stop_rate",
+  "mission.h3.points.accumulator.11.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/11/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.12.knob": "results/mission_h3.json:points/accumulator/12/knob",
+  "mission.h3.points.accumulator.12.value": "results/mission_h3.json:points/accumulator/12/value",
+  "mission.h3.points.accumulator.12.hold_mean_s": "results/mission_h3.json:points/accumulator/12/hold_mean_s",
+  "mission.h3.points.accumulator.12.release_mean_s": "results/mission_h3.json:points/accumulator/12/release_mean_s",
+  "mission.h3.points.accumulator.12.hold_sem": "results/mission_h3.json:points/accumulator/12/hold_sem",
+  "mission.h3.points.accumulator.12.release_sem": "results/mission_h3.json:points/accumulator/12/release_sem",
+  "mission.h3.points.accumulator.12.hold_ci": "results/mission_h3.json:points/accumulator/12/hold_ci",
+  "mission.h3.points.accumulator.12.release_ci": "results/mission_h3.json:points/accumulator/12/release_ci",
+  "mission.h3.points.accumulator.12.n_hold": "results/mission_h3.json:points/accumulator/12/n_hold",
+  "mission.h3.points.accumulator.12.n_release": "results/mission_h3.json:points/accumulator/12/n_release",
+  "mission.h3.points.accumulator.12.wrong_stop_rate": "results/mission_h3.json:points/accumulator/12/wrong_stop_rate",
+  "mission.h3.points.accumulator.12.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/12/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.13.knob": "results/mission_h3.json:points/accumulator/13/knob",
+  "mission.h3.points.accumulator.13.value": "results/mission_h3.json:points/accumulator/13/value",
+  "mission.h3.points.accumulator.13.hold_mean_s": "results/mission_h3.json:points/accumulator/13/hold_mean_s",
+  "mission.h3.points.accumulator.13.release_mean_s": "results/mission_h3.json:points/accumulator/13/release_mean_s",
+  "mission.h3.points.accumulator.13.hold_sem": "results/mission_h3.json:points/accumulator/13/hold_sem",
+  "mission.h3.points.accumulator.13.release_sem": "results/mission_h3.json:points/accumulator/13/release_sem",
+  "mission.h3.points.accumulator.13.hold_ci": "results/mission_h3.json:points/accumulator/13/hold_ci",
+  "mission.h3.points.accumulator.13.release_ci": "results/mission_h3.json:points/accumulator/13/release_ci",
+  "mission.h3.points.accumulator.13.n_hold": "results/mission_h3.json:points/accumulator/13/n_hold",
+  "mission.h3.points.accumulator.13.n_release": "results/mission_h3.json:points/accumulator/13/n_release",
+  "mission.h3.points.accumulator.13.wrong_stop_rate": "results/mission_h3.json:points/accumulator/13/wrong_stop_rate",
+  "mission.h3.points.accumulator.13.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/13/release_capped_by_wrong_stop",
+  "mission.h3.points.accumulator.14.knob": "results/mission_h3.json:points/accumulator/14/knob",
+  "mission.h3.points.accumulator.14.value": "results/mission_h3.json:points/accumulator/14/value",
+  "mission.h3.points.accumulator.14.hold_mean_s": "results/mission_h3.json:points/accumulator/14/hold_mean_s",
+  "mission.h3.points.accumulator.14.release_mean_s": "results/mission_h3.json:points/accumulator/14/release_mean_s",
+  "mission.h3.points.accumulator.14.hold_sem": "results/mission_h3.json:points/accumulator/14/hold_sem",
+  "mission.h3.points.accumulator.14.release_sem": "results/mission_h3.json:points/accumulator/14/release_sem",
+  "mission.h3.points.accumulator.14.hold_ci": "results/mission_h3.json:points/accumulator/14/hold_ci",
+  "mission.h3.points.accumulator.14.release_ci": "results/mission_h3.json:points/accumulator/14/release_ci",
+  "mission.h3.points.accumulator.14.n_hold": "results/mission_h3.json:points/accumulator/14/n_hold",
+  "mission.h3.points.accumulator.14.n_release": "results/mission_h3.json:points/accumulator/14/n_release",
+  "mission.h3.points.accumulator.14.wrong_stop_rate": "results/mission_h3.json:points/accumulator/14/wrong_stop_rate",
+  "mission.h3.points.accumulator.14.release_capped_by_wrong_stop": "results/mission_h3.json:points/accumulator/14/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.0.knob": "results/mission_h3.json:points/state_machine/0/knob",
+  "mission.h3.points.state_machine.0.value": "results/mission_h3.json:points/state_machine/0/value",
+  "mission.h3.points.state_machine.0.hold_mean_s": "results/mission_h3.json:points/state_machine/0/hold_mean_s",
+  "mission.h3.points.state_machine.0.release_mean_s": "results/mission_h3.json:points/state_machine/0/release_mean_s",
+  "mission.h3.points.state_machine.0.hold_sem": "results/mission_h3.json:points/state_machine/0/hold_sem",
+  "mission.h3.points.state_machine.0.release_sem": "results/mission_h3.json:points/state_machine/0/release_sem",
+  "mission.h3.points.state_machine.0.hold_ci": "results/mission_h3.json:points/state_machine/0/hold_ci",
+  "mission.h3.points.state_machine.0.release_ci": "results/mission_h3.json:points/state_machine/0/release_ci",
+  "mission.h3.points.state_machine.0.n_hold": "results/mission_h3.json:points/state_machine/0/n_hold",
+  "mission.h3.points.state_machine.0.n_release": "results/mission_h3.json:points/state_machine/0/n_release",
+  "mission.h3.points.state_machine.0.wrong_stop_rate": "results/mission_h3.json:points/state_machine/0/wrong_stop_rate",
+  "mission.h3.points.state_machine.0.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/0/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.1.knob": "results/mission_h3.json:points/state_machine/1/knob",
+  "mission.h3.points.state_machine.1.value": "results/mission_h3.json:points/state_machine/1/value",
+  "mission.h3.points.state_machine.1.hold_mean_s": "results/mission_h3.json:points/state_machine/1/hold_mean_s",
+  "mission.h3.points.state_machine.1.release_mean_s": "results/mission_h3.json:points/state_machine/1/release_mean_s",
+  "mission.h3.points.state_machine.1.hold_sem": "results/mission_h3.json:points/state_machine/1/hold_sem",
+  "mission.h3.points.state_machine.1.release_sem": "results/mission_h3.json:points/state_machine/1/release_sem",
+  "mission.h3.points.state_machine.1.hold_ci": "results/mission_h3.json:points/state_machine/1/hold_ci",
+  "mission.h3.points.state_machine.1.release_ci": "results/mission_h3.json:points/state_machine/1/release_ci",
+  "mission.h3.points.state_machine.1.n_hold": "results/mission_h3.json:points/state_machine/1/n_hold",
+  "mission.h3.points.state_machine.1.n_release": "results/mission_h3.json:points/state_machine/1/n_release",
+  "mission.h3.points.state_machine.1.wrong_stop_rate": "results/mission_h3.json:points/state_machine/1/wrong_stop_rate",
+  "mission.h3.points.state_machine.1.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/1/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.2.knob": "results/mission_h3.json:points/state_machine/2/knob",
+  "mission.h3.points.state_machine.2.value": "results/mission_h3.json:points/state_machine/2/value",
+  "mission.h3.points.state_machine.2.hold_mean_s": "results/mission_h3.json:points/state_machine/2/hold_mean_s",
+  "mission.h3.points.state_machine.2.release_mean_s": "results/mission_h3.json:points/state_machine/2/release_mean_s",
+  "mission.h3.points.state_machine.2.hold_sem": "results/mission_h3.json:points/state_machine/2/hold_sem",
+  "mission.h3.points.state_machine.2.release_sem": "results/mission_h3.json:points/state_machine/2/release_sem",
+  "mission.h3.points.state_machine.2.hold_ci": "results/mission_h3.json:points/state_machine/2/hold_ci",
+  "mission.h3.points.state_machine.2.release_ci": "results/mission_h3.json:points/state_machine/2/release_ci",
+  "mission.h3.points.state_machine.2.n_hold": "results/mission_h3.json:points/state_machine/2/n_hold",
+  "mission.h3.points.state_machine.2.n_release": "results/mission_h3.json:points/state_machine/2/n_release",
+  "mission.h3.points.state_machine.2.wrong_stop_rate": "results/mission_h3.json:points/state_machine/2/wrong_stop_rate",
+  "mission.h3.points.state_machine.2.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/2/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.3.knob": "results/mission_h3.json:points/state_machine/3/knob",
+  "mission.h3.points.state_machine.3.value": "results/mission_h3.json:points/state_machine/3/value",
+  "mission.h3.points.state_machine.3.hold_mean_s": "results/mission_h3.json:points/state_machine/3/hold_mean_s",
+  "mission.h3.points.state_machine.3.release_mean_s": "results/mission_h3.json:points/state_machine/3/release_mean_s",
+  "mission.h3.points.state_machine.3.hold_sem": "results/mission_h3.json:points/state_machine/3/hold_sem",
+  "mission.h3.points.state_machine.3.release_sem": "results/mission_h3.json:points/state_machine/3/release_sem",
+  "mission.h3.points.state_machine.3.hold_ci": "results/mission_h3.json:points/state_machine/3/hold_ci",
+  "mission.h3.points.state_machine.3.release_ci": "results/mission_h3.json:points/state_machine/3/release_ci",
+  "mission.h3.points.state_machine.3.n_hold": "results/mission_h3.json:points/state_machine/3/n_hold",
+  "mission.h3.points.state_machine.3.n_release": "results/mission_h3.json:points/state_machine/3/n_release",
+  "mission.h3.points.state_machine.3.wrong_stop_rate": "results/mission_h3.json:points/state_machine/3/wrong_stop_rate",
+  "mission.h3.points.state_machine.3.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/3/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.4.knob": "results/mission_h3.json:points/state_machine/4/knob",
+  "mission.h3.points.state_machine.4.value": "results/mission_h3.json:points/state_machine/4/value",
+  "mission.h3.points.state_machine.4.hold_mean_s": "results/mission_h3.json:points/state_machine/4/hold_mean_s",
+  "mission.h3.points.state_machine.4.release_mean_s": "results/mission_h3.json:points/state_machine/4/release_mean_s",
+  "mission.h3.points.state_machine.4.hold_sem": "results/mission_h3.json:points/state_machine/4/hold_sem",
+  "mission.h3.points.state_machine.4.release_sem": "results/mission_h3.json:points/state_machine/4/release_sem",
+  "mission.h3.points.state_machine.4.hold_ci": "results/mission_h3.json:points/state_machine/4/hold_ci",
+  "mission.h3.points.state_machine.4.release_ci": "results/mission_h3.json:points/state_machine/4/release_ci",
+  "mission.h3.points.state_machine.4.n_hold": "results/mission_h3.json:points/state_machine/4/n_hold",
+  "mission.h3.points.state_machine.4.n_release": "results/mission_h3.json:points/state_machine/4/n_release",
+  "mission.h3.points.state_machine.4.wrong_stop_rate": "results/mission_h3.json:points/state_machine/4/wrong_stop_rate",
+  "mission.h3.points.state_machine.4.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/4/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.5.knob": "results/mission_h3.json:points/state_machine/5/knob",
+  "mission.h3.points.state_machine.5.value": "results/mission_h3.json:points/state_machine/5/value",
+  "mission.h3.points.state_machine.5.hold_mean_s": "results/mission_h3.json:points/state_machine/5/hold_mean_s",
+  "mission.h3.points.state_machine.5.release_mean_s": "results/mission_h3.json:points/state_machine/5/release_mean_s",
+  "mission.h3.points.state_machine.5.hold_sem": "results/mission_h3.json:points/state_machine/5/hold_sem",
+  "mission.h3.points.state_machine.5.release_sem": "results/mission_h3.json:points/state_machine/5/release_sem",
+  "mission.h3.points.state_machine.5.hold_ci": "results/mission_h3.json:points/state_machine/5/hold_ci",
+  "mission.h3.points.state_machine.5.release_ci": "results/mission_h3.json:points/state_machine/5/release_ci",
+  "mission.h3.points.state_machine.5.n_hold": "results/mission_h3.json:points/state_machine/5/n_hold",
+  "mission.h3.points.state_machine.5.n_release": "results/mission_h3.json:points/state_machine/5/n_release",
+  "mission.h3.points.state_machine.5.wrong_stop_rate": "results/mission_h3.json:points/state_machine/5/wrong_stop_rate",
+  "mission.h3.points.state_machine.5.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/5/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.6.knob": "results/mission_h3.json:points/state_machine/6/knob",
+  "mission.h3.points.state_machine.6.value": "results/mission_h3.json:points/state_machine/6/value",
+  "mission.h3.points.state_machine.6.hold_mean_s": "results/mission_h3.json:points/state_machine/6/hold_mean_s",
+  "mission.h3.points.state_machine.6.release_mean_s": "results/mission_h3.json:points/state_machine/6/release_mean_s",
+  "mission.h3.points.state_machine.6.hold_sem": "results/mission_h3.json:points/state_machine/6/hold_sem",
+  "mission.h3.points.state_machine.6.release_sem": "results/mission_h3.json:points/state_machine/6/release_sem",
+  "mission.h3.points.state_machine.6.hold_ci": "results/mission_h3.json:points/state_machine/6/hold_ci",
+  "mission.h3.points.state_machine.6.release_ci": "results/mission_h3.json:points/state_machine/6/release_ci",
+  "mission.h3.points.state_machine.6.n_hold": "results/mission_h3.json:points/state_machine/6/n_hold",
+  "mission.h3.points.state_machine.6.n_release": "results/mission_h3.json:points/state_machine/6/n_release",
+  "mission.h3.points.state_machine.6.wrong_stop_rate": "results/mission_h3.json:points/state_machine/6/wrong_stop_rate",
+  "mission.h3.points.state_machine.6.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/6/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.7.knob": "results/mission_h3.json:points/state_machine/7/knob",
+  "mission.h3.points.state_machine.7.value": "results/mission_h3.json:points/state_machine/7/value",
+  "mission.h3.points.state_machine.7.hold_mean_s": "results/mission_h3.json:points/state_machine/7/hold_mean_s",
+  "mission.h3.points.state_machine.7.release_mean_s": "results/mission_h3.json:points/state_machine/7/release_mean_s",
+  "mission.h3.points.state_machine.7.hold_sem": "results/mission_h3.json:points/state_machine/7/hold_sem",
+  "mission.h3.points.state_machine.7.release_sem": "results/mission_h3.json:points/state_machine/7/release_sem",
+  "mission.h3.points.state_machine.7.hold_ci": "results/mission_h3.json:points/state_machine/7/hold_ci",
+  "mission.h3.points.state_machine.7.release_ci": "results/mission_h3.json:points/state_machine/7/release_ci",
+  "mission.h3.points.state_machine.7.n_hold": "results/mission_h3.json:points/state_machine/7/n_hold",
+  "mission.h3.points.state_machine.7.n_release": "results/mission_h3.json:points/state_machine/7/n_release",
+  "mission.h3.points.state_machine.7.wrong_stop_rate": "results/mission_h3.json:points/state_machine/7/wrong_stop_rate",
+  "mission.h3.points.state_machine.7.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/7/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.8.knob": "results/mission_h3.json:points/state_machine/8/knob",
+  "mission.h3.points.state_machine.8.value": "results/mission_h3.json:points/state_machine/8/value",
+  "mission.h3.points.state_machine.8.hold_mean_s": "results/mission_h3.json:points/state_machine/8/hold_mean_s",
+  "mission.h3.points.state_machine.8.release_mean_s": "results/mission_h3.json:points/state_machine/8/release_mean_s",
+  "mission.h3.points.state_machine.8.hold_sem": "results/mission_h3.json:points/state_machine/8/hold_sem",
+  "mission.h3.points.state_machine.8.release_sem": "results/mission_h3.json:points/state_machine/8/release_sem",
+  "mission.h3.points.state_machine.8.hold_ci": "results/mission_h3.json:points/state_machine/8/hold_ci",
+  "mission.h3.points.state_machine.8.release_ci": "results/mission_h3.json:points/state_machine/8/release_ci",
+  "mission.h3.points.state_machine.8.n_hold": "results/mission_h3.json:points/state_machine/8/n_hold",
+  "mission.h3.points.state_machine.8.n_release": "results/mission_h3.json:points/state_machine/8/n_release",
+  "mission.h3.points.state_machine.8.wrong_stop_rate": "results/mission_h3.json:points/state_machine/8/wrong_stop_rate",
+  "mission.h3.points.state_machine.8.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/8/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.9.knob": "results/mission_h3.json:points/state_machine/9/knob",
+  "mission.h3.points.state_machine.9.value": "results/mission_h3.json:points/state_machine/9/value",
+  "mission.h3.points.state_machine.9.hold_mean_s": "results/mission_h3.json:points/state_machine/9/hold_mean_s",
+  "mission.h3.points.state_machine.9.release_mean_s": "results/mission_h3.json:points/state_machine/9/release_mean_s",
+  "mission.h3.points.state_machine.9.hold_sem": "results/mission_h3.json:points/state_machine/9/hold_sem",
+  "mission.h3.points.state_machine.9.release_sem": "results/mission_h3.json:points/state_machine/9/release_sem",
+  "mission.h3.points.state_machine.9.hold_ci": "results/mission_h3.json:points/state_machine/9/hold_ci",
+  "mission.h3.points.state_machine.9.release_ci": "results/mission_h3.json:points/state_machine/9/release_ci",
+  "mission.h3.points.state_machine.9.n_hold": "results/mission_h3.json:points/state_machine/9/n_hold",
+  "mission.h3.points.state_machine.9.n_release": "results/mission_h3.json:points/state_machine/9/n_release",
+  "mission.h3.points.state_machine.9.wrong_stop_rate": "results/mission_h3.json:points/state_machine/9/wrong_stop_rate",
+  "mission.h3.points.state_machine.9.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/9/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.10.knob": "results/mission_h3.json:points/state_machine/10/knob",
+  "mission.h3.points.state_machine.10.value": "results/mission_h3.json:points/state_machine/10/value",
+  "mission.h3.points.state_machine.10.hold_mean_s": "results/mission_h3.json:points/state_machine/10/hold_mean_s",
+  "mission.h3.points.state_machine.10.release_mean_s": "results/mission_h3.json:points/state_machine/10/release_mean_s",
+  "mission.h3.points.state_machine.10.hold_sem": "results/mission_h3.json:points/state_machine/10/hold_sem",
+  "mission.h3.points.state_machine.10.release_sem": "results/mission_h3.json:points/state_machine/10/release_sem",
+  "mission.h3.points.state_machine.10.hold_ci": "results/mission_h3.json:points/state_machine/10/hold_ci",
+  "mission.h3.points.state_machine.10.release_ci": "results/mission_h3.json:points/state_machine/10/release_ci",
+  "mission.h3.points.state_machine.10.n_hold": "results/mission_h3.json:points/state_machine/10/n_hold",
+  "mission.h3.points.state_machine.10.n_release": "results/mission_h3.json:points/state_machine/10/n_release",
+  "mission.h3.points.state_machine.10.wrong_stop_rate": "results/mission_h3.json:points/state_machine/10/wrong_stop_rate",
+  "mission.h3.points.state_machine.10.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/10/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.11.knob": "results/mission_h3.json:points/state_machine/11/knob",
+  "mission.h3.points.state_machine.11.value": "results/mission_h3.json:points/state_machine/11/value",
+  "mission.h3.points.state_machine.11.hold_mean_s": "results/mission_h3.json:points/state_machine/11/hold_mean_s",
+  "mission.h3.points.state_machine.11.release_mean_s": "results/mission_h3.json:points/state_machine/11/release_mean_s",
+  "mission.h3.points.state_machine.11.hold_sem": "results/mission_h3.json:points/state_machine/11/hold_sem",
+  "mission.h3.points.state_machine.11.release_sem": "results/mission_h3.json:points/state_machine/11/release_sem",
+  "mission.h3.points.state_machine.11.hold_ci": "results/mission_h3.json:points/state_machine/11/hold_ci",
+  "mission.h3.points.state_machine.11.release_ci": "results/mission_h3.json:points/state_machine/11/release_ci",
+  "mission.h3.points.state_machine.11.n_hold": "results/mission_h3.json:points/state_machine/11/n_hold",
+  "mission.h3.points.state_machine.11.n_release": "results/mission_h3.json:points/state_machine/11/n_release",
+  "mission.h3.points.state_machine.11.wrong_stop_rate": "results/mission_h3.json:points/state_machine/11/wrong_stop_rate",
+  "mission.h3.points.state_machine.11.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/11/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.12.knob": "results/mission_h3.json:points/state_machine/12/knob",
+  "mission.h3.points.state_machine.12.value": "results/mission_h3.json:points/state_machine/12/value",
+  "mission.h3.points.state_machine.12.hold_mean_s": "results/mission_h3.json:points/state_machine/12/hold_mean_s",
+  "mission.h3.points.state_machine.12.release_mean_s": "results/mission_h3.json:points/state_machine/12/release_mean_s",
+  "mission.h3.points.state_machine.12.hold_sem": "results/mission_h3.json:points/state_machine/12/hold_sem",
+  "mission.h3.points.state_machine.12.release_sem": "results/mission_h3.json:points/state_machine/12/release_sem",
+  "mission.h3.points.state_machine.12.hold_ci": "results/mission_h3.json:points/state_machine/12/hold_ci",
+  "mission.h3.points.state_machine.12.release_ci": "results/mission_h3.json:points/state_machine/12/release_ci",
+  "mission.h3.points.state_machine.12.n_hold": "results/mission_h3.json:points/state_machine/12/n_hold",
+  "mission.h3.points.state_machine.12.n_release": "results/mission_h3.json:points/state_machine/12/n_release",
+  "mission.h3.points.state_machine.12.wrong_stop_rate": "results/mission_h3.json:points/state_machine/12/wrong_stop_rate",
+  "mission.h3.points.state_machine.12.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/12/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.13.knob": "results/mission_h3.json:points/state_machine/13/knob",
+  "mission.h3.points.state_machine.13.value": "results/mission_h3.json:points/state_machine/13/value",
+  "mission.h3.points.state_machine.13.hold_mean_s": "results/mission_h3.json:points/state_machine/13/hold_mean_s",
+  "mission.h3.points.state_machine.13.release_mean_s": "results/mission_h3.json:points/state_machine/13/release_mean_s",
+  "mission.h3.points.state_machine.13.hold_sem": "results/mission_h3.json:points/state_machine/13/hold_sem",
+  "mission.h3.points.state_machine.13.release_sem": "results/mission_h3.json:points/state_machine/13/release_sem",
+  "mission.h3.points.state_machine.13.hold_ci": "results/mission_h3.json:points/state_machine/13/hold_ci",
+  "mission.h3.points.state_machine.13.release_ci": "results/mission_h3.json:points/state_machine/13/release_ci",
+  "mission.h3.points.state_machine.13.n_hold": "results/mission_h3.json:points/state_machine/13/n_hold",
+  "mission.h3.points.state_machine.13.n_release": "results/mission_h3.json:points/state_machine/13/n_release",
+  "mission.h3.points.state_machine.13.wrong_stop_rate": "results/mission_h3.json:points/state_machine/13/wrong_stop_rate",
+  "mission.h3.points.state_machine.13.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/13/release_capped_by_wrong_stop",
+  "mission.h3.points.state_machine.14.knob": "results/mission_h3.json:points/state_machine/14/knob",
+  "mission.h3.points.state_machine.14.value": "results/mission_h3.json:points/state_machine/14/value",
+  "mission.h3.points.state_machine.14.hold_mean_s": "results/mission_h3.json:points/state_machine/14/hold_mean_s",
+  "mission.h3.points.state_machine.14.release_mean_s": "results/mission_h3.json:points/state_machine/14/release_mean_s",
+  "mission.h3.points.state_machine.14.hold_sem": "results/mission_h3.json:points/state_machine/14/hold_sem",
+  "mission.h3.points.state_machine.14.release_sem": "results/mission_h3.json:points/state_machine/14/release_sem",
+  "mission.h3.points.state_machine.14.hold_ci": "results/mission_h3.json:points/state_machine/14/hold_ci",
+  "mission.h3.points.state_machine.14.release_ci": "results/mission_h3.json:points/state_machine/14/release_ci",
+  "mission.h3.points.state_machine.14.n_hold": "results/mission_h3.json:points/state_machine/14/n_hold",
+  "mission.h3.points.state_machine.14.n_release": "results/mission_h3.json:points/state_machine/14/n_release",
+  "mission.h3.points.state_machine.14.wrong_stop_rate": "results/mission_h3.json:points/state_machine/14/wrong_stop_rate",
+  "mission.h3.points.state_machine.14.release_capped_by_wrong_stop": "results/mission_h3.json:points/state_machine/14/release_capped_by_wrong_stop",
+  "mission.h3.delta.state_machine.0.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/0/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.0.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/0/ring_gain",
+  "mission.h3.delta.state_machine.0.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/0/delta_s",
+  "mission.h3.delta_posthoc.state_machine.0.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/0/delta_s",
+  "mission.h3.delta.state_machine.0.lo": "results/mission_h3.json:ring_vs_rival/state_machine/0/lo",
+  "mission.h3.delta_posthoc.state_machine.0.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/0/lo",
+  "mission.h3.delta.state_machine.0.hi": "results/mission_h3.json:ring_vs_rival/state_machine/0/hi",
+  "mission.h3.delta_posthoc.state_machine.0.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/0/hi",
+  "mission.h3.delta.state_machine.1.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/1/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.1.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/1/ring_gain",
+  "mission.h3.delta.state_machine.1.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/1/delta_s",
+  "mission.h3.delta_posthoc.state_machine.1.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/1/delta_s",
+  "mission.h3.delta.state_machine.1.lo": "results/mission_h3.json:ring_vs_rival/state_machine/1/lo",
+  "mission.h3.delta_posthoc.state_machine.1.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/1/lo",
+  "mission.h3.delta.state_machine.1.hi": "results/mission_h3.json:ring_vs_rival/state_machine/1/hi",
+  "mission.h3.delta_posthoc.state_machine.1.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/1/hi",
+  "mission.h3.delta.state_machine.2.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/2/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.2.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/2/ring_gain",
+  "mission.h3.delta.state_machine.2.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/2/delta_s",
+  "mission.h3.delta_posthoc.state_machine.2.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/2/delta_s",
+  "mission.h3.delta.state_machine.2.lo": "results/mission_h3.json:ring_vs_rival/state_machine/2/lo",
+  "mission.h3.delta_posthoc.state_machine.2.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/2/lo",
+  "mission.h3.delta.state_machine.2.hi": "results/mission_h3.json:ring_vs_rival/state_machine/2/hi",
+  "mission.h3.delta_posthoc.state_machine.2.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/2/hi",
+  "mission.h3.delta.state_machine.3.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/3/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.3.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/3/ring_gain",
+  "mission.h3.delta.state_machine.3.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/3/delta_s",
+  "mission.h3.delta_posthoc.state_machine.3.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/3/delta_s",
+  "mission.h3.delta.state_machine.3.lo": "results/mission_h3.json:ring_vs_rival/state_machine/3/lo",
+  "mission.h3.delta_posthoc.state_machine.3.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/3/lo",
+  "mission.h3.delta.state_machine.3.hi": "results/mission_h3.json:ring_vs_rival/state_machine/3/hi",
+  "mission.h3.delta_posthoc.state_machine.3.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/3/hi",
+  "mission.h3.delta.state_machine.4.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/4/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.4.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/4/ring_gain",
+  "mission.h3.delta.state_machine.4.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/4/delta_s",
+  "mission.h3.delta_posthoc.state_machine.4.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/4/delta_s",
+  "mission.h3.delta.state_machine.4.lo": "results/mission_h3.json:ring_vs_rival/state_machine/4/lo",
+  "mission.h3.delta_posthoc.state_machine.4.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/4/lo",
+  "mission.h3.delta.state_machine.4.hi": "results/mission_h3.json:ring_vs_rival/state_machine/4/hi",
+  "mission.h3.delta_posthoc.state_machine.4.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/4/hi",
+  "mission.h3.delta.state_machine.5.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/5/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.5.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/5/ring_gain",
+  "mission.h3.delta.state_machine.5.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/5/delta_s",
+  "mission.h3.delta_posthoc.state_machine.5.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/5/delta_s",
+  "mission.h3.delta.state_machine.5.lo": "results/mission_h3.json:ring_vs_rival/state_machine/5/lo",
+  "mission.h3.delta_posthoc.state_machine.5.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/5/lo",
+  "mission.h3.delta.state_machine.5.hi": "results/mission_h3.json:ring_vs_rival/state_machine/5/hi",
+  "mission.h3.delta_posthoc.state_machine.5.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/5/hi",
+  "mission.h3.delta.state_machine.6.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/6/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.6.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/6/ring_gain",
+  "mission.h3.delta.state_machine.6.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/6/delta_s",
+  "mission.h3.delta_posthoc.state_machine.6.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/6/delta_s",
+  "mission.h3.delta.state_machine.6.lo": "results/mission_h3.json:ring_vs_rival/state_machine/6/lo",
+  "mission.h3.delta_posthoc.state_machine.6.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/6/lo",
+  "mission.h3.delta.state_machine.6.hi": "results/mission_h3.json:ring_vs_rival/state_machine/6/hi",
+  "mission.h3.delta_posthoc.state_machine.6.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/6/hi",
+  "mission.h3.delta.state_machine.7.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/7/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.7.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/7/ring_gain",
+  "mission.h3.delta.state_machine.7.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/7/delta_s",
+  "mission.h3.delta_posthoc.state_machine.7.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/7/delta_s",
+  "mission.h3.delta.state_machine.7.lo": "results/mission_h3.json:ring_vs_rival/state_machine/7/lo",
+  "mission.h3.delta_posthoc.state_machine.7.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/7/lo",
+  "mission.h3.delta.state_machine.7.hi": "results/mission_h3.json:ring_vs_rival/state_machine/7/hi",
+  "mission.h3.delta_posthoc.state_machine.7.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/7/hi",
+  "mission.h3.delta.state_machine.8.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/8/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.8.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/8/ring_gain",
+  "mission.h3.delta.state_machine.8.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/8/delta_s",
+  "mission.h3.delta_posthoc.state_machine.8.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/8/delta_s",
+  "mission.h3.delta.state_machine.8.lo": "results/mission_h3.json:ring_vs_rival/state_machine/8/lo",
+  "mission.h3.delta_posthoc.state_machine.8.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/8/lo",
+  "mission.h3.delta.state_machine.8.hi": "results/mission_h3.json:ring_vs_rival/state_machine/8/hi",
+  "mission.h3.delta_posthoc.state_machine.8.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/8/hi",
+  "mission.h3.delta.state_machine.9.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/9/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.9.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/9/ring_gain",
+  "mission.h3.delta.state_machine.9.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/9/delta_s",
+  "mission.h3.delta_posthoc.state_machine.9.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/9/delta_s",
+  "mission.h3.delta.state_machine.9.lo": "results/mission_h3.json:ring_vs_rival/state_machine/9/lo",
+  "mission.h3.delta_posthoc.state_machine.9.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/9/lo",
+  "mission.h3.delta.state_machine.9.hi": "results/mission_h3.json:ring_vs_rival/state_machine/9/hi",
+  "mission.h3.delta_posthoc.state_machine.9.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/9/hi",
+  "mission.h3.delta.state_machine.10.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/10/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.10.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/10/ring_gain",
+  "mission.h3.delta.state_machine.10.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/10/delta_s",
+  "mission.h3.delta_posthoc.state_machine.10.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/10/delta_s",
+  "mission.h3.delta.state_machine.10.lo": "results/mission_h3.json:ring_vs_rival/state_machine/10/lo",
+  "mission.h3.delta_posthoc.state_machine.10.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/10/lo",
+  "mission.h3.delta.state_machine.10.hi": "results/mission_h3.json:ring_vs_rival/state_machine/10/hi",
+  "mission.h3.delta_posthoc.state_machine.10.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/10/hi",
+  "mission.h3.delta.state_machine.11.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/11/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.11.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/11/ring_gain",
+  "mission.h3.delta.state_machine.11.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/11/delta_s",
+  "mission.h3.delta_posthoc.state_machine.11.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/11/delta_s",
+  "mission.h3.delta.state_machine.11.lo": "results/mission_h3.json:ring_vs_rival/state_machine/11/lo",
+  "mission.h3.delta_posthoc.state_machine.11.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/11/lo",
+  "mission.h3.delta.state_machine.11.hi": "results/mission_h3.json:ring_vs_rival/state_machine/11/hi",
+  "mission.h3.delta_posthoc.state_machine.11.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/11/hi",
+  "mission.h3.delta.state_machine.12.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/12/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.12.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/12/ring_gain",
+  "mission.h3.delta.state_machine.12.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/12/delta_s",
+  "mission.h3.delta_posthoc.state_machine.12.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/12/delta_s",
+  "mission.h3.delta.state_machine.12.lo": "results/mission_h3.json:ring_vs_rival/state_machine/12/lo",
+  "mission.h3.delta_posthoc.state_machine.12.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/12/lo",
+  "mission.h3.delta.state_machine.12.hi": "results/mission_h3.json:ring_vs_rival/state_machine/12/hi",
+  "mission.h3.delta_posthoc.state_machine.12.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/12/hi",
+  "mission.h3.delta.state_machine.13.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/13/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.13.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/13/ring_gain",
+  "mission.h3.delta.state_machine.13.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/13/delta_s",
+  "mission.h3.delta_posthoc.state_machine.13.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/13/delta_s",
+  "mission.h3.delta.state_machine.13.lo": "results/mission_h3.json:ring_vs_rival/state_machine/13/lo",
+  "mission.h3.delta_posthoc.state_machine.13.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/13/lo",
+  "mission.h3.delta.state_machine.13.hi": "results/mission_h3.json:ring_vs_rival/state_machine/13/hi",
+  "mission.h3.delta_posthoc.state_machine.13.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/13/hi",
+  "mission.h3.delta.state_machine.14.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/14/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.14.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/14/ring_gain",
+  "mission.h3.delta.state_machine.14.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/14/delta_s",
+  "mission.h3.delta_posthoc.state_machine.14.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/14/delta_s",
+  "mission.h3.delta.state_machine.14.lo": "results/mission_h3.json:ring_vs_rival/state_machine/14/lo",
+  "mission.h3.delta_posthoc.state_machine.14.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/14/lo",
+  "mission.h3.delta.state_machine.14.hi": "results/mission_h3.json:ring_vs_rival/state_machine/14/hi",
+  "mission.h3.delta_posthoc.state_machine.14.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/14/hi",
+  "mission.h3.delta.state_machine.15.ring_gain": "results/mission_h3.json:ring_vs_rival/state_machine/15/ring_gain",
+  "mission.h3.delta_posthoc.state_machine.15.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/15/ring_gain",
+  "mission.h3.delta.state_machine.15.delta_s": "results/mission_h3.json:ring_vs_rival/state_machine/15/delta_s",
+  "mission.h3.delta_posthoc.state_machine.15.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/15/delta_s",
+  "mission.h3.delta.state_machine.15.lo": "results/mission_h3.json:ring_vs_rival/state_machine/15/lo",
+  "mission.h3.delta_posthoc.state_machine.15.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/15/lo",
+  "mission.h3.delta.state_machine.15.hi": "results/mission_h3.json:ring_vs_rival/state_machine/15/hi",
+  "mission.h3.delta_posthoc.state_machine.15.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/state_machine/15/hi",
+  "mission.h3.delta.accumulator.0.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/0/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.0.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/0/ring_gain",
+  "mission.h3.delta.accumulator.0.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/0/delta_s",
+  "mission.h3.delta_posthoc.accumulator.0.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/0/delta_s",
+  "mission.h3.delta.accumulator.0.lo": "results/mission_h3.json:ring_vs_rival/accumulator/0/lo",
+  "mission.h3.delta_posthoc.accumulator.0.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/0/lo",
+  "mission.h3.delta.accumulator.0.hi": "results/mission_h3.json:ring_vs_rival/accumulator/0/hi",
+  "mission.h3.delta_posthoc.accumulator.0.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/0/hi",
+  "mission.h3.delta.accumulator.1.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/1/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.1.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/1/ring_gain",
+  "mission.h3.delta.accumulator.1.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/1/delta_s",
+  "mission.h3.delta_posthoc.accumulator.1.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/1/delta_s",
+  "mission.h3.delta.accumulator.1.lo": "results/mission_h3.json:ring_vs_rival/accumulator/1/lo",
+  "mission.h3.delta_posthoc.accumulator.1.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/1/lo",
+  "mission.h3.delta.accumulator.1.hi": "results/mission_h3.json:ring_vs_rival/accumulator/1/hi",
+  "mission.h3.delta_posthoc.accumulator.1.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/1/hi",
+  "mission.h3.delta.accumulator.2.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/2/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.2.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/2/ring_gain",
+  "mission.h3.delta.accumulator.2.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/2/delta_s",
+  "mission.h3.delta_posthoc.accumulator.2.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/2/delta_s",
+  "mission.h3.delta.accumulator.2.lo": "results/mission_h3.json:ring_vs_rival/accumulator/2/lo",
+  "mission.h3.delta_posthoc.accumulator.2.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/2/lo",
+  "mission.h3.delta.accumulator.2.hi": "results/mission_h3.json:ring_vs_rival/accumulator/2/hi",
+  "mission.h3.delta_posthoc.accumulator.2.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/2/hi",
+  "mission.h3.delta.accumulator.3.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/3/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.3.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/3/ring_gain",
+  "mission.h3.delta.accumulator.3.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/3/delta_s",
+  "mission.h3.delta_posthoc.accumulator.3.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/3/delta_s",
+  "mission.h3.delta.accumulator.3.lo": "results/mission_h3.json:ring_vs_rival/accumulator/3/lo",
+  "mission.h3.delta_posthoc.accumulator.3.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/3/lo",
+  "mission.h3.delta.accumulator.3.hi": "results/mission_h3.json:ring_vs_rival/accumulator/3/hi",
+  "mission.h3.delta_posthoc.accumulator.3.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/3/hi",
+  "mission.h3.delta.accumulator.4.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/4/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.4.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/4/ring_gain",
+  "mission.h3.delta.accumulator.4.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/4/delta_s",
+  "mission.h3.delta_posthoc.accumulator.4.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/4/delta_s",
+  "mission.h3.delta.accumulator.4.lo": "results/mission_h3.json:ring_vs_rival/accumulator/4/lo",
+  "mission.h3.delta_posthoc.accumulator.4.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/4/lo",
+  "mission.h3.delta.accumulator.4.hi": "results/mission_h3.json:ring_vs_rival/accumulator/4/hi",
+  "mission.h3.delta_posthoc.accumulator.4.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/4/hi",
+  "mission.h3.delta.accumulator.5.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/5/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.5.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/5/ring_gain",
+  "mission.h3.delta.accumulator.5.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/5/delta_s",
+  "mission.h3.delta_posthoc.accumulator.5.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/5/delta_s",
+  "mission.h3.delta.accumulator.5.lo": "results/mission_h3.json:ring_vs_rival/accumulator/5/lo",
+  "mission.h3.delta_posthoc.accumulator.5.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/5/lo",
+  "mission.h3.delta.accumulator.5.hi": "results/mission_h3.json:ring_vs_rival/accumulator/5/hi",
+  "mission.h3.delta_posthoc.accumulator.5.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/5/hi",
+  "mission.h3.delta.accumulator.6.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/6/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.6.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/6/ring_gain",
+  "mission.h3.delta.accumulator.6.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/6/delta_s",
+  "mission.h3.delta_posthoc.accumulator.6.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/6/delta_s",
+  "mission.h3.delta.accumulator.6.lo": "results/mission_h3.json:ring_vs_rival/accumulator/6/lo",
+  "mission.h3.delta_posthoc.accumulator.6.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/6/lo",
+  "mission.h3.delta.accumulator.6.hi": "results/mission_h3.json:ring_vs_rival/accumulator/6/hi",
+  "mission.h3.delta_posthoc.accumulator.6.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/6/hi",
+  "mission.h3.delta.accumulator.7.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/7/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.7.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/7/ring_gain",
+  "mission.h3.delta.accumulator.7.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/7/delta_s",
+  "mission.h3.delta_posthoc.accumulator.7.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/7/delta_s",
+  "mission.h3.delta.accumulator.7.lo": "results/mission_h3.json:ring_vs_rival/accumulator/7/lo",
+  "mission.h3.delta_posthoc.accumulator.7.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/7/lo",
+  "mission.h3.delta.accumulator.7.hi": "results/mission_h3.json:ring_vs_rival/accumulator/7/hi",
+  "mission.h3.delta_posthoc.accumulator.7.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/7/hi",
+  "mission.h3.delta.accumulator.8.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/8/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.8.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/8/ring_gain",
+  "mission.h3.delta.accumulator.8.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/8/delta_s",
+  "mission.h3.delta_posthoc.accumulator.8.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/8/delta_s",
+  "mission.h3.delta.accumulator.8.lo": "results/mission_h3.json:ring_vs_rival/accumulator/8/lo",
+  "mission.h3.delta_posthoc.accumulator.8.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/8/lo",
+  "mission.h3.delta.accumulator.8.hi": "results/mission_h3.json:ring_vs_rival/accumulator/8/hi",
+  "mission.h3.delta_posthoc.accumulator.8.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/8/hi",
+  "mission.h3.delta.accumulator.9.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/9/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.9.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/9/ring_gain",
+  "mission.h3.delta.accumulator.9.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/9/delta_s",
+  "mission.h3.delta_posthoc.accumulator.9.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/9/delta_s",
+  "mission.h3.delta.accumulator.9.lo": "results/mission_h3.json:ring_vs_rival/accumulator/9/lo",
+  "mission.h3.delta_posthoc.accumulator.9.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/9/lo",
+  "mission.h3.delta.accumulator.9.hi": "results/mission_h3.json:ring_vs_rival/accumulator/9/hi",
+  "mission.h3.delta_posthoc.accumulator.9.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/9/hi",
+  "mission.h3.delta.accumulator.10.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/10/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.10.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/10/ring_gain",
+  "mission.h3.delta.accumulator.10.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/10/delta_s",
+  "mission.h3.delta_posthoc.accumulator.10.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/10/delta_s",
+  "mission.h3.delta.accumulator.10.lo": "results/mission_h3.json:ring_vs_rival/accumulator/10/lo",
+  "mission.h3.delta_posthoc.accumulator.10.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/10/lo",
+  "mission.h3.delta.accumulator.10.hi": "results/mission_h3.json:ring_vs_rival/accumulator/10/hi",
+  "mission.h3.delta_posthoc.accumulator.10.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/10/hi",
+  "mission.h3.delta.accumulator.11.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/11/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.11.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/11/ring_gain",
+  "mission.h3.delta.accumulator.11.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/11/delta_s",
+  "mission.h3.delta_posthoc.accumulator.11.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/11/delta_s",
+  "mission.h3.delta.accumulator.11.lo": "results/mission_h3.json:ring_vs_rival/accumulator/11/lo",
+  "mission.h3.delta_posthoc.accumulator.11.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/11/lo",
+  "mission.h3.delta.accumulator.11.hi": "results/mission_h3.json:ring_vs_rival/accumulator/11/hi",
+  "mission.h3.delta_posthoc.accumulator.11.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/11/hi",
+  "mission.h3.delta.accumulator.12.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/12/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.12.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/12/ring_gain",
+  "mission.h3.delta.accumulator.12.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/12/delta_s",
+  "mission.h3.delta_posthoc.accumulator.12.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/12/delta_s",
+  "mission.h3.delta.accumulator.12.lo": "results/mission_h3.json:ring_vs_rival/accumulator/12/lo",
+  "mission.h3.delta_posthoc.accumulator.12.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/12/lo",
+  "mission.h3.delta.accumulator.12.hi": "results/mission_h3.json:ring_vs_rival/accumulator/12/hi",
+  "mission.h3.delta_posthoc.accumulator.12.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/12/hi",
+  "mission.h3.delta.accumulator.13.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/13/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.13.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/13/ring_gain",
+  "mission.h3.delta.accumulator.13.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/13/delta_s",
+  "mission.h3.delta_posthoc.accumulator.13.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/13/delta_s",
+  "mission.h3.delta.accumulator.13.lo": "results/mission_h3.json:ring_vs_rival/accumulator/13/lo",
+  "mission.h3.delta_posthoc.accumulator.13.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/13/lo",
+  "mission.h3.delta.accumulator.13.hi": "results/mission_h3.json:ring_vs_rival/accumulator/13/hi",
+  "mission.h3.delta_posthoc.accumulator.13.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/13/hi",
+  "mission.h3.delta.accumulator.14.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/14/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.14.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/14/ring_gain",
+  "mission.h3.delta.accumulator.14.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/14/delta_s",
+  "mission.h3.delta_posthoc.accumulator.14.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/14/delta_s",
+  "mission.h3.delta.accumulator.14.lo": "results/mission_h3.json:ring_vs_rival/accumulator/14/lo",
+  "mission.h3.delta_posthoc.accumulator.14.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/14/lo",
+  "mission.h3.delta.accumulator.14.hi": "results/mission_h3.json:ring_vs_rival/accumulator/14/hi",
+  "mission.h3.delta_posthoc.accumulator.14.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/14/hi",
+  "mission.h3.delta.accumulator.15.ring_gain": "results/mission_h3.json:ring_vs_rival/accumulator/15/ring_gain",
+  "mission.h3.delta_posthoc.accumulator.15.ring_gain": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/15/ring_gain",
+  "mission.h3.delta.accumulator.15.delta_s": "results/mission_h3.json:ring_vs_rival/accumulator/15/delta_s",
+  "mission.h3.delta_posthoc.accumulator.15.delta_s": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/15/delta_s",
+  "mission.h3.delta.accumulator.15.lo": "results/mission_h3.json:ring_vs_rival/accumulator/15/lo",
+  "mission.h3.delta_posthoc.accumulator.15.lo": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/15/lo",
+  "mission.h3.delta.accumulator.15.hi": "results/mission_h3.json:ring_vs_rival/accumulator/15/hi",
+  "mission.h3.delta_posthoc.accumulator.15.hi": "results/mission_h3.json:posthoc_dominance_frontier/delta/accumulator/15/hi",
+  "mission.h3.n_common_seeds": "results/mission_h3.json:n_common_seeds",
+  "mission.h3.common_seeds.gate": "results/mission_h3.json:common_seeds/gate",
+  "mission.h3.common_seeds.dead_because": "results/mission_h3.json:common_seeds/dead_because",
+  "mission.h3.common_seeds.delta.state_machine.0.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/0/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.0.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/0/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.0.lo": "results/mission_h3.json:common_seeds/delta/state_machine/0/lo",
+  "mission.h3.common_seeds.delta.state_machine.0.hi": "results/mission_h3.json:common_seeds/delta/state_machine/0/hi",
+  "mission.h3.common_seeds.delta.state_machine.1.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/1/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.1.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/1/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.1.lo": "results/mission_h3.json:common_seeds/delta/state_machine/1/lo",
+  "mission.h3.common_seeds.delta.state_machine.1.hi": "results/mission_h3.json:common_seeds/delta/state_machine/1/hi",
+  "mission.h3.common_seeds.delta.state_machine.2.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/2/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.2.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/2/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.2.lo": "results/mission_h3.json:common_seeds/delta/state_machine/2/lo",
+  "mission.h3.common_seeds.delta.state_machine.2.hi": "results/mission_h3.json:common_seeds/delta/state_machine/2/hi",
+  "mission.h3.common_seeds.delta.state_machine.3.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/3/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.3.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/3/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.3.lo": "results/mission_h3.json:common_seeds/delta/state_machine/3/lo",
+  "mission.h3.common_seeds.delta.state_machine.3.hi": "results/mission_h3.json:common_seeds/delta/state_machine/3/hi",
+  "mission.h3.common_seeds.delta.state_machine.4.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/4/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.4.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/4/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.4.lo": "results/mission_h3.json:common_seeds/delta/state_machine/4/lo",
+  "mission.h3.common_seeds.delta.state_machine.4.hi": "results/mission_h3.json:common_seeds/delta/state_machine/4/hi",
+  "mission.h3.common_seeds.delta.state_machine.5.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/5/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.5.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/5/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.5.lo": "results/mission_h3.json:common_seeds/delta/state_machine/5/lo",
+  "mission.h3.common_seeds.delta.state_machine.5.hi": "results/mission_h3.json:common_seeds/delta/state_machine/5/hi",
+  "mission.h3.common_seeds.delta.state_machine.6.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/6/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.6.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/6/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.6.lo": "results/mission_h3.json:common_seeds/delta/state_machine/6/lo",
+  "mission.h3.common_seeds.delta.state_machine.6.hi": "results/mission_h3.json:common_seeds/delta/state_machine/6/hi",
+  "mission.h3.common_seeds.delta.state_machine.7.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/7/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.7.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/7/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.7.lo": "results/mission_h3.json:common_seeds/delta/state_machine/7/lo",
+  "mission.h3.common_seeds.delta.state_machine.7.hi": "results/mission_h3.json:common_seeds/delta/state_machine/7/hi",
+  "mission.h3.common_seeds.delta.state_machine.8.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/8/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.8.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/8/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.8.lo": "results/mission_h3.json:common_seeds/delta/state_machine/8/lo",
+  "mission.h3.common_seeds.delta.state_machine.8.hi": "results/mission_h3.json:common_seeds/delta/state_machine/8/hi",
+  "mission.h3.common_seeds.delta.state_machine.9.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/9/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.9.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/9/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.9.lo": "results/mission_h3.json:common_seeds/delta/state_machine/9/lo",
+  "mission.h3.common_seeds.delta.state_machine.9.hi": "results/mission_h3.json:common_seeds/delta/state_machine/9/hi",
+  "mission.h3.common_seeds.delta.state_machine.10.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/10/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.10.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/10/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.10.lo": "results/mission_h3.json:common_seeds/delta/state_machine/10/lo",
+  "mission.h3.common_seeds.delta.state_machine.10.hi": "results/mission_h3.json:common_seeds/delta/state_machine/10/hi",
+  "mission.h3.common_seeds.delta.state_machine.11.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/11/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.11.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/11/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.11.lo": "results/mission_h3.json:common_seeds/delta/state_machine/11/lo",
+  "mission.h3.common_seeds.delta.state_machine.11.hi": "results/mission_h3.json:common_seeds/delta/state_machine/11/hi",
+  "mission.h3.common_seeds.delta.state_machine.12.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/12/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.12.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/12/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.12.lo": "results/mission_h3.json:common_seeds/delta/state_machine/12/lo",
+  "mission.h3.common_seeds.delta.state_machine.12.hi": "results/mission_h3.json:common_seeds/delta/state_machine/12/hi",
+  "mission.h3.common_seeds.delta.state_machine.13.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/13/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.13.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/13/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.13.lo": "results/mission_h3.json:common_seeds/delta/state_machine/13/lo",
+  "mission.h3.common_seeds.delta.state_machine.13.hi": "results/mission_h3.json:common_seeds/delta/state_machine/13/hi",
+  "mission.h3.common_seeds.delta.state_machine.14.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/14/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.14.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/14/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.14.lo": "results/mission_h3.json:common_seeds/delta/state_machine/14/lo",
+  "mission.h3.common_seeds.delta.state_machine.14.hi": "results/mission_h3.json:common_seeds/delta/state_machine/14/hi",
+  "mission.h3.common_seeds.delta.state_machine.15.ring_gain": "results/mission_h3.json:common_seeds/delta/state_machine/15/ring_gain",
+  "mission.h3.common_seeds.delta.state_machine.15.delta_s": "results/mission_h3.json:common_seeds/delta/state_machine/15/delta_s",
+  "mission.h3.common_seeds.delta.state_machine.15.lo": "results/mission_h3.json:common_seeds/delta/state_machine/15/lo",
+  "mission.h3.common_seeds.delta.state_machine.15.hi": "results/mission_h3.json:common_seeds/delta/state_machine/15/hi",
+  "mission.h3.common_seeds.delta.accumulator.0.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/0/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.0.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/0/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.0.lo": "results/mission_h3.json:common_seeds/delta/accumulator/0/lo",
+  "mission.h3.common_seeds.delta.accumulator.0.hi": "results/mission_h3.json:common_seeds/delta/accumulator/0/hi",
+  "mission.h3.common_seeds.delta.accumulator.1.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/1/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.1.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/1/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.1.lo": "results/mission_h3.json:common_seeds/delta/accumulator/1/lo",
+  "mission.h3.common_seeds.delta.accumulator.1.hi": "results/mission_h3.json:common_seeds/delta/accumulator/1/hi",
+  "mission.h3.common_seeds.delta.accumulator.2.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/2/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.2.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/2/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.2.lo": "results/mission_h3.json:common_seeds/delta/accumulator/2/lo",
+  "mission.h3.common_seeds.delta.accumulator.2.hi": "results/mission_h3.json:common_seeds/delta/accumulator/2/hi",
+  "mission.h3.common_seeds.delta.accumulator.3.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/3/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.3.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/3/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.3.lo": "results/mission_h3.json:common_seeds/delta/accumulator/3/lo",
+  "mission.h3.common_seeds.delta.accumulator.3.hi": "results/mission_h3.json:common_seeds/delta/accumulator/3/hi",
+  "mission.h3.common_seeds.delta.accumulator.4.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/4/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.4.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/4/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.4.lo": "results/mission_h3.json:common_seeds/delta/accumulator/4/lo",
+  "mission.h3.common_seeds.delta.accumulator.4.hi": "results/mission_h3.json:common_seeds/delta/accumulator/4/hi",
+  "mission.h3.common_seeds.delta.accumulator.5.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/5/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.5.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/5/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.5.lo": "results/mission_h3.json:common_seeds/delta/accumulator/5/lo",
+  "mission.h3.common_seeds.delta.accumulator.5.hi": "results/mission_h3.json:common_seeds/delta/accumulator/5/hi",
+  "mission.h3.common_seeds.delta.accumulator.6.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/6/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.6.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/6/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.6.lo": "results/mission_h3.json:common_seeds/delta/accumulator/6/lo",
+  "mission.h3.common_seeds.delta.accumulator.6.hi": "results/mission_h3.json:common_seeds/delta/accumulator/6/hi",
+  "mission.h3.common_seeds.delta.accumulator.7.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/7/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.7.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/7/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.7.lo": "results/mission_h3.json:common_seeds/delta/accumulator/7/lo",
+  "mission.h3.common_seeds.delta.accumulator.7.hi": "results/mission_h3.json:common_seeds/delta/accumulator/7/hi",
+  "mission.h3.common_seeds.delta.accumulator.8.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/8/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.8.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/8/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.8.lo": "results/mission_h3.json:common_seeds/delta/accumulator/8/lo",
+  "mission.h3.common_seeds.delta.accumulator.8.hi": "results/mission_h3.json:common_seeds/delta/accumulator/8/hi",
+  "mission.h3.common_seeds.delta.accumulator.9.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/9/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.9.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/9/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.9.lo": "results/mission_h3.json:common_seeds/delta/accumulator/9/lo",
+  "mission.h3.common_seeds.delta.accumulator.9.hi": "results/mission_h3.json:common_seeds/delta/accumulator/9/hi",
+  "mission.h3.common_seeds.delta.accumulator.10.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/10/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.10.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/10/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.10.lo": "results/mission_h3.json:common_seeds/delta/accumulator/10/lo",
+  "mission.h3.common_seeds.delta.accumulator.10.hi": "results/mission_h3.json:common_seeds/delta/accumulator/10/hi",
+  "mission.h3.common_seeds.delta.accumulator.11.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/11/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.11.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/11/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.11.lo": "results/mission_h3.json:common_seeds/delta/accumulator/11/lo",
+  "mission.h3.common_seeds.delta.accumulator.11.hi": "results/mission_h3.json:common_seeds/delta/accumulator/11/hi",
+  "mission.h3.common_seeds.delta.accumulator.12.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/12/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.12.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/12/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.12.lo": "results/mission_h3.json:common_seeds/delta/accumulator/12/lo",
+  "mission.h3.common_seeds.delta.accumulator.12.hi": "results/mission_h3.json:common_seeds/delta/accumulator/12/hi",
+  "mission.h3.common_seeds.delta.accumulator.13.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/13/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.13.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/13/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.13.lo": "results/mission_h3.json:common_seeds/delta/accumulator/13/lo",
+  "mission.h3.common_seeds.delta.accumulator.13.hi": "results/mission_h3.json:common_seeds/delta/accumulator/13/hi",
+  "mission.h3.common_seeds.delta.accumulator.14.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/14/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.14.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/14/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.14.lo": "results/mission_h3.json:common_seeds/delta/accumulator/14/lo",
+  "mission.h3.common_seeds.delta.accumulator.14.hi": "results/mission_h3.json:common_seeds/delta/accumulator/14/hi",
+  "mission.h3.common_seeds.delta.accumulator.15.ring_gain": "results/mission_h3.json:common_seeds/delta/accumulator/15/ring_gain",
+  "mission.h3.common_seeds.delta.accumulator.15.delta_s": "results/mission_h3.json:common_seeds/delta/accumulator/15/delta_s",
+  "mission.h3.common_seeds.delta.accumulator.15.lo": "results/mission_h3.json:common_seeds/delta/accumulator/15/lo",
+  "mission.h3.common_seeds.delta.accumulator.15.hi": "results/mission_h3.json:common_seeds/delta/accumulator/15/hi",
+  "mission.h3.git": "results/mission_h3.json:provenance/git",
+  "mission.h3.row_git": "derived: distinct git stamps of the rows in results/3d/h3/*.parquet",
+  "mission.h3.n_units": "derived: count of results/3d/h3/*.parquet",
+  "stubbornness_frontier.ring": "derived: copy of mission.h3.points.ring (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
+  "stubbornness_frontier.ring_static": "derived: copy of mission.h3.points.ring_static (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
+  "stubbornness_frontier.vote": "derived: copy of mission.h3.points.vote (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
+  "stubbornness_frontier.sum": "derived: copy of mission.h3.points.sum (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
+  "stubbornness_frontier.accumulator": "derived: copy of mission.h3.points.accumulator (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
+  "stubbornness_frontier.state_machine": "derived: copy of mission.h3.points.state_machine (value, hold_mean_s, hold_ci, release_mean_s, release_ci)",
   "stubbornness_frontier_from": "derived: which file fed stubbornness_frontier",
   "h1_success_vs_severity.ring": "derived: copy of mission.h1.aggregate_curve.ring",
   "h1_success_vs_severity.ring_static": "derived: copy of mission.h1.aggregate_curve.ring_static",

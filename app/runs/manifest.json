@@ -26,7 +26,7 @@
   }
  ],
  "_source": "scripts/export_runs.py",
- "git": "7f27826-dirty",
+ "git": "ff0217f-dirty",
  "sim_version": "0.1.0",
- "created": "2026-10-11T19:14:56"
+ "created": "2026-10-11T23:57:14"
 }
