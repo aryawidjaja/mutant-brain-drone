@@ -6,6 +6,16 @@ Stages (each shardable; units are independent and written to results/3d/<stage>/
   test  6 arms (frozen params) x test seeds 1000-1299 x all conditions    -> results/mission_h1.json
   h3    KT3 sweeps (ring gain, SM timeout, accumulator leak, 3 single arms) x test seeds x {occlusion 10 s,
         decoy similarity 0.8}                                             -> results/mission_h3.json
+Amendment 4 (fixed before the test and h3 stages were reduced; prompted by an independent audit):
+  H1   the pre-registered statistic (ring minus best other, paired bootstrap CI) is still reported, but it is biased
+       against the ring when arms are tied (max of five noisy means). The decision rule is a within-seed arm-label
+       permutation test of the same statistic (stats.arm_permutation_test, 5,000 permutations): H1 holds only if
+       p_two_sided < 0.05. Ring vs each other arm with Holm is reported alongside.
+  H3   a seed whose drone stops at the look-alike before the target's evidence crosses 1.5x the look-alike's has no
+       release time in the mission record; it is set to the 20 s cap ("never released"). Seeds where the look-alike
+       was never seen and no wrong stop happened stay undefined. Per point the mean is over defined seeds (n and the
+       wrong-stop rate are reported); a sensitivity analysis repeats the frontier comparison on the seeds where hold
+       and release are defined at every point of every arm.
 Usage:  run_3d.py run <stage> --shard i --nshards n [--procs p]   |   run_3d.py reduce <stage>   |   run_3d.py --selfcheck
 """
 import argparse, json, os, sys, time
@@ -19,10 +29,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from brain.arbiters import ARBITERS, CLASSES, sample_params
 from kt2_five_arms import N_CONFIGS, SEARCH_SEED
 from kt3_stubbornness import SWEEPS, pareto_interp, dominance_frontier, verdict
-from mission import run_batch
+from mission import REL_CAP, run_batch
 from provenance import stamp
 from scenario import fault_params, sample_scenario
-from stats import boot_idx, holm, paired_bootstrap, paired_diff
+from stats import arm_permutation_test, boot_idx, holm, paired_bootstrap, paired_diff
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "results/3d"
@@ -188,6 +198,7 @@ def reduce(stage):
         pair = {a: paired_diff(agg["ring"], agg[a]) for a in others}
         for a, pa in zip(others, holm([pair[a]["p"] for a in others])):
             pair[a]["p_holm"] = pa
+        perm = arm_permutation_test(agg["ring"], [agg[a] for a in others])
         ok = df.assign(ok=success(df))
         sbc = {a: {f"{f}:{v}": float(g.ok.mean()) for (f, lvl, v), g in ok[ok.arbiter == a].groupby(["fault", "level", "severity"], sort=True)} for a in ARBITERS}
         fault_auc = {a: {f: float(auc[a][f].mean()) for f in FAULT_SEV} for a in ARBITERS}
@@ -208,34 +219,47 @@ def reduce(stage):
                "success_rate": {a: float(success(sub(a)).mean()) for a in ARBITERS},
                "collision_rate": {a: float((sub(a).collisions > 0).mean()) for a in ARBITERS},
                "tuned_params": {a: tuned[a]["params"] for a in ARBITERS},
-               "gate": ("H1 holds: ring better than best other" if best["lo"] > 0 else "ring worse than best other" if best["hi"] < 0
-                        else "H1 null: CI of ring minus best other includes 0"),
-               "h1_rule": "H1 holds if the 95% CI of ring minus best other excludes 0 (two-sided)",
+               "permutation_test": perm,
+               "gate_preregistered_ci": ("ring better than best other" if best["lo"] > 0 else "ring worse than best other" if best["hi"] < 0
+                                         else "CI of ring minus best other includes 0"),
+               "gate": ("H1 null: no difference beyond exchangeable arms (permutation)" if perm["p_two_sided"] >= 0.05 else
+                        "H1 holds: ring better than the best other arm" if perm["est"] > perm["null_mean"] else
+                        "H1 holds, against the ring: ring worse than the best other arm"),
+               "h1_rule": "Amendment 4: H1 holds if the within-seed arm-permutation p for ring minus best other < 0.05 "
+                          "(the pre-registered bootstrap CI is reported as gate_preregistered_ci)",
                "provenance": st | {"tuned_params": "results/tuned3d_params.json"}}
         (ROOT / "results/mission_h1.json").write_text(json.dumps(res, indent=1, default=float))
-        print(json.dumps(res["aggregate_auc"]), "\nring - best other", best, res["gate"])
+        print(json.dumps(res["aggregate_auc"]), "\nring - best other", best, "\npermutation", perm, "\n", res["gate"])
     elif stage == "h3":
         df["arm_pt"] = df.unit.str.split("__").str[1].str[1:].astype(int)
         df["proto"] = df.unit.str.split("__").str[2]
         seeds = sorted(df.seed.unique())
-        H, R, pts = {}, {}, {}
+        H, R, WS = {}, {}, {}
         for arm, (knob, vals) in SWEEPS.items():
-            hs, rs = [], []
+            hs, rs, ws = [], [], []
             for j, _v in enumerate(vals):
                 d = df[(df.arbiter == arm) & (df.arm_pt == j)]
                 hs.append(d[d.proto == "occlusion"].set_index("seed").t_hold_occlusion_s.reindex(seeds).to_numpy())
-                rs.append(d[d.proto == "decoy"].set_index("seed").t_release_decoy_s.reindex(seeds).to_numpy())
-            H[arm], R[arm] = np.array(hs), np.array(rs)
+                dd = d[d.proto == "decoy"].set_index("seed").reindex(seeds)
+                rel = dd.t_release_decoy_s.to_numpy(float)
+                wrong = dd.wrong_object_stop.fillna(False).to_numpy(bool)
+                rs.append(np.where(np.isnan(rel) & wrong, REL_CAP, rel))             # Amendment 4: stuck on the look-alike
+                ws.append(wrong)
+            H[arm], R[arm], WS[arm] = np.array(hs), np.array(rs), np.array(ws)
         mean = lambda D, idx=None: {a: np.nanmean(v if idx is None else v[:, idx], -1) for a, v in D.items()}
 
         def deltas(mh, mr, frontier):
             return {rv: frontier(mh[rv], mr[rv])(mh["ring"]) - mr["ring"] for rv in ("state_machine", "accumulator")}
+        common = np.all([np.isfinite(H[a]).all(0) & np.isfinite(R[a]).all(0) for a in SWEEPS], 0)   # [n_seeds]
+        Hc = {a: np.where(common, v, np.nan) for a, v in H.items()}
+        Rc = {a: np.where(common, v, np.nan) for a, v in R.items()}
         out = {}
-        for name, fr, nb in (("preregistered", pareto_interp, 10_000), ("posthoc_dominance", dominance_frontier, 2_000)):
-            est = deltas(mean(H), mean(R), fr)
+        for name, fr, nb, HH, RR in (("preregistered", pareto_interp, 10_000, H, R), ("posthoc_dominance", dominance_frontier, 2_000, H, R),
+                                     ("common_seeds", pareto_interp, 10_000, Hc, Rc)):
+            est = deltas(mean(HH), mean(RR), fr)
             bs = {rv: [] for rv in est}
             for idx in boot_idx(len(seeds), n_boot=nb, seed=0 if nb == 10_000 else 1):
-                d = deltas(mean(H, idx), mean(R, idx), fr)
+                d = deltas(mean(HH, idx), mean(RR, idx), fr)
                 for rv in d:
                     bs[rv].append(d[rv])
             ci = {rv: np.nanquantile(np.array(b), [0.025, 0.975], axis=0) for rv, b in bs.items()}
@@ -251,12 +275,13 @@ def reduce(stage):
                "points": {a: [{"knob": SWEEPS[a][0], "value": None if v is None else float(v), "hold_mean_s": float(mh[a][j]),
                                "release_mean_s": float(mr[a][j]), "hold_sem": float(np.nanstd(H[a][j]) / np.sqrt(np.isfinite(H[a][j]).sum())),
                                "release_sem": float(np.nanstd(R[a][j]) / np.sqrt(np.isfinite(R[a][j]).sum())), "n_hold": int(np.isfinite(H[a][j]).sum()), "n_release": int(np.isfinite(R[a][j]).sum()),
+                               "wrong_stop_rate": float(WS[a][j].mean()), "release_capped_by_wrong_stop": int((WS[a][j] & (R[a][j] == REL_CAP)).sum()),
                                "hold_ci": [float(x) for x in np.nanquantile([np.nanmean(H[a][j][i]) for i in boot_idx(len(seeds), 2000)], [.025, .975])],
                                "release_ci": [float(x) for x in np.nanquantile([np.nanmean(R[a][j][i]) for i in boot_idx(len(seeds), 2000)], [.025, .975])]}
                               for j, v in enumerate(SWEEPS[a][1])] for a in SWEEPS},
                "spearman_vs_gain": {"hold": float(spearmanr(SWEEPS["ring"][1], mh["ring"])[0]),
                                     "release": float(spearmanr(SWEEPS["ring"][1], mr["ring"])[0])},
-               "t_cross_s": None, "gate": out["preregistered"]["gate"], "dead_because": out["preregistered"]["dead_because"],
+               "t_cross_s": None, "n_common_seeds": int(common.sum()), "amendment_4": "wrong stop before crossing -> release = 20 s cap; common_seeds = sensitivity on seeds defined at every point", "gate": out["preregistered"]["gate"], "dead_because": out["preregistered"]["dead_because"],
                "ring_vs_rival": out["preregistered"]["delta"],
                "posthoc_dominance_frontier": {"note": "post hoc, labelled: R(h) = min rival release over points with hold >= h; 2,000 resamples",
                                               "gate": out["posthoc_dominance"]["gate"], "dead_because": out["posthoc_dominance"]["dead_because"],

@@ -41,6 +41,24 @@ def holm(pvals):
     return adj
 
 
+def arm_permutation_test(target, others, n_perm=5000, seed=0):
+    """Calibrated test for "target arm minus the best of the other arms" (target, others: [n] per-seed scores).
+    Null: all arms exchangeable within each seed, so arm labels are permuted independently per seed and the same
+    statistic mean(target) - max_k mean(other_k) is recomputed. Two-sided p from |null| >= |observed|; also the
+    observed statistic's percentile in the null. Corrects the bias of max-of-k under ties (Amendment 4)."""
+    M = np.column_stack([np.asarray(target, float)] + [np.asarray(o, float) for o in others])     # [n, k+1]
+    stat = lambda X: X[:, 0].mean() - X[:, 1:].mean(0).max()
+    obs = float(stat(M))
+    rng = np.random.default_rng(seed)
+    null = np.empty(n_perm)
+    for i in range(n_perm):
+        null[i] = stat(np.take_along_axis(M, rng.permuted(np.tile(np.arange(M.shape[1]), (len(M), 1)), axis=1), axis=1))
+    return {"est": obs, "null_mean": float(null.mean()), "null_lo": float(np.quantile(null, 0.025)),
+            "null_hi": float(np.quantile(null, 0.975)), "percentile": float((null <= obs).mean()),
+            "p_two_sided": float(((np.abs(null - null.mean()) >= abs(obs - null.mean())).sum() + 1) / (n_perm + 1)),
+            "n": len(M), "n_perm": n_perm}
+
+
 def auroc(pos, neg):
     """P(score_pos > score_neg) + 0.5 P(tie) (Mann-Whitney), exact via ranks."""
     from scipy.stats import rankdata
@@ -51,6 +69,12 @@ def auroc(pos, neg):
 
 if __name__ == "__main__":
     rng = np.random.default_rng(1)
+    base = rng.normal(0.8, 0.1, (300, 1))
+    X = base + rng.normal(0, 0.05, (300, 6))                                     # six exchangeable arms
+    t = arm_permutation_test(X[:, 0], X[:, 1:].T, n_perm=1000)
+    assert t["null_mean"] < 0 and t["p_two_sided"] > 0.05                        # max-of-five is biased, test is not
+    t = arm_permutation_test(X[:, 0] + 0.05, X[:, 1:].T, n_perm=1000)
+    assert t["est"] > 0 and t["p_two_sided"] < 0.01
     a = rng.normal(0.5, 1, 300)
     r = paired_diff(a, a - 0.5, n_boot=2000)
     assert abs(r["est"] - 0.5) < 1e-12 and r["lo"] == r["hi"] == 0.5          # constant shift -> degenerate CI
