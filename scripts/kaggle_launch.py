@@ -16,9 +16,13 @@ OUTDIR = {"run_3d.py": "results/3d", "run_v2.py": "results/v2", "kt7_stubbornnes
 PIP = "numpy==2.5.4 scipy==1.18.1 pandas==3.0.6 pyarrow==26.0.0"
 
 RUN_PY = '''import os, subprocess, sys, tarfile, glob
-src = glob.glob("/kaggle/input/*/code.tar.gz")[0]
 os.makedirs("/kaggle/working/repo", exist_ok=True)
-tarfile.open(src).extractall("/kaggle/working/repo")
+tars = glob.glob("/kaggle/input/**/code.tar.gz", recursive=True)
+if tars:
+    tarfile.open(tars[0]).extractall("/kaggle/working/repo")
+else:   # Kaggle unpacks archives on upload: copy the unpacked tree
+    top = os.path.dirname(os.path.dirname(glob.glob("/kaggle/input/**/scripts/provenance.py", recursive=True)[0]))
+    subprocess.run(f"cp -r {{top}}/. /kaggle/working/repo/", shell=True, check=True)
 subprocess.run("pip install -q {pip}", shell=True, check=True)
 os.chdir("/kaggle/working/repo")
 env = dict(os.environ, OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1", KT_PROCS="4")
