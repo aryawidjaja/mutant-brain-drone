@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mutant Brain Drone</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg stroke='%23f08a3c' stroke-width='6' fill='none'%3E%3Ccircle cx='14' cy='14' r='9'/%3E%3Ccircle cx='50' cy='14' r='9'/%3E%3Ccircle cx='14' cy='50' r='9'/%3E%3Ccircle cx='50' cy='50' r='9'/%3E%3Cpath d='M20 20L44 44M44 20L20 44'/%3E%3C/g%3E%3C/svg%3E">
+<meta name="theme-color" content="#121417">
+<meta name="description" content="A simulated drone steered by published insect brain models (bee mushroom body, fly reflexes, ant path integrator, ring-attractor hub). Live simulator, recorded results and paper.">
+<script>try { const t = new URLSearchParams(location.search).get('theme') || localStorage.getItem('mbd-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="paper.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<style>
+/* Workbench theme: token blocks copied unchanged from flight-test-the-fly/app/index.html. */
+:root {
+  --bg: #121417; --panel: #1a1d21; --panel2: #202328; --ink: #e4e6e9; --muted: #8d939b; --line: #2b2f35; --line2: #3a3f46;
+  --a: #f08a3c; --b: #4f9dff; --gust: #ffd23f; --focus: #4f9dff; --flag: #d9b45a;
+  --sky: #1c2026; --ground: #171a1e; --grid: #2c3138; --chip: #23272c; --hover: #262a30;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #eceef1; --panel: #f8f9fa; --panel2: #ffffff; --ink: #1b1e22; --muted: #5d646d; --line: #d5d9de; --line2: #b9bfc6;
+  --a: #d2600e; --b: #1c6fd6; --gust: #ffd23f; --focus: #1c6fd6; --flag: #8a6400;
+  --sky: #e3e7ec; --ground: #dadfe4; --grid: #bfc6ce; --chip: #e9ecef; --hover: #e4e7eb;
+  color-scheme: light;
+}
+/* Added for this app (not in the fly app): the three drives into the hub. Categories, not roles; never orange or blue. */
+:root { --d-obj: #3bc9db; --d-home: #b197fc; --d-search: #8d939b; }
+:root[data-theme="light"] { --d-obj: #0c8599; --d-home: #7048e8; --d-search: #5d646d; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 13px/1.4 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+/* ---------- workbench grid ---------- */
+.wb { --dock-w: clamp(316px, 24vw, 400px); --side-w: clamp(260px, 19vw, 320px); --charts-h: 0px;
+  height: 100vh; height: 100dvh; min-height: 620px; display: grid; background: var(--bg);
+  grid-template-columns: var(--side-w) minmax(0, 1fr) var(--dock-w);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto auto auto;
+  grid-template-areas: "tb tb tb" "msg msg msg" "par par par" "err err err" "side vp dock" "side tl dock" "side charts dock" "sb sb sb"; }
+.wb.m-results { --charts-h: clamp(220px, 34vh, 360px); }
+.wb select, .wb button, .wb input { font: inherit; color: var(--ink); }
+.wb :focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.wb .mono, .wb .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wb .sw { display: inline-block; width: 8px; height: 8px; border-radius: 1px; flex: none; }
+.wb .sw-a { background: var(--a); } .wb .sw-b { background: var(--b); } .wb .sw-n { background: var(--muted); }
+.wb .ph { font-size: 11px; font-weight: 600; font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--muted); }
+.wb select { background: var(--panel2); border: 1px solid var(--line2); border-radius: 3px; padding: 2px 22px 2px 6px; height: 24px; min-width: 0;
+  appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 11px) 10px, calc(100% - 7px) 10px; background-size: 4px 4px; background-repeat: no-repeat; }
+.wb input[type="number"] { background: var(--panel2); border: 1px solid var(--line2); border-radius: 3px; height: 24px; padding: 0 4px; width: 100%; font-family: var(--mono); font-size: 12px; }
+.wb input[type="range"] { width: 100%; accent-color: var(--muted); margin: 0; }
+.wb input[type="checkbox"] { accent-color: var(--a); margin: 0; }
+.wb .ib { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 5px; border: 1px solid transparent; border-radius: 3px; background: transparent; cursor: pointer; color: var(--ink); gap: 4px; grid-auto-flow: column; }
+.wb .ib:hover { background: var(--hover); border-color: var(--line2); }
+.wb .ib[aria-pressed="true"] { background: var(--chip); border-color: var(--line2); color: var(--ink); box-shadow: inset 0 -2px 0 var(--a); }
+.wb .ib:disabled { opacity: .35; cursor: not-allowed; }
+.wb .ib svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+.wb .btn, .papernav .btn { border: 1px solid var(--line2); background: var(--panel2); border-radius: 3px; height: 26px; padding: 0 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.wb .btn:hover, .papernav .btn:hover { background: var(--hover); }
+.wb .btn.pri { box-shadow: inset 0 -2px 0 var(--a); font-weight: 600; }
+
+/* title bar */
+.tb { grid-area: tb; display: flex; align-items: center; gap: 6px 14px; padding: 4px 10px; border-bottom: 1px solid var(--line); background: var(--panel); min-width: 0; }
+.tb h1 { margin: 0; font-size: 13px; font-weight: 600; white-space: nowrap; letter-spacing: 0; }
+.tb h1 span { font-weight: 400; font-size: 11.5px; color: var(--muted); margin-left: 8px; }
+.tb .logo { width: 20px; height: 20px; flex: none; margin-right: -6px; fill: none; stroke: var(--ink); stroke-width: 5; } .tb .logo circle { stroke: var(--a); }
+.tb .sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 0; }
+.tb .grow { flex: 1; }
+.wb-msg { display: none; padding: 3px 10px; font-size: 12px; border-bottom: 1px solid var(--line); }
+#mock { grid-area: msg; color: var(--flag); } #parity { grid-area: par; color: var(--flag); } #err { grid-area: err; color: #ff7b6e; white-space: pre-wrap; }
+.wb-msg.on { display: block; }
+.seg2 { display: inline-flex; border: 1px solid var(--line2); border-radius: 3px; overflow: hidden; }
+.seg2 button { border: 0; background: transparent; padding: 0 10px; height: 24px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.seg2 button + button { border-left: 1px solid var(--line2); }
+.seg2 button[aria-pressed="true"] { background: var(--chip); font-weight: 600; box-shadow: inset 0 -2px 0 var(--a); }
+
+/* side column: knobs (Simulator) or runs (Results) */
+.side { grid-area: side; border-right: 1px solid var(--line); background: var(--panel); overflow-y: auto; min-height: 0; }
+.side details, .dock details { border-bottom: 1px solid var(--line); }
+.side summary, .dock summary { display: flex; align-items: center; gap: 6px; padding: 5px 10px; cursor: pointer; list-style: none; user-select: none; }
+.side summary::-webkit-details-marker, .dock summary::-webkit-details-marker { display: none; }
+.side summary::before, .dock summary::before { content: ""; width: 0; height: 0; border-left: 4px solid var(--muted); border-top: 3.5px solid transparent; border-bottom: 3.5px solid transparent; transition: transform .12s; }
+.side details[open] > summary::before, .dock details[open] > summary::before { transform: rotate(90deg); }
+.dock summary .who, .side summary .who { margin-left: auto; font-variant-caps: normal; letter-spacing: 0; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 62%; }
+.body { padding: 2px 10px 10px; }
+.kn { display: grid; grid-template-columns: 88px minmax(0, 1fr) 52px; gap: 5px 8px; align-items: center; font-size: 12px; }
+.kn > label { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+.kn > output { font: 500 11.5px var(--mono); text-align: right; white-space: nowrap; }
+.kn .wide { grid-column: 2 / 4; }
+.kn .ck { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; color: var(--ink); }
+.kn .sub { grid-column: 1 / -1; margin-top: 4px; color: var(--muted); font-size: 10.5px; font-variant-caps: all-small-caps; letter-spacing: .06em; font-weight: 600; border-top: 1px solid var(--line); padding-top: 5px; }
+.kn .off { opacity: .45; }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.gal { display: flex; gap: 4px; flex-wrap: wrap; grid-column: 1 / -1; }
+.gal button { padding: 0; border: 1px solid var(--line2); border-radius: 2px; background: var(--panel2); cursor: pointer; width: 46px; height: 46px; overflow: hidden; }
+.gal button[aria-pressed="true"] { outline: 2px solid var(--a); outline-offset: -2px; }
+.gal img, .gal canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
+.fine { color: var(--muted); font-size: 11.5px; margin: 6px 0 0; }
+.explore { border: 1px dashed var(--line2); padding: 6px 8px; margin-top: 6px; border-radius: 3px; }
+
+/* viewport */
+.vp { --strip: 40px; grid-area: vp; position: relative; min-height: 0; min-width: 0; overflow: hidden; background: var(--sky); }
+.vp > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.ov { position: absolute; font-size: 11.5px; line-height: 1.35; }
+.ovbox { background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 3px; }
+.tools { right: 8px; top: 8px; display: flex; gap: 6px; align-items: flex-start; }
+.tools .grp { display: flex; padding: 2px; gap: 1px; }
+#badge { right: 8px; top: 44px; padding: 2px 6px; color: var(--flag); border-color: var(--flag); display: none; font-family: var(--mono); cursor: help; }
+#badge.on { display: block; }
+#chips { left: 8px; top: 8px; display: flex; gap: 4px; flex-wrap: wrap; max-width: 60%; pointer-events: none; }
+.flag { display: inline-block; font-size: 10.5px; line-height: 14px; padding: 0 4px; border: 1px solid var(--line2); background: var(--chip); color: var(--ink); border-radius: 2px; white-space: nowrap; }
+.flag.warn { border-color: #ff7b6e; color: #ff7b6e; }
+.flag.ph-on { box-shadow: inset 0 -2px 0 var(--a); }
+#mind { left: 0; right: 0; bottom: 0; min-height: var(--strip); padding: 3px 10px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 8px; align-items: baseline;
+  background: color-mix(in srgb, var(--panel) 90%, transparent); border-top: 1px solid var(--line); font-size: 12px; }
+#mind .k { color: var(--muted); font-size: 10.5px; font-variant-caps: all-small-caps; letter-spacing: .06em; font-weight: 600; white-space: nowrap; }
+#mind .v { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#mind .tr { color: var(--muted); }
+#mapwrap { left: 8px; bottom: calc(var(--strip) + 8px); padding: 0; overflow: hidden; }
+#mapwrap[hidden] { display: none; }
+#mapwrap .cap { position: absolute; left: 6px; top: 3px; font-size: 10.5px; color: var(--muted); font-variant-caps: all-small-caps; letter-spacing: .06em; font-weight: 600; pointer-events: none; }
+#map { display: block; width: 230px; height: 230px; }
+.tag3d { left: 0; top: 0; padding: 0 4px; font: 500 10px/14px var(--mono); color: var(--ink); background: color-mix(in srgb, var(--panel) 80%, transparent); border: 1px solid var(--line2); border-radius: 2px; pointer-events: none; white-space: nowrap; }
+.tag3d[hidden] { display: none; }
+.nosim { position: absolute; inset: 0; display: none; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+.nosim.on { display: grid; }
+.nosim.on > div { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line2); border-radius: 3px; padding: 14px 18px; color: var(--ink); }
+.wb.m-results #nosim { display: none; }
+.nosim code { font-family: var(--mono); color: var(--ink); }
+
+/* dock */
+.dock { grid-area: dock; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; min-height: 0; }
+.dock canvas { display: block; width: 100%; }
+.eyerow { display: grid; grid-template-columns: minmax(0, 1fr) 64px; gap: 8px; align-items: start; }
+#eye { image-rendering: pixelated; image-rendering: crisp-edges; height: auto; aspect-ratio: 4 / 1; background: #000; border: 1px solid var(--line2); }
+#pic { width: 64px; height: 64px; border: 1px solid var(--line2); }
+.lab { font-size: 10.5px; color: var(--muted); margin: 2px 0 0; }
+#fam { height: 64px; margin-top: 6px; }
+#hub { height: auto; aspect-ratio: 1; max-width: 280px; margin: 0 auto; }
+#homev { height: auto; aspect-ratio: 1; max-width: 200px; margin: 0 auto; }
+#att { height: 132px; }
+.dkey { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.dkey i { display: inline-block; width: 10px; height: 3px; vertical-align: middle; margin-right: 4px; }
+.wb table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.wb th, .wb td { padding: 3px 0 3px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-weight: 400; }
+.wb th:first-child, .wb td:first-child { text-align: left; padding-left: 0; color: var(--muted); }
+.wb thead th { font-size: 11px; font-weight: 600; color: var(--ink); }
+.wb td.num { font: 500 12px var(--mono); }
+.wb td .u { color: var(--muted); font-family: var(--sans); font-size: 11px; }
+.wb td.src { white-space: normal; text-align: left; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; padding-top: 0; }
+#model { table-layout: fixed; } #model th:first-child { width: 45%; } #model td:not(.src) { overflow: hidden; text-overflow: ellipsis; }
+.wb td.wrap { white-space: normal; }
+.wb ul.simp { margin: 6px 0 0; padding-left: 16px; color: var(--ink); font-size: 12px; }
+.wb ul.simp li { margin: 2px 0; }
+.wb ul.simp b { font-weight: 600; }
+
+/* timeline */
+.tl { grid-area: tl; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; height: 34px; border-top: 1px solid var(--line); background: var(--panel); }
+.tl-l { display: flex; align-items: center; gap: 4px; padding: 0 6px; min-width: 0; }
+#time { font-size: 11.5px; color: var(--ink); white-space: nowrap; min-width: 92px; }
+#time small { color: var(--muted); font-size: 11.5px; }
+.tl-track { position: relative; cursor: ew-resize; touch-action: none; min-width: 0; }
+.tl-track canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tl-r { display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; gap: 4px; }
+#speed { width: 64px; }
+
+/* results charts */
+.charts { grid-area: charts; height: var(--charts-h); display: none; border-top: 1px solid var(--line); background: var(--panel); position: relative; overflow: auto; }
+.wb.m-results .charts { display: grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 0; }
+.chart { position: relative; padding: 4px 8px 6px; border-right: 1px solid var(--line); min-width: 0; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart svg text { fill: var(--muted); font: 10.5px var(--sans); }
+.chart svg .grid { stroke: var(--line); } .chart svg .frame { fill: none; stroke: var(--line2); }
+.chart svg .ca { stroke: var(--a); fill: var(--a); } .chart svg .cb { stroke: var(--b); fill: var(--b); } .chart svg .cn { stroke: var(--muted); fill: var(--muted); }
+.chart svg .ln { fill: none; stroke-width: 1.8; } .chart svg .wh { stroke-width: 1.2; fill: none; } .chart svg .bd { stroke: none; opacity: .16; }
+.chart svg .lbl { font: 10.5px var(--mono); }
+.wm { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; font: 600 34px var(--sans); letter-spacing: .12em; color: var(--flag); opacity: .16; transform: rotate(-12deg); }
+
+/* status bar */
+.sb { grid-area: sb; display: flex; align-items: center; gap: 0; height: 22px; padding: 0 4px; border-top: 1px solid var(--line); background: var(--panel); font-size: 11px; color: var(--muted); white-space: nowrap; min-width: 0; overflow: hidden; }
+.sb > span { padding: 0 8px; border-right: 1px solid var(--line); }
+.sb b { color: var(--ink); font: 500 11px var(--mono); }
+.sb .grow { flex: 1; border: 0; }
+
+/* mode visibility */
+.wb.m-sim .only-res, .wb.m-results .only-sim { display: none !important; }
+body.m-paper .wb { display: none; }
+body:not(.m-paper) #guide { display: none; }
+#guide.ph-paper { max-width: 70ch; margin: 0 auto; padding: 48px 16px; color: var(--ink); }
+.papernav { position: sticky; top: 0; z-index: 4; display: none; align-items: center; gap: 10px; padding: 6px 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.papernav .btn { color: var(--ink); font: 12px var(--sans); }
+.papernav .ph { font-size: 11px; font-weight: 600; font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--muted); }
+body.m-paper .papernav { display: flex; }
+footer.credits { color: var(--muted); font-size: 12px; padding: 20px 16px 28px; max-width: 1440px; margin: 0 auto; }
+footer.credits a { color: inherit; }
+
+/* phones: stacked */
+@media (max-width: 900px) {
+  .wb { height: auto; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: none;
+    grid-template-areas: "tb" "msg" "par" "err" "vp" "tl" "side" "dock" "charts" "sb"; }
+  .wb.m-results { --charts-h: auto; }
+  .wb.m-results .charts { grid-template-columns: minmax(0, 1fr); }
+  .tb { flex-wrap: wrap; padding: 6px 10px; }
+  .tb .sep, .tb .grow { display: none; }
+  .vp { height: 62vh; min-height: 340px; }
+  .side, .dock { border: 0; overflow: visible; border-top: 1px solid var(--line); }
+  #map { width: 150px; height: 150px; }
+  #mind { grid-template-columns: minmax(0, 1fr); } #mind .k { display: none; }
+  #mind .v { white-space: normal; }
+  .sb { flex-wrap: wrap; height: auto; padding: 4px; white-space: normal; }
+  .sb > span { padding: 2px 6px; }
+}
+@media (pointer: coarse) {
+  .wb select, .wb input[type="number"] { height: 44px; background-position: calc(100% - 11px) 20px, calc(100% - 7px) 20px; }
+  .wb .ib, .wb .btn { min-width: 44px; height: 44px; }
+  .seg2 button { height: 44px; padding: 0 14px; }
+  .side summary, .dock summary { min-height: 44px; }
+  .tl { height: 52px; }
+  .kn { gap: 10px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body class="m-sim">
+<nav class="papernav" aria-label="Paper navigation"><button class="btn" type="button" data-mode="sim">&larr; Simulator</button><button class="btn" type="button" data-mode="results">Results</button><span class="ph">Paper</span></nav>
+<div class="wb m-sim" id="wb">
+  <header class="tb">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M20 20L44 44M44 20L20 44"/><circle cx="14" cy="14" r="8"/><circle cx="50" cy="14" r="8"/><circle cx="14" cy="50" r="8"/><circle cx="50" cy="50" r="8"/></svg>
+    <h1>Mutant brain drone <span>Mutaqin Aryawijaya</span></h1>
+    <span class="sep"></span>
+    <span class="seg2" id="modes" role="group" aria-label="Mode">
+      <button type="button" data-mode="sim" aria-pressed="true" title="Live simulator, runs in your browser (exploration only)">Simulator</button>
+      <button type="button" data-mode="results" aria-pressed="false" title="The study's recorded runs and summary numbers">Results</button>
+      <button type="button" data-mode="paper" aria-pressed="false" title="The web paper">Paper</button>
+    </span>
+    <span class="grow"></span>
+    <button id="copy" class="btn only-sim" type="button" title="Copy the current scenario as JSON (the URL also holds it)">Copy scenario</button>
+    <button id="theme" class="ib" type="button" title="Light / dark theme (T)" aria-label="Toggle light or dark theme"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/></svg></button>
+  </header>
+  <div id="mock" class="wb-msg" role="note"></div>
+  <div id="parity" class="wb-msg only-sim" role="note">Not yet verified against the Python reference: the browser physics and brain have not passed <span class="mono">scripts/parity_check.py</span>. Treat the live simulator as a sketch.</div>
+  <div id="err" class="wb-msg" role="alert"></div>
+
+  <aside class="side only-sim" id="knobs" aria-label="Scenario knobs">
+    <div class="acts">
+      <button id="run" class="btn pri" type="button" title="Run / pause (Space)">Run</button>
+      <button id="reset" class="btn" type="button" title="Rebuild the world from the knobs and restart (R)">Reset</button>
+      <button id="batch" class="btn" type="button" title="Run the current scenario on 20 seeds (exploratory, not part of the paper)">Run 20 seeds</button>
+    </div>
+    <div id="knobgroups"></div>
+    <div class="body"><div id="batchout" class="explore" hidden></div></div>
+  </aside>
+  <aside class="side only-res" id="runs" aria-label="Recorded runs">
+    <details open><summary class="ph">Recorded run</summary>
+      <div class="body"><select id="runsel" style="width:100%"></select><table id="runmeta" style="margin-top:6px"></table>
+      <p class="fine">Recorded by the Python reference pipeline (frames at 10 Hz). Replays never recompute anything.</p></div></details>
+  </aside>
+
+  <section class="vp" id="view" aria-label="3D view">
+    <div id="chips" class="ov"></div>
+    <div class="ov tools">
+      <div class="grp ovbox" id="cams" role="group" aria-label="Camera view">
+        <button type="button" class="ib" data-cam="chase" aria-pressed="true" title="Chase: follow behind the drone (1)" aria-label="Chase view"><svg viewBox="0 0 16 16"><path d="M8 3.5l5.5 7H2.5z"/><path d="M8 10.5v3"/></svg></button>
+        <button type="button" class="ib" data-cam="top" title="Top: overview from above (2)" aria-label="Top view"><svg viewBox="0 0 16 16"><path d="M8 1.8l5.5 3.1v6.2L8 14.2l-5.5-3.1V4.9z"/><path d="M2.5 4.9L8 8l5.5-3.1L8 1.8z" fill="currentColor" fill-opacity=".55"/><path d="M8 8v6.2"/></svg></button>
+        <button type="button" class="ib" data-cam="free" title="Free: drag to orbit, scroll to zoom, right-drag to pan (3)" aria-label="Free orbit view"><svg viewBox="0 0 16 16"><ellipse cx="8" cy="8" rx="6" ry="2.6"/><path d="M11.6 3.6l1.6 1.9-2.4.6"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg></button>
+      </div>
+      <div class="grp ovbox"><button type="button" class="ib" id="mapbtn" aria-pressed="true" title="Top-down map (M)" aria-label="Toggle top-down map"><svg viewBox="0 0 16 16"><path d="M2 4l4-1.5 4 1.5 4-1.5v9.5l-4 1.5-4-1.5-4 1.5z"/><path d="M6 2.5v9.5M10 4v9.5"/></svg></button></div>
+    </div>
+    <div id="badge" class="ov ovbox"></div>
+    <div id="tagT" class="ov tag3d" hidden></div><div id="tagD0" class="ov tag3d" hidden></div><div id="tagD1" class="ov tag3d" hidden></div><div id="tagD2" class="ov tag3d" hidden></div><div id="tagH" class="ov tag3d" hidden>home</div>
+    <div id="mapwrap" class="ov ovbox"><span class="cap">Map · north up · truth</span><canvas id="map" aria-label="Top-down map"></canvas></div>
+    <div id="mind" class="ov" aria-live="off" title="Mind reader: a plain-language readout decoded from the brain's own state (left), and the simulator's ground truth (right)">
+      <span class="k">Brain says</span><span class="v" id="mindtxt">–</span>
+      <span class="k">Truth</span><span class="v tr" id="mindtru">–</span>
+    </div>
+    <div class="nosim" id="nosim"></div>
+  </section>
+
+  <aside class="dock" aria-label="Live panels">
+    <details open><summary class="ph">Eye and memory <span class="who mono" id="famv"></span></summary>
+      <div class="body">
+        <div class="eyerow">
+          <div><canvas id="eye" aria-label="Low-resolution panoramic view the memory sees"></canvas><p class="lab">Eye: 360° panorama, ahead in the centre, left on the left</p></div>
+          <div><canvas id="pic" width="64" height="64" aria-label="Target picture shown to the drone"></canvas><p class="lab">Target picture</p></div>
+        </div>
+        <canvas id="fam" aria-label="Familiarity over the last 30 seconds"></canvas>
+        <div class="dkey"><span><i style="background:var(--ink)"></i>familiarity (0–1)</span><span><i style="background:var(--muted)"></i>commit</span><span>last 30 s</span></div>
+      </div></details>
+    <details open><summary class="ph">Steering hub <span class="who" id="hubwho"></span></summary>
+      <div class="body">
+        <canvas id="hub" aria-label="Ring of heading neurons with the pull of each drive"></canvas>
+        <div class="dkey"><span><i style="background:var(--d-obj)"></i>objects</span><span><i style="background:var(--d-home)"></i>home</span><span><i style="background:var(--d-search)"></i>search</span><span id="hubcmdkey"><i style="background:var(--a)"></i>heading command</span><span><i style="background:var(--ink)"></i>heading</span></div>
+        <table id="viz" style="margin-top:6px"></table>
+        <p class="fine" id="hubnote"></p>
+      </div></details>
+    <details open><summary class="ph">Home-vector memory <span class="who mono" id="hverr"></span></summary>
+      <div class="body"><canvas id="homev" aria-label="Estimated and true home vector"></canvas>
+        <div class="dkey"><span><i style="background:var(--ink)"></i>estimate (path integrator)</span><span><i style="background:var(--muted)"></i>truth</span></div></div></details>
+    <details open><summary class="ph">Attitude · motors · wind</summary>
+      <div class="body"><canvas id="att" aria-label="Artificial horizon, motor levels and wind"></canvas></div></details>
+    <details><summary class="ph">Live values <span class="who mono" id="nowt"></span></summary>
+      <div class="body"><table id="now"></table></div></details>
+    <details><summary class="ph">Model</summary>
+      <div class="body"><table id="model"></table><ul class="simp" id="simp"></ul></div></details>
+  </aside>
+
+  <div class="tl">
+    <div class="tl-l">
+      <button id="play" class="ib" type="button" aria-label="Play" title="Play / pause (Space)"></button>
+      <button id="reset2" class="ib only-sim" type="button" aria-label="Reset" title="Reset (R)"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.5v2.5h2.5"/></svg></button>
+      <span id="time" class="mono" aria-live="off"></span>
+    </div>
+    <div class="tl-track" id="track" role="slider" tabindex="0" aria-label="Mission time" aria-valuemin="0" aria-valuenow="0" aria-valuemax="300"><canvas id="axis"></canvas></div>
+    <div class="tl-r">
+      <select id="speed" aria-label="Speed" title="Speed"><option value="0.5">0.5&times;</option><option value="1" selected>1&times;</option><option value="2">2&times;</option><option value="4">4&times;</option></select>
+    </div>
+  </div>
+  <section class="charts" id="charts" aria-label="Summary charts">
+    <div class="chart" id="ch1"></div><div class="chart" id="ch2"></div><div class="chart" id="ch3"></div>
+  </section>
+
+  <div class="sb" id="status">
+    <span>t <b id="sb-t">0.00</b> s</span>
+    <span>Phase <b id="sb-ph">–</b></span>
+    <span>Arbiter <b id="sb-arb">–</b></span>
+    <span title="Rendering frames per second">fps <b id="sb-fps">–</b></span>
+    <span title="Physics real-time factor: simulated seconds per wall-clock second (target = speed). Capacity: how many times faster than real time the worker could run.">RTF <b id="sb-rtf">–</b></span>
+    <span>Physics <b id="sb-src">–</b></span>
+    <span class="grow"></span>
+    <span>Keys: Space run · R reset · 1–3 camera · M map · T theme</span>
+  </div>
+</div>
+
+<section id="guide" class="ph-paper"><article><h1>Paper</h1><p>The web paper (<code>guide.js</code>) has not been written yet. It will appear here, rendered from <code>data/summary.json</code>, as in the fly project.</p></article></section>
+
+<footer class="credits">
+  Vehicle: MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> (MIT) via MuJoCo (Apache-2.0). Brain models: Ardin et al. 2016 (mushroom body), Stone et al. 2017 (path integrator, reimplemented), Sun, Yue &amp; Mangan 2020 (ring attractor). 3D: three.js (MIT). Type: IBM Plex (OFL).
+</footer>
+
+<!-- Classic scripts on purpose: browsers refuse type="module" scripts from file://. The Results and Paper modes work from
+     file:// with the *.js data bundles; the live simulator needs http (`npx serve app`) for its module worker. -->
+<script src="data/parity.js" onerror="this.remove()"></script>
+<script src="data/summary.js" onerror="this.remove()"></script>
+<script src="data/mock_summary.js" onerror="this.remove()"></script>
+<script src="panels.js"></script>
+<script src="scene3d.js"></script>
+<script src="app.js"></script>
+<script src="guide.js" defer onerror="this.remove()"></script>
+</body>
+</html>

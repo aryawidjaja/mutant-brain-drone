@@ -1,0 +1,9 @@
+{
+ "mock": true,
+ "runs": [
+  {
+   "file": "mock_run.json",
+   "label": "MOCK run: ring, seed 0, one decoy, 3 s occlusion"
+  }
+ ]
+}

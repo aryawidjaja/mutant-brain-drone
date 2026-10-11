@@ -1,0 +1,558 @@
+// Mutant brain drone: the workbench. Three modes in one page: Simulator (live, app/worker.js), Results (recorded runs
+// and summary charts), Paper (guide.js into #guide). Classic script so Results and Paper open from file://; three.js is
+// loaded with import() through the import map, as in flight-test-the-fly. Drawing helpers: panels.js, scene3d.js.
+//
+// Data the integrator provides (each optional; the app shows a labelled mock or banner without it):
+//   data/parity.js         window.PARITY = {pass: bool, quad: {...}, brain: {...}}      (hides the "not verified" banner)
+//   data/summary.json|.js  window.APP_SUMMARY = {stubbornness_frontier, h1_success_vs_severity, recog_auroc, _source...}
+//   runs/manifest.json     {runs: [{file, label}]}; runs/<file> = {meta: {scenario, arbiter, seed, git, sim_version, label},
+//                          world: <C5>, frames: [<C6 frame>, ...] at 10 Hz; frame.eye optional, {w, h, b64} or {w, h, rgb}}
+//   runs/bundle.js         window.RUN_BUNDLE = {manifest, runs: {file: run}}   (for file://)
+//   assets/targets/manifest.json  {items: [{file, kind, label, role}]} (workstream B; also a bare array)
+//   sim/vehicle_params.js  ES module; SOURCES = {name: {value, unit, source}} (workstream C; P/default also accepted)
+'use strict';
+(async () => {
+const $ = (id) => document.getElementById(id);
+const P = window.Panels, D2R = Math.PI / 180;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const HTTP = location.protocol !== 'file:';
+let css = {};
+const readCss = () => { const s = getComputedStyle(document.documentElement); for (const k of ['bg', 'panel', 'panel2', 'ink', 'muted', 'line', 'line2', 'a', 'b', 'gust', 'sky', 'chip', 'flag', 'mono']) css[k] = s.getPropertyValue('--' + k).trim(); css.dobj = s.getPropertyValue('--d-obj').trim(); css.dhome = s.getPropertyValue('--d-home').trim(); css.dsearch = s.getPropertyValue('--d-search').trim(); };
+readCss();
+const msg = (id, html) => { const el = $(id); el.innerHTML = html || ''; el.classList.toggle('on', !!html); };
+const showErr = (e) => { console.error(e); msg('err', esc(String(e && e.message || e))); };
+
+// ---------------------------------------------------------------- three.js (optional: the rest works without it)
+let S3 = null;
+try {
+  const THREE = await import('three');
+  let OC = null; try { OC = (await import('three/addons/controls/OrbitControls.js')).OrbitControls; } catch (e) { console.warn('OrbitControls failed to load', e); }
+  S3 = window.makeScene3D(THREE, OC, $('view'));
+} catch (e) { console.warn('three.js failed to load', e); const d = document.createElement('div'); d.className = 'nosim on'; d.textContent = '3D view unavailable (three.js could not load). The map and panels still work.'; $('view').prepend(d); }
+
+// ---------------------------------------------------------------- knobs -> C1 scenario
+const ARBS = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine'];
+const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
+  ['Mission', 'seed', 'Seed', 'num', 0, 0, 99999, 1, 'World layout, gusts and noise all follow this seed. The paper reports test seeds 1000–1299.'],
+  ['Mission', 'tkind', 'Target', 'sel', 'tent', ['tent', 'pad', 'backpack'], 0, 0, 'Kind of object the drone is shown and must find'],
+  ['Mission', 'gal', 'Picture', 'gallery'],
+  ['Mission', 'dist', 'Distance', 'rng', 40, 10, 120, 1, 'Mission distance: home to target, metres', (v) => v + ' m'],
+  ['Mission', 'tbear', 'Bearing', 'rng', 55, 0, 359, 1, 'Compass bearing of the target from home (0 = north, clockwise)', (v) => v + '°'],
+  ['Mission', 'tyaw', 'Target yaw', 'rng', 0, 0, 359, 1, 'Rotation of the target object', (v) => v + '°'],
+  ['Mission', 'hx', 'Home x', 'num', 0, -100, 100, 1, 'Home position, metres east'],
+  ['Mission', 'hy', 'Home y', 'num', 0, -100, 100, 1, 'Home position, metres north'],
+  ['Mission', 'maxt', 'Time limit', 'rng', 300, 60, 600, 30, 'Mission time limit', (v) => v + ' s'],
+  ['World', 'land', 'Landscape', 'sel', 'meadow', ['meadow', 'forest', 'urban'], 0, 0, 'Kind of world: open meadow, forest, or urban blocks'],
+  ['World', 'dens', 'Obstacles', 'rng', 0.3, 0, 1, 0.05, 'Obstacle density (0 = none, 1 = densest)', (v) => v.toFixed(2)],
+  ['World', 'light', 'Light', 'rng', 1, 0.1, 1, 0.05, 'Light level (1 = full daylight)', (v) => v.toFixed(2)],
+  ['World', 'fogon', 'Fog', 'chk', false, 0, 0, 0, 'Fog on or off'],
+  ['World', 'fog', 'Visibility', 'rng', 30, 5, 100, 1, 'Fog visibility distance', (v) => v + ' m', 'fogon'],
+  ['Wind', 'wsp', 'Mean wind', 'rng', 1, 0, 8, 0.1, 'Mean wind speed', (v) => v.toFixed(1) + ' m/s'],
+  ['Wind', 'wdir', 'From', 'rng', 270, 0, 359, 1, 'Direction the wind blows FROM (compass, 0 = north)', (v) => v + '°'],
+  ['Wind', 'turb', 'Gusts', 'sel', 'light', ['none', 'light', 'moderate', 'severe'], 0, 0, 'Dryden turbulence intensity (MIL-F-8785C, low altitude)'],
+  ['Faults', 'decoy', 'Decoy', 'sel', 'none', ['none', 'swap', 'beside', 'route'], 0, 0, 'none; swap = the decoy stands on the target spot and the target moves 10 m away (the swap control, as in scripts/scenario.py); beside = 6 m from the target; route = halfway along the way'],
+  ['Faults', 'dkind', 'Decoy kind', 'sel', 'tent', ['tent', 'pad', 'backpack'], 0, 0, 'Kind of the decoy object', null, 'decoy'],
+  ['Faults', 'dsim', 'Similarity', 'rng', 0.8, 0.5, 0.95, 0.05, 'How much the decoy looks like the target', (v) => v.toFixed(2), 'decoy'],
+  ['Faults', 'dt', 'Decoy at', 'rng', 0, 0, 120, 1, 'Time the decoy appears', (v) => v + ' s', 'decoy'],
+  ['Faults', 'occ', 'Occlusion', 'chk', false, 0, 0, 0, 'Hide the target for a while'],
+  ['Faults', 'occt', 'Starts', 'rng', 30, 0, 200, 1, 'Occlusion start', (v) => v + ' s', 'occ'],
+  ['Faults', 'occd', 'Lasts', 'rng', 5, 1, 10, 0.5, 'Occlusion duration', (v) => v + ' s', 'occ'],
+  ['Faults', 'comp', 'Compass ½', 'chk', false, 0, 0, 0, 'Half-silence the compass (polarisation sensors on one side)'],
+  ['Faults', 'compt', 'Starts', 'rng', 20, 0, 200, 1, 'Compass fault start', (v) => v + ' s', 'comp'],
+  ['Faults', 'eyec', 'Dead eye cols', 'chk', false, 0, 0, 0, 'Kill a fraction of the eye columns'],
+  ['Faults', 'eyect', 'Starts', 'rng', 20, 0, 200, 1, 'Eye fault start', (v) => v + ' s', 'eyec'],
+  ['Faults', 'eyecf', 'Fraction', 'rng', 0.25, 0.1, 0.4, 0.05, 'Fraction of dead columns', (v) => Math.round(v * 100) + '%', 'eyec'],
+  ['Faults', 'sun', 'False sun', 'chk', false, 0, 0, 0, 'A false sun (bright reflection) shifts the compass'],
+  ['Faults', 'sunt', 'Starts', 'rng', 20, 0, 200, 1, 'False sun start', (v) => v + ' s', 'sun'],
+  ['Faults', 'suno', 'Offset', 'rng', 60, 30, 120, 5, 'False sun offset', (v) => v + '°', 'sun'],
+  ['Faults', 'spd', 'Speed error', 'chk', false, 0, 0, 0, 'Miscalibrated speed (odometry scale)'],
+  ['Faults', 'spdt', 'Starts', 'rng', 0, 0, 200, 1, 'Speed error start', (v) => v + ' s', 'spd'],
+  ['Faults', 'spds', 'Scale', 'rng', 1.2, 0.7, 1.3, 0.05, 'Odometry scale factor', (v) => '×' + v.toFixed(2), 'spd'],
+  ['Brain', 'arb', 'Arbiter', 'sel', 'ring', ARBS, 0, 0, 'Which arbiter steers: ring hub (under test), ring without recurrence (control), or a rival'],
+  ['Brain', 'gain', 'Ring gain', 'rng', 1, 0, 3, 0.05, 'Recurrent gain of the ring (0 = no memory; same as ring_static)', (v) => v.toFixed(2), 'arb=ring'],
+  ['Brain', 'lf', 'Learning flight', 'chk', true, 0, 0, 0, 'A 10 s bee-style learning flight before the search'],
+];
+const ARBNAME = { ring: 'Ring hub', ring_static: 'Ring, no recurrence', vote: 'Static vote', sum: 'Vector sum', accumulator: 'Leaky accumulator', state_machine: 'State machine' };
+const K = Object.fromEntries(KN.filter((k) => k[3] !== 'gallery').map((k) => [k[1], k[4]]));
+const r1 = (v) => Math.round(v * 100) / 100;
+function scenario() {
+  const home = [K.hx, K.hy, 0], b = (90 - K.tbear) * D2R, tp = [r1(home[0] + K.dist * Math.cos(b)), r1(home[1] + K.dist * Math.sin(b)), 0];
+  // world spans [-W/2, W/2] x [-H/2, H/2] around the origin (app/sim/world.js): keep home and target 10 m inside it
+  const size = [0, 1].map((i) => Math.max(80, Math.ceil((2 * Math.max(Math.abs(home[i]), Math.abs(tp[i])) + 20) / 10) * 10));
+  const decoys = [];
+  if (K.decoy !== 'none') {
+    const pos = K.decoy === 'swap' ? tp.slice() : K.decoy === 'beside' ? [r1(tp[0] - 6 * Math.sin(b)), r1(tp[1] + 6 * Math.cos(b)), 0] : [r1((home[0] + tp[0]) / 2 - 3 * Math.sin(b)), r1((home[1] + tp[1]) / 2 + 3 * Math.cos(b)), 0];
+    decoys.push({ kind: K.dkind, pos, swap: K.decoy === 'swap', similarity: K.dsim, t_s: K.dt });
+    if (K.decoy === 'swap') { tp[0] = r1(tp[0] - 10 * Math.sin(b)); tp[1] = r1(tp[1] + 10 * Math.cos(b)); } // as scripts/scenario.py: the target moves 10 m off its spot
+  }
+  const faults = [];
+  if (K.occ) faults.push({ kind: 'occlusion', t_s: K.occt, params: { duration_s: K.occd } });
+  if (K.comp) faults.push({ kind: 'compass_half', t_s: K.compt, params: {} });
+  if (K.eyec) faults.push({ kind: 'eye_columns', t_s: K.eyect, params: { frac: K.eyecf } });
+  if (K.sun) faults.push({ kind: 'false_sun', t_s: K.sunt, params: { offset_deg: K.suno } });
+  if (K.spd) faults.push({ kind: 'speed_scale', t_s: K.spdt, params: { scale: K.spds } });
+  const wf = K.wdir * D2R;
+  return {
+    seed: K.seed, world: { size_m: size, landscape: K.land, obstacle_density: K.dens, light: K.light, fog_m: K.fogon ? K.fog : null },
+    home, target: { kind: K.tkind, pos: tp, yaw_deg: K.tyaw }, decoys,
+    wind: { mean_mps: [r1(-K.wsp * Math.sin(wf)), r1(-K.wsp * Math.cos(wf)), 0], turbulence: K.turb }, faults,
+    brain: { arbiter: K.arb, ring_gain: K.arb === 'ring' ? K.gain : 0, learning_flight_s: K.lf ? 10 : 0 },
+    mission: { max_time_s: K.maxt, dt_s: 0.002 },
+  };
+}
+function fromScenario(sc) { // inverse of scenario(), for #s= links
+  const sw = (sc.decoys || []).find((d) => d.swap), h = sc.home || [0, 0, 0], t = sw ? sw.pos : sc.target.pos, dx = t[0] - h[0], dy = t[1] - h[1];
+  Object.assign(K, { seed: sc.seed | 0, hx: h[0], hy: h[1], tkind: sc.target.kind, tyaw: Math.round(sc.target.yaw_deg || 0), dist: Math.round(Math.hypot(dx, dy)),
+    tbear: Math.round(((90 - Math.atan2(dy, dx) / D2R) % 360 + 360) % 360), maxt: sc.mission.max_time_s,
+    land: sc.world.landscape, dens: sc.world.obstacle_density, light: sc.world.light ?? 1, fogon: sc.world.fog_m != null, fog: sc.world.fog_m || K.fog,
+    turb: sc.wind.turbulence, arb: sc.brain.arbiter, gain: sc.brain.ring_gain ?? 1, lf: (sc.brain.learning_flight_s ?? 10) > 0 });
+  const w = sc.wind.mean_mps; K.wsp = r1(Math.hypot(w[0], w[1])); if (K.wsp) K.wdir = Math.round(((Math.atan2(-w[0], -w[1]) / D2R) % 360 + 360) % 360);
+  const d = (sc.decoys || [])[0];
+  K.decoy = !d ? 'none' : d.swap ? 'swap' : Math.hypot(d.pos[0] - t[0], d.pos[1] - t[1]) < 8 ? 'beside' : 'route';
+  if (d) Object.assign(K, { dkind: d.kind, dsim: d.similarity ?? 0.8, dt: d.t_s || 0 });
+  const F = Object.fromEntries((sc.faults || []).map((f) => [f.kind, f]));
+  K.occ = !!F.occlusion; if (F.occlusion) { K.occt = F.occlusion.t_s; K.occd = F.occlusion.params.duration_s ?? 5; }
+  K.comp = !!F.compass_half; if (F.compass_half) K.compt = F.compass_half.t_s;
+  K.eyec = !!F.eye_columns; if (F.eye_columns) { K.eyect = F.eye_columns.t_s; K.eyecf = F.eye_columns.params.frac ?? 0.25; }
+  K.sun = !!F.false_sun; if (F.false_sun) { K.sunt = F.false_sun.t_s; K.suno = F.false_sun.params.offset_deg ?? 60; }
+  K.spd = !!F.speed_scale; if (F.speed_scale) { K.spdt = F.speed_scale.t_s; K.spds = F.speed_scale.params.scale ?? 1.2; }
+}
+const b64u = { enc: (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+  dec: (s) => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))) };
+const hashP = () => new URLSearchParams(location.hash.slice(1));
+function writeHash() { const h = new URLSearchParams(); h.set('m', mode); if (mode === 'sim') h.set('s', b64u.enc(scenario())); history.replaceState(null, '', '#' + h.toString()); }
+try { const s = hashP().get('s'); if (s) fromScenario(b64u.dec(s)); } catch (e) { showErr(new Error('Could not read the scenario in the link: ' + e.message)); }
+
+// knob DOM, built from KN
+const kEls = {};
+function buildKnobs() {
+  const host = $('knobgroups'); let grp = null, box = null;
+  for (const k of KN) {
+    const [g, id, label, type, , a, b, step, tip, fmt, dep] = k;
+    if (g !== grp) {
+      grp = g; const d = document.createElement('details'); d.open = true;
+      d.innerHTML = `<summary class="ph">${g}<span class="who" id="kw-${g}"></span></summary><div class="body"><div class="kn"></div></div>`; host.appendChild(d); box = d.querySelector('.kn');
+    }
+    if (g === 'Faults' && (type === 'chk' || id === 'decoy') && box.children.length) box.insertAdjacentHTML('beforeend', '<span class="sub"></span>');
+    if (type === 'gallery') { box.insertAdjacentHTML('beforeend', `<label title="Show the drone a new target picture">${label}</label><div class="gal wide" id="gal"></div>`); continue; }
+    if (type === 'chk') {
+      box.insertAdjacentHTML('beforeend', `<label class="ck" title="${esc(tip)}"><input type="checkbox" id="k-${id}"><span>${label}</span></label>`);
+    } else {
+      const ctl = type === 'sel' ? `<select id="k-${id}" class="${type === 'sel' ? 'wide' : ''}">${a.map((o) => `<option value="${o}">${ARBNAME[o] || o}</option>`).join('')}</select>`
+        : type === 'num' ? `<input type="number" id="k-${id}" min="${a}" max="${b}" step="${step}">` : `<input type="range" id="k-${id}" min="${a}" max="${b}" step="${step}">`;
+      box.insertAdjacentHTML('beforeend', `<label for="k-${id}" title="${esc(tip)}" data-dep="${dep || ''}">${label}</label>${ctl}${type === 'sel' ? '' : `<output id="o-${id}" data-dep="${dep || ''}"></output>`}`);
+    }
+    const el = $('k-' + id); kEls[id] = { el, type, fmt, dep };
+    el.addEventListener(type === 'rng' ? 'input' : 'change', () => {
+      K[id] = type === 'chk' ? el.checked : type === 'sel' ? el.value : +el.value;
+      if (type === 'num') K[id] = clamp(Math.round(K[id] / step) * step || 0, a, b);
+      syncKnobs(); knobChanged();
+    });
+  }
+}
+function syncKnobs() {
+  for (const [id, { el, type, fmt, dep }] of Object.entries(kEls)) {
+    if (type === 'chk') el.checked = !!K[id]; else if (String(el.value) !== String(K[id])) el.value = K[id];
+    const o = $('o-' + id); if (o) o.textContent = fmt ? fmt(K[id]) : type === 'num' ? '' : K[id];
+    if (dep) {
+      const off = dep.includes('=') ? K[dep.split('=')[0]] !== dep.split('=')[1] : dep === 'decoy' ? K.decoy === 'none' : !K[dep];
+      el.disabled = off; el.classList.toggle('off', off); document.querySelectorAll(`[data-dep="${dep}"]`).forEach((x) => x.classList.toggle('off', off));
+    }
+  }
+  const nf = ['occ', 'comp', 'eyec', 'sun', 'spd'].filter((k) => K[k]).length + (K.decoy !== 'none' ? 1 : 0);
+  const kw = $('kw-Faults'); if (kw) kw.textContent = nf ? `${nf} on` : 'none';
+  const kb = $('kw-Brain'); if (kb) kb.textContent = ARBNAME[K.arb];
+  document.querySelectorAll('#gal button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === K.tkind && (!galPick || b.dataset.i === String(galPick.i)))));
+}
+let pendingReset = false;
+function knobChanged() {
+  writeHash();
+  if (sim.running) { pendingReset = true; $('reset').textContent = 'Reset to apply'; $('reset').classList.add('pri'); }
+  else resetSim();
+}
+
+// ---------------------------------------------------------------- target picture gallery
+let galPick = null; const galImgs = [];
+async function buildGallery() {
+  const g = $('gal'); let list = null;
+  if (HTTP) try { const r = await fetch('assets/targets/manifest.json', { cache: 'no-cache' }); if (r.ok) { const j = await r.json(); list = Array.isArray(j) ? j : j.items || j.targets || j.images || null; } } catch (e) { /* mock below */ }
+  if (list && list.length) {
+    const first = list.findIndex((t) => t.role === 'target' && t.kind === K.tkind);
+    list.slice(0, 18).forEach((t, i) => {
+      const img = new Image(); img.src = 'assets/targets/' + t.file; img.alt = t.label || t.kind; galImgs[i] = img;
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = t.kind; b.dataset.i = i; b.title = t.label || t.file; b.appendChild(img.cloneNode());
+      b.onclick = () => { galPick = { i, img, kind: t.kind }; K.tkind = t.kind; syncKnobs(); knobChanged(); };
+      g.appendChild(b);
+      if (i === first) galPick = { i, img, kind: t.kind };
+    });
+  } else {
+    for (const kind of ['tent', 'pad', 'backpack']) {
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = kind; b.title = kind + ' (mock gallery: drawn from the world appearance; workstream B writes assets/targets/manifest.json)';
+      const c = document.createElement('canvas'); c.width = c.height = 64; b.appendChild(c);
+      P.pic(c, { kind, appearance: { base: { tent: [0.86, 0.47, 0.16], pad: [0.18, 0.45, 0.82], backpack: [0.66, 0.14, 0.2] }[kind], accent: [0.95, 0.92, 0.85], pattern: { tent: 'stripes', pad: 'chevron', backpack: 'dots' }[kind] } });
+      b.onclick = () => { galPick = null; K.tkind = kind; syncKnobs(); knobChanged(); };
+      g.appendChild(b);
+    }
+  }
+  syncKnobs();
+}
+
+// ---------------------------------------------------------------- shared view state (one "current frame" for both modes)
+const view = { world: null, scen: null, frame: null, trail: { n: 0, xy: new Float32Array(2 * 60000), xyz: new Float32Array(3 * 60000) }, hist: { t: [], fam: [], commit: [] }, phases: [], dur: 300, T: 0 };
+function resetView(world, scen, dur) {
+  Object.assign(view, { world, scen, frame: null, dur, T: 0, phases: [] }); view.trail.n = 0; view.hist = { t: [], fam: [], commit: [] };
+  if (S3) { S3.setWorld(world); S3.clearTrail(); }
+  objTags();
+  panelDirty = true;
+}
+function pushFrame(f) {
+  const tr = view.trail;
+  if (tr.n < 60000) { const p = f.quad.pos; tr.xy[2 * tr.n] = p[0]; tr.xy[2 * tr.n + 1] = p[1]; tr.xyz.set(p, 3 * tr.n); tr.n++; }
+  view.hist.t.push(f.t); view.hist.fam.push(f.familiarity ?? 0); view.hist.commit.push(f.arbiter ? f.arbiter.commit ?? 0 : 0);
+  if (!view.phases.length || view.phases[view.phases.length - 1][1] !== f.phase) view.phases.push([f.t, f.phase]);
+}
+// presence over time of world objects (from the scenario: a decoy appears at its t_s; the target is always there)
+function present(o) {
+  const sc = view.scen, t = view.frame ? view.frame.t : 0; if (!sc) return true;
+  const ds = sc.decoys || [];
+  if (Number.isFinite(o.t_s)) return t >= o.t_s;
+  if (o.role === 'decoy') { const d = ds.find((d) => d.kind === o.kind && Math.hypot(d.pos[0] - o.x, d.pos[1] - o.y) < 0.5); return !d || t >= (d.t_s || 0); }
+  return true;
+}
+const arbOf = () => (view.scen ? view.scen.brain.arbiter : K.arb);
+const roleColor = () => P.roleCol(css, arbOf());
+
+// ---------------------------------------------------------------- live simulator (worker)
+const sim = { w: null, running: false, src: '', rtf: 0, cpu: 0, ok: HTTP, done: false, note: '' };
+function noSim(why) {
+  sim.ok = false;
+  const el = $('nosim'); el.classList.add('on');
+  el.innerHTML = `<div>The live simulator runs in a Web Worker, which browsers only allow over http.<br>Serve the folder with <code>npx serve app</code> and open the address it prints.<br><span style="font-size:11.5px">${esc(why || '')}</span><br><br>The Results and Paper modes work from here.</div>`;
+}
+function resetSim() {
+  pendingReset = false; $('reset').textContent = 'Reset'; $('reset').classList.remove('pri');
+  if (!sim.ok) { const sc = scenario(); resetView(null, sc, sc.mission.max_time_s); return; }
+  if (sim.w) sim.w.terminate();
+  let w; try { w = new Worker('worker.js', { type: 'module' }); } catch (e) { noSim(e.message); return; }
+  sim.w = w; sim.done = false; setRunning(false);
+  const sc = scenario();
+  w.onmessage = (e) => { if (w === sim.w) onSim(e.data, sc); };
+  w.onerror = (e) => { if (w === sim.w) showErr(new Error('Simulator worker: ' + (e.message || 'failed to start'))); };
+  w.postMessage({ cmd: 'init', scenario: sc, speed: +$('speed').value });
+  resetView(null, sc, sc.mission.max_time_s);
+}
+function onSim(d, sc) {
+  if (d.type === 'ready') {
+    sim.src = d.source; sim.note = d.note || ''; sim.worldSrc = d.worldSrc || '';
+    resetView(d.world, sc, sc.mission.max_time_s);
+    if (sim.running) sim.w.postMessage({ cmd: 'run' }); // Run pressed while the worker was still loading
+    msg('err', '');
+    badge(); banners();
+  } else if (d.type === 'frame') {
+    if (mode !== 'sim') return;
+    if (view.frame && d.frame.t < view.frame.t) return;
+    if (!view.frame || d.frame.t !== view.frame.t) pushFrame(d.frame);
+    view.frame = d.frame; view.T = d.frame.t; sim.rtf = d.rtf; sim.cpu = d.cpu; panelDirty = true;
+  } else if (d.type === 'done') { sim.done = true; setRunning(false); }
+  else if (d.type === 'error') showErr(new Error(d.message));
+}
+function setRunning(on) {
+  if (on && sim.done) { resetSim(); on = true; }
+  sim.running = on && sim.ok;
+  if (sim.w) sim.w.postMessage({ cmd: sim.running ? 'run' : 'pause' });
+  playIcon(); $('run').textContent = sim.running ? 'Pause' : sim.done ? 'Run again' : 'Run';
+}
+function badge() {
+  const b = $('badge'), mock = mode === 'sim' ? sim.src === 'mock' : results.mockRun;
+  b.classList.toggle('on', mock); b.textContent = 'MOCK physics + brain' + (mode === 'sim' && sim.worldSrc === 'app/sim/world.js' ? ' · real world' : '');
+  b.title = mode === 'sim' ? 'app/sim/mission.js is not available yet, so the live view uses app/data/mock_mission.js: a kinematic point drone and a toy brain, for building the interface only. ' + sim.note : 'This replay is a mock run made by app/data/mock_mission.js, not a result.';
+}
+// poll for the real modules while on the mock; switch at the next reset (immediately when idle)
+if (HTTP) setInterval(async () => {
+  if (sim.src !== 'mock' || mode !== 'sim') return;
+  try { const r = await fetch('sim/mission.js', { method: 'HEAD', cache: 'no-store' }); if (r.ok && !sim.running && (!view.frame || view.frame.t < 0.05 || sim.done)) resetSim(); else if (r.ok) sim.note = 'Real modules found: press Reset to switch.'; } catch (e) { /* offline */ }
+}, 5000);
+
+// ---------------------------------------------------------------- Run 20 seeds (exploratory)
+let batchW = null;
+function runBatch() {
+  const out = $('batchout'); out.hidden = false;
+  if (batchW) { batchW.terminate(); batchW = null; $('batch').textContent = 'Run 20 seeds'; out.innerHTML += '<p class="fine">Cancelled.</p>'; return; }
+  if (!sim.ok) { out.innerHTML = '<p class="fine">Needs http (npx serve app).</p>'; return; }
+  const sc = scenario(), seeds = Array.from({ length: 20 }, (_, i) => sc.seed + i);
+  batchW = new Worker('worker.js', { type: 'module' }); $('batch').textContent = 'Cancel';
+  out.innerHTML = `<span class="ph">Exploratory · not part of the paper</span><p class="fine" id="bprog">Seeds ${seeds[0]}–${seeds[19]}: starting…</p>`;
+  batchW.onmessage = (e) => {
+    const d = e.data;
+    if (d.type === 'progress') $('bprog').textContent = `Seed ${d.seed}: ${d.i} / ${d.n} done`;
+    if (d.type === 'error') { out.innerHTML += `<p class="fine">${esc(d.message)}</p>`; batchW.terminate(); batchW = null; $('batch').textContent = 'Run 20 seeds'; }
+    if (d.type !== 'batch') return;
+    const R = d.results, n = R.length, pc = (k) => Math.round((100 * R.filter((r) => r[k]).length) / n) + '%';
+    const ts = R.map((r) => r.time_s).filter(Number.isFinite).sort((a, b) => a - b), med = ts.length ? ts[ts.length >> 1].toFixed(0) : '–';
+    out.innerHTML = `<span class="ph">Exploratory · not part of the paper</span>
+      <table><tr><td>Arbiter</td><td>${esc(ARBNAME[sc.brain.arbiter])}${d.source === 'mock' ? ' <span class="flag">mock</span>' : ''}</td></tr>
+      <tr><td>Seeds</td><td class="num">${seeds[0]}–${seeds[19]}</td></tr><tr><td>Found target</td><td class="num">${pc('success_target')}</td></tr>
+      <tr><td>Got home</td><td class="num">${pc('success_home')}</td></tr><tr><td>Stopped at decoy</td><td class="num">${pc('wrong_object_stop')}</td></tr>
+      <tr><td>Collisions (mean)</td><td class="num">${(R.reduce((s, r) => s + (r.collisions || 0), 0) / n).toFixed(1)}</td></tr><tr><td>Median time</td><td class="num">${med} <span class="u">s</span></td></tr></table>
+      <p class="fine">20 seeds, no confidence intervals: a quick look only. The paper's numbers come from the Python reference on held-out test seeds.</p>`;
+    batchW.terminate(); batchW = null; $('batch').textContent = 'Run 20 seeds';
+  };
+  batchW.postMessage({ cmd: 'batch', scenario: sc, seeds });
+}
+
+// ---------------------------------------------------------------- Results mode
+const results = { list: null, get: null, run: null, mockRun: false, playing: false, S: null, mockS: false };
+async function loadRunSource() {
+  const fromJSON = async (man, mock) => ({ list: man.runs, mock, get: async (f) => { const r = await fetch('runs/' + f); if (!r.ok) throw new Error(`Could not load runs/${f} (${r.status})`); return r.json(); } });
+  if (HTTP) {
+    for (const [f, mock] of [['runs/manifest.json', false], ['runs/mock_manifest.json', true]]) {
+      try { const r = await fetch(f, { cache: 'no-cache' }); if (r.ok) return fromJSON(await r.json(), mock); } catch (e) { /* next */ }
+    }
+  }
+  for (const [f, g, mock] of [['runs/bundle.js', 'RUN_BUNDLE', false], ['runs/mock_bundle.js', 'MOCK_RUN_BUNDLE', true]]) {
+    await new Promise((ok) => { const s = document.createElement('script'); s.src = f; s.onload = ok; s.onerror = () => { s.remove(); ok(); }; document.head.appendChild(s); });
+    if (window[g]) return { list: window[g].manifest.runs, mock, get: async (file) => window[g].runs[file] };
+  }
+  throw new Error('No recorded runs found (runs/manifest.json or runs/bundle.js).');
+}
+async function loadSummary() {
+  if (HTTP) try { const r = await fetch('data/summary.json', { cache: 'no-cache' }); if (r.ok) return [await r.json(), false]; } catch (e) { /* next */ }
+  if (window.APP_SUMMARY) return [window.APP_SUMMARY, false];
+  if (window.MOCK_SUMMARY) return [window.MOCK_SUMMARY, true];
+  return [null, false];
+}
+async function enterResults() {
+  try {
+    if (!results.list) {
+      const src = await loadRunSource(); Object.assign(results, { list: src.list, get: src.get, mockRun: src.mock });
+      $('runsel').innerHTML = src.list.map((r, i) => `<option value="${i}">${esc(r.label || r.file)}</option>`).join('');
+      $('runsel').onchange = () => selectRun(+$('runsel').value);
+      [results.S, results.mockS] = await loadSummary();
+    }
+    if (!results.run) await selectRun(0); else showRunFrame();
+    drawCharts(); banners(); badge();
+  } catch (e) { showErr(e); }
+}
+async function selectRun(i) {
+  const entry = results.list[i], run = await results.get(entry.file);
+  const fr = run.frames, dur = fr.length ? fr[fr.length - 1].t : 1;
+  results.run = run; results.playing = false;
+  resetView(run.world, run.meta.scenario || null, dur);
+  for (const f of fr) pushFrame(f);
+  view.T = 0; showRunFrame(); playIcon();
+  const m = run.meta, o = fr.length ? fr[fr.length - 1].outcome || {} : {};
+  const row = (k, v) => `<tr><td>${k}</td><td class="num">${esc(v)}</td></tr>`;
+  $('runmeta').innerHTML = row('Arbiter', ARBNAME[m.arbiter] || m.arbiter) + row('Seed', m.seed) + row('Git', m.git) + row('Sim version', m.sim_version) +
+    ['success_target', 'success_home', 'wrong_object_stop', 'collisions', 'time_s', 'path_len_m', 'home_error_m', 'max_bank_deg', 't_hold_occlusion_s', 't_release_decoy_s'].filter((k) => k in o).map((k) => row(k.replace(/_/g, ' '), o[k] === null ? '–' : String(o[k]))).join('');
+}
+function showRunFrame() {
+  const fr = results.run.frames; if (!fr.length) return;
+  const dt = fr.length > 1 ? (fr[fr.length - 1].t - fr[0].t) / (fr.length - 1) : 0.1;
+  const i = clamp(Math.floor((view.T - fr[0].t) / dt), 0, fr.length - 1), j = Math.min(fr.length - 1, i + 1), a = clamp((view.T - fr[i].t) / dt, 0, 1);
+  const f = { ...fr[i], quad: { ...fr[i].quad, pos: fr[i].quad.pos.map((v, k) => v + a * (fr[j].quad.pos[k] - v)) } };
+  if (!f.eye) for (let k = i; k >= 0; k--) if (fr[k].eye) { f.eye = fr[k].eye; break; }
+  view.frame = f; view.trail.n = i + 1; panelDirty = true;
+}
+function drawCharts() {
+  const S = results.S, wm = results.mockS ? '<div class="wm">MOCK DATA</div>' : '';
+  const put = (id, s, what) => { $(id).innerHTML = (s || `<p class="fine">No ${what} in the summary yet.</p>`) + wm; };
+  const el = $('ch1'), W = Math.max(260, el.clientWidth - 16), H = Math.max(220, Math.min(340, el.clientHeight - 12 || 260));
+  put('ch1', P.chartFrontier(S, W, H), 'stubbornness frontier'); put('ch2', P.chartSeverity(S, W, H), 'success-vs-severity data'); put('ch3', P.chartAuroc(S, W, H), 'recognition AUROC');
+}
+
+// ---------------------------------------------------------------- banners, model panel
+function banners() {
+  const par = window.PARITY;
+  const pass = par && par.pass === true;
+  $('parity').classList.toggle('on', mode === 'sim' && !pass);
+  if (par && !pass) $('parity').innerHTML = 'Parity check against the Python reference did not pass: the live simulator may differ from the numbers in the paper. Details: <span class="mono">' + esc(JSON.stringify({ quad: par.quad, brain: par.brain }).slice(0, 200)) + '</span>';
+  const mk = mode === 'sim' ? (sim.src === 'mock' ? 'MOCK physics and brain: <span class="mono">app/sim/mission.js</span> is not available yet, so this view uses a kinematic stand-in (<span class="mono">app/data/mock_mission.js</span>) for building the interface. Nothing here is a result.' : '')
+    : mode === 'results' ? [results.mockRun && 'Mock replay: the recorded run is synthetic (made by the mock simulator).', results.mockS && 'Mock summary: the charts show synthetic numbers (<span class="mono">data/mock_summary.js</span>), not results.'].filter(Boolean).join(' ') : '';
+  msg('mock', mk);
+}
+const SIMP = [
+  ['Eye', 'an analytic ray-cast low-resolution panorama (same geometry and colours in Python and JS), not a rendered camera image; the H4 recognition study uses MuJoCo renders.'],
+  ['Optic flow and looming', 'computed geometrically from the scene, engineered from published principles (no flyvis LPLC2 or HS cells).'],
+  ['Inner attitude loop', 'a standard cascade PID, standing in for the fly halteres; the same for every arbiter.'],
+  ['Yaw circuit', 'the FlyWire/Shiu yaw circuit is too slow for live use; where shown, it is a transfer-function surrogate fitted to its measured frequency response (fit error in the paper).'],
+  ['Motors', 'first-order lag and saturation; thrust and drag torque from per-motor coefficients.'],
+  ['Wind', 'Dryden turbulence (MIL-F-8785C, low altitude) plus a mean wind.'],
+  ['Path integrator', 'Stone et al. 2017 model, reimplemented from the paper.'],
+  ['Mushroom body', 'Ardin et al. 2016-style one-shot familiarity network.'],
+  ['Object slots', 'a perfect tracker keeps each object in the same slot (slot order random per seed).'],
+];
+async function modelPanel() {
+  let params = null, why = '';
+  if (HTTP) {
+    try {
+      if ((await fetch('sim/vehicle_params.js', { method: 'HEAD', cache: 'no-store' })).ok) { const m = await import(new URL('sim/vehicle_params.js', location.href).href); params = m.SOURCES || m.default || m.PARAMS || m.P || m.params || null; }
+      else why = 'app/sim/vehicle_params.js is not written yet (workstream C).';
+    } catch (e) { why = 'Could not load app/sim/vehicle_params.js: ' + e.message; }
+  } else why = 'Open over http to load app/sim/vehicle_params.js.';
+  const t = $('model');
+  if (params && typeof params === 'object') {
+    const rows = Object.entries(params).filter(([k]) => !k.startsWith('_')).map(([k, v]) => {
+      const o = v && typeof v === 'object' && 'value' in v ? v : { value: v };
+      const val = Array.isArray(o.value) ? o.value.map((x) => +(+x).toPrecision(4)).join(', ') : typeof o.value === 'number' ? +o.value.toPrecision(5) : String(o.value);
+      return `<tr><td>${esc(k)}</td><td class="num">${esc(val)} <span class="u">${esc(o.unit || '')}</span></td></tr>${o.source ? `<tr><td colspan="2" class="src">${esc(o.source)}</td></tr>` : ''}`;
+    });
+    t.innerHTML = `<thead><tr><th>Vehicle parameter</th><th>Value</th></tr></thead>` + rows.join('');
+  } else t.innerHTML = `<tr><td class="wrap" colspan="2">Vehicle parameters with sources will be listed here. ${esc(why)} Mass and inertia come from the MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> model; motor constants from a separately cited source.</td></tr>`;
+  $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js exists.</li>' : '');
+}
+
+// ---------------------------------------------------------------- panels
+let panelDirty = true, lastPanel = 0;
+function objTags() {
+  const w = view.world; ['tagT', 'tagD0', 'tagD1', 'tagD2'].forEach((id) => { $(id).hidden = true; });
+  $('tagH').hidden = !w;
+}
+function placeTags() {
+  const w = view.world; if (!w || !S3) return;
+  const put = (id, x, y, z, txt) => { const el = $(id), p = S3.project(x, y, z); if (!p || p[0] < 0 || p[1] < 0 || p[0] > $('view').clientWidth || p[1] > $('view').clientHeight) { el.hidden = true; return; } el.hidden = false; if (txt) el.textContent = txt; el.style.transform = `translate(${Math.round(p[0] + 6)}px, ${Math.round(p[1] - 18)}px)`; };
+  let d = 0;
+  for (const o of w.objects) {
+    const here = present(o), z = o.kind === 'tent' ? 1.6 : 0.7;
+    if (o.role === 'target') { here ? put('tagT', o.x, o.y, z, `target · slot ${o.slot}`) : ($('tagT').hidden = true); }
+    else if (d < 3) { const id = 'tagD' + d++; here ? put(id, o.x, o.y, z, `decoy · slot ${o.slot} · sim ${(o.appearance.similarity ?? 0).toFixed(2)}`) : ($(id).hidden = true); }
+  }
+  put('tagH', w.home[0], w.home[1], 0.3);
+}
+function drawPanels() {
+  const f = view.frame;
+  P.map($('map'), view.world, view.trail, f, css, { col: roleColor(), present });
+  const tgt = view.world && view.world.objects.find((o) => o.role === 'target');
+  P.pic($('pic'), tgt || { kind: K.tkind, appearance: {} }, galPick && galPick.kind === (tgt || {}).kind ? galPick.img : null);
+  if (!f) return;
+  P.eye($('eye'), f.eye);
+  P.fam($('fam'), view.hist, f.t, css);
+  P.hub($('hub'), f, css);
+  P.homev($('homev'), f.pi, css);
+  P.att($('att'), f, css);
+  const arb = f.arbiter ? f.arbiter.name : arbOf();
+  $('hubwho').textContent = ARBNAME[arb] || arb;
+  $('hubcmdkey').innerHTML = `<i style="background:${roleColor()}"></i>heading command`;
+  $('hubnote').textContent = /^ring/.test(arb) ? 'Ring of heading neurons (world frame, north up): brightness = activity. Bars outside the ring = input from each drive at that heading.' : 'Dial (world frame, north up): teal bars = object evidence per slot (dashed = not visible); violet = home drive.';
+  const viz = f.arbiter && f.arbiter.viz ? Object.entries(f.arbiter.viz).filter(([k]) => k !== 'ring' && k !== 'drives') : [];
+  $('viz').innerHTML = viz.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${Array.isArray(v) || ArrayBuffer.isView(v) ? Array.from(v).slice(0, 8).map((x) => typeof x === 'number' ? x.toFixed(2) : esc(x)).join(' · ') : typeof v === 'number' ? v.toFixed(2) : typeof v === 'string' ? esc(v) : esc(JSON.stringify(v))}</td></tr>`).join('');
+  $('famv').textContent = Number.isFinite(f.familiarity) ? `familiarity ${f.familiarity.toFixed(2)}` : '';
+  if (f.pi) { const e = f.pi.home_est, t = f.pi.home_true; $('hverr').textContent = `error ${Math.hypot(e[0] - t[0], e[1] - t[1]).toFixed(1)} m`; }
+  $('mindtxt').textContent = f.mind ? f.mind.text : '–'; $('mindtru').textContent = f.mind ? f.mind.truth : '–';
+  const chips = (f.faults_active || []).map((k) => `<span class="flag warn">${esc(k.replace(/_/g, ' '))}</span>`);
+  $('chips').innerHTML = `<span class="flag ph-on">${esc(f.phase)}</span>` + chips.join('') + (f.outcome ? `<span class="flag">${f.outcome.success_target ? 'found target' : f.outcome.wrong_object_stop ? 'stopped at decoy' : 'target not found'} · ${f.outcome.success_home ? 'home' : 'not home'}</span>` : '');
+  const o = f.objects || [];
+  const rows = [['Phase', f.phase], ['Commit', f.arbiter && Number.isFinite(f.arbiter.commit) ? f.arbiter.commit.toFixed(2) : '–'], ['Heading cmd', f.ring && Number.isFinite(f.ring.heading_cmd_deg) ? f.ring.heading_cmd_deg.toFixed(0) + '°' : '–'],
+    ['Avoid yaw offset', f.avoid ? f.avoid.yaw_offset_deg.toFixed(0) + '°' : '–'], ['Looming', f.avoid ? f.avoid.loom.toFixed(2) : '–'], ['Altitude', f.quad.pos[2].toFixed(2) + ' m'],
+    ['Body rates', f.quad.omega.map((v) => (v / D2R).toFixed(0)).join(', ') + ' °/s']];
+  $('now').innerHTML = rows.map(([a, b]) => `<tr><td>${a}</td><td class="num">${esc(b)}</td></tr>`).join('') +
+    `<tr class="sub"><td colspan="4" class="ph" style="padding-top:7px">Object slots</td></tr><tr><td>slot</td><td class="num">bearing</td><td class="num">strength</td><td class="num">seen</td></tr>` +
+    o.map((s) => `<tr><td>${s.slot}</td><td class="num">${s.bearing_deg.toFixed(0)}°</td><td class="num">${s.strength.toFixed(2)}</td><td class="num">${s.visible ? 'yes' : '–'}</td></tr>`).join('');
+  $('nowt').textContent = `t ${f.t.toFixed(1)} s`;
+}
+
+// ---------------------------------------------------------------- timeline
+const axis = $('axis'), track = $('track');
+const PHC = () => ({ learning: css.dsearch, search: css.line2, approach: css.dobj, home: css.dhome, done: css.ink });
+function drawTimeline() {
+  const dpr = Math.min(devicePixelRatio, 2), W = axis.clientWidth, H = axis.clientHeight;
+  if (axis.width !== Math.round(W * dpr) || axis.height !== Math.round(H * dpr)) { axis.width = Math.round(W * dpr); axis.height = Math.round(H * dpr); }
+  const c = axis.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+  const D = Math.max(1, view.dur), X = (t) => (t / D) * W, T = view.T, pc = PHC();
+  c.fillStyle = css.line; c.fillRect(0, H - 9, W, 3);
+  view.phases.forEach(([t0, ph], i) => { const t1 = i + 1 < view.phases.length ? view.phases[i + 1][0] : mode === 'sim' ? T : view.dur; c.fillStyle = pc[ph] || css.muted; c.fillRect(X(t0), H - 10, Math.max(1, X(Math.min(t1, mode === 'sim' ? T : t1)) - X(t0)), 5); });
+  const step = [1, 2, 5, 10, 20, 30, 60, 120].find((s) => D / s <= W / 60) || 120;
+  c.strokeStyle = css.muted; c.fillStyle = css.muted; c.font = `10.5px ${css.mono}`; c.textBaseline = 'top'; c.lineWidth = 1; c.beginPath();
+  for (let t = 0; t <= D + 1e-9; t += step) { const x = Math.round(X(t)) + 0.5; c.moveTo(x, 0); c.lineTo(x, 6); c.textAlign = t === 0 ? 'left' : x > W - 20 ? 'right' : 'center'; c.fillText(t + (t === 0 ? ' s' : ''), t === 0 ? x + 2 : x, 8); }
+  c.stroke();
+  const x = Math.round(X(T)) + 0.5; c.strokeStyle = css.ink; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke();
+  track.setAttribute('aria-valuemax', String(Math.round(D))); track.setAttribute('aria-valuenow', String(Math.round(T)));
+  $('time').innerHTML = `${T.toFixed(1)} <small>/ ${D.toFixed(0)} s</small>`;
+}
+const PLAY = '<svg viewBox="0 0 16 16"><path d="M4.5 3v10l8-5z" fill="currentColor"/></svg>', PAUSE = '<svg viewBox="0 0 16 16"><path d="M4.5 3h2.2v10H4.5zM9.3 3h2.2v10H9.3z" fill="currentColor"/></svg>';
+function playIcon() { const on = mode === 'sim' ? sim.running : results.playing; $('play').innerHTML = on ? PAUSE : PLAY; $('play').setAttribute('aria-label', on ? 'Pause' : 'Play'); }
+function togglePlay() {
+  if (mode === 'sim') setRunning(!sim.running);
+  else if (mode === 'results' && results.run) { if (!results.playing && view.T >= view.dur) view.T = 0; results.playing = !results.playing; playIcon(); }
+}
+(() => { // scrub (Results only; the live sim cannot rewind)
+  let drag = false;
+  const to = (e) => { if (mode !== 'results' || !results.run) return; const r = track.getBoundingClientRect(); view.T = clamp(((e.clientX - r.left) / r.width) * view.dur, 0, view.dur); showRunFrame(); };
+  track.addEventListener('pointerdown', (e) => { drag = true; track.setPointerCapture(e.pointerId); to(e); });
+  track.addEventListener('pointermove', (e) => { if (drag) to(e); });
+  track.addEventListener('pointerup', () => { drag = false; });
+  track.addEventListener('keydown', (e) => { if (mode !== 'results' || !results.run) return; const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (d) { view.T = clamp(view.T + d * (e.shiftKey ? 10 : 1), 0, view.dur); showRunFrame(); e.preventDefault(); } });
+})();
+
+// ---------------------------------------------------------------- modes
+let mode = 'sim';
+function setMode(m) {
+  mode = m; const wb = $('wb');
+  document.body.classList.toggle('m-paper', m === 'paper'); document.body.classList.toggle('m-sim', m === 'sim');
+  wb.classList.toggle('m-sim', m !== 'results'); wb.classList.toggle('m-results', m === 'results');
+  document.querySelectorAll('#modes button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  if (m === 'sim') { results.playing = false; resetSim(); }
+  else { if (sim.running) setRunning(false); }
+  if (m === 'results') enterResults();
+  if (m === 'paper') window.scrollTo(0, 0);
+  writeHash(); banners(); badge(); playIcon(); applyTheme(); requestAnimationFrame(resize);
+}
+document.querySelectorAll('[data-mode]').forEach((b) => { b.onclick = () => setMode(b.dataset.mode); });
+
+// ---------------------------------------------------------------- theme, camera, resize, loop
+function applyTheme() { readCss(); if (S3) S3.setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark', css, roleColor()); panelDirty = true; if (mode === 'results') drawCharts(); }
+$('theme').onclick = () => { const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = t; try { localStorage.setItem('mbd-theme', t); } catch (e) { /* private */ } applyTheme(); };
+function setCam(m) { if (!S3) return; S3.setCam(m); document.querySelectorAll('#cams button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cam === m))); }
+document.querySelectorAll('#cams button').forEach((b) => { b.onclick = () => setCam(b.dataset.cam); });
+$('mapbtn').onclick = () => { const w = $('mapwrap'); w.hidden = !w.hidden; $('mapbtn').setAttribute('aria-pressed', String(!w.hidden)); };
+function resize() { if (S3) S3.resize(); panelDirty = true; if (mode === 'results' && results.list) drawCharts(); }
+let roQ = false; new ResizeObserver(() => { if (roQ) return; roQ = true; requestAnimationFrame(() => { roQ = false; resize(); }); }).observe($('view'));
+addEventListener('resize', () => { panelDirty = true; });
+
+$('play').onclick = togglePlay; $('run').onclick = () => setRunning(!sim.running);
+$('reset').onclick = $('reset2').onclick = resetSim; $('batch').onclick = runBatch;
+$('speed').onchange = () => { if (sim.w) sim.w.postMessage({ cmd: 'speed', v: +$('speed').value }); };
+$('copy').onclick = async () => {
+  const txt = JSON.stringify(scenario(), null, 2), b = $('copy');
+  try { await navigator.clipboard.writeText(txt); b.textContent = 'Copied'; } catch (e) { prompt('Scenario JSON', txt); }
+  setTimeout(() => { b.textContent = 'Copy scenario'; }, 1400);
+};
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target.tagName || '').toUpperCase();
+  if (tag === 'SELECT' || tag === 'TEXTAREA' || (tag === 'INPUT' && e.target.type !== 'checkbox' && e.target.type !== 'range') || e.metaKey || e.ctrlKey || mode === 'paper') return;
+  const k = e.key.toLowerCase();
+  if (k === ' ') { togglePlay(); e.preventDefault(); }
+  else if (k === 'r' && mode === 'sim') resetSim();
+  else if (k === '1' || k === '2' || k === '3') setCam(['chase', 'top', 'free'][+k - 1]);
+  else if (k === 'm') $('mapbtn').click();
+  else if (k === 't') $('theme').click();
+});
+
+let last = performance.now(), fpsN = 0, fpsT = performance.now(), fps = 0;
+function loop(now) {
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (mode !== 'paper') {
+    if (mode === 'results' && results.playing && results.run) { view.T = Math.min(view.dur, view.T + dt * +$('speed').value); if (view.T >= view.dur) { results.playing = false; playIcon(); } showRunFrame(); }
+    if (S3) { S3.update(view.frame, view.trail, { present, arrows: true }); S3.render(); placeTags(); }
+    if (panelDirty && now - lastPanel > 33) { panelDirty = false; lastPanel = now; drawPanels(); drawTimeline(); status(); }
+    fpsN++; if (now - fpsT > 500) { fps = (fpsN * 1000) / (now - fpsT); fpsN = 0; fpsT = now; status(); }
+  }
+  requestAnimationFrame(loop);
+}
+function status() {
+  const f = view.frame;
+  $('sb-t').textContent = (f ? f.t : 0).toFixed(2); $('sb-ph').textContent = f ? f.phase : '–';
+  $('sb-arb').textContent = arbOf(); $('sb-fps').textContent = fps.toFixed(0);
+  $('sb-rtf').textContent = mode === 'sim' ? `${sim.rtf.toFixed(2)}× (cap ${sim.cpu > 999 ? '>999' : sim.cpu.toFixed(0)}×)` : 'replay';
+  $('sb-src').textContent = mode === 'sim' ? (sim.ok ? sim.src || '…' : 'needs http') : results.mockRun ? 'mock replay' : 'recorded';
+}
+
+// ---------------------------------------------------------------- boot
+buildKnobs(); syncKnobs(); buildGallery(); modelPanel();
+if (!HTTP) noSim('Opened from file://');
+const m0 = hashP().get('m');
+setMode(m0 === 'results' || m0 === 'paper' ? m0 : 'sim');
+setCam('chase');
+requestAnimationFrame(loop);
+window.MBD = { get view() { return view; }, get K() { return K; }, scenario, setMode, sim };
+})();
