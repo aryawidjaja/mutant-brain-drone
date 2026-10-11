@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mutant-brain-drone/scenario.schema.json",
+  "title": "Mutant Brain Drone scenario (contract 1; world and wind compatible with silent-flock)",
+  "type": "object",
+  "required": ["seed", "world", "home", "target", "wind", "brain", "mission"],
+  "additionalProperties": false,
+  "properties": {
+    "seed": {"type": "integer", "minimum": 0},
+    "world": {
+      "type": "object", "required": ["size_m", "landscape", "obstacle_density"], "additionalProperties": false,
+      "properties": {
+        "size_m": {"type": "array", "items": {"type": "number", "exclusiveMinimum": 0}, "minItems": 2, "maxItems": 2},
+        "landscape": {"enum": ["meadow", "forest", "urban"]},
+        "obstacle_density": {"type": "number", "minimum": 0, "maximum": 1},
+        "light": {"type": "number", "minimum": 0, "maximum": 1, "default": 1.0},
+        "fog_m": {"type": ["number", "null"], "exclusiveMinimum": 0, "default": null}
+      }
+    },
+    "home": {"$ref": "#/$defs/vec3"},
+    "target": {
+      "type": "object", "required": ["kind", "pos"], "additionalProperties": false,
+      "properties": {"kind": {"enum": ["tent", "pad", "backpack"]}, "pos": {"$ref": "#/$defs/vec3"}, "yaw_deg": {"type": "number", "default": 0}}
+    },
+    "decoys": {
+      "type": "array", "default": [],
+      "items": {
+        "type": "object", "required": ["kind", "pos"], "additionalProperties": false,
+        "properties": {
+          "kind": {"enum": ["tent", "pad", "backpack"]}, "pos": {"$ref": "#/$defs/vec3"},
+          "swap": {"type": "boolean", "default": false},
+          "similarity": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.8},
+          "t_s": {"type": "number", "minimum": 0, "default": 0}
+        }
+      }
+    },
+    "wind": {
+      "type": "object", "required": ["mean_mps", "turbulence"], "additionalProperties": false,
+      "properties": {
+        "mean_mps": {"$ref": "#/$defs/vec3"},
+        "turbulence": {"enum": ["none", "light", "moderate", "severe"]},
+        "shared_fraction": {"type": "number", "minimum": 0, "maximum": 1, "default": 1.0}
+      }
+    },
+    "faults": {
+      "type": "array", "default": [],
+      "items": {
+        "type": "object", "required": ["kind", "t_s"], "additionalProperties": false,
+        "properties": {
+          "kind": {"enum": ["occlusion", "compass_half", "eye_columns", "false_sun", "speed_scale"]},
+          "t_s": {"type": "number", "minimum": 0},
+          "params": {"type": "object", "default": {}}
+        }
+      }
+    },
+    "brain": {
+      "type": "object", "required": ["arbiter"], "additionalProperties": false,
+      "properties": {
+        "arbiter": {"enum": ["ring", "ring_static", "vote", "sum", "accumulator", "state_machine"]},
+        "ring_gain": {"type": "number", "minimum": 0, "default": 1.0},
+        "learning_flight_s": {"type": "number", "minimum": 0, "default": 10},
+        "params": {"type": "object", "default": {}, "description": "frozen tuned parameters for the chosen arbiter (results/tuned_params.json)"}
+      }
+    },
+    "mission": {
+      "type": "object", "required": ["max_time_s", "dt_s"], "additionalProperties": false,
+      "properties": {"max_time_s": {"type": "number", "exclusiveMinimum": 0}, "dt_s": {"type": "number", "exclusiveMinimum": 0}}
+    }
+  },
+  "$defs": {"vec3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3}}
+}

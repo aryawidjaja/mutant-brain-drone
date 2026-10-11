@@ -1,0 +1,15 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+node_modules/
+
+# internal notes, secrets, large inputs
+docs/
+CLAUDE.md
+.env
+data/raw/
+vendor/
+results/runs/*.parquet.tmp
+.uv-cache/
