@@ -1,6 +1,6 @@
-// MOCK physics and brain, for building the UI only (workstream E). NOT the 6-DOF quadrotor and NOT the insect brain.
+// MOCK physics and brain, for building the UI only. NOT the 6-DOF quadrotor and NOT the insect brain.
 // A kinematic point drone with a toy ring, toy path integrator and toy eye, emitting frames in the C6 shape
-// (docs/CONTRACTS.md) so the app can be built before app/sim/mission.js exists. The worker labels it "MOCK physics".
+// so the app can be built before app/sim/mission.js exists. The worker labels it "MOCK physics".
 //
 // Conventions used by the UI (and assumed for the real modules): world ENU (x east, y north, z up), metres;
 // bearings and yaw in the math sense (0 = east, counter-clockwise positive); pi.home_est / home_true are the

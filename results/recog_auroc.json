@@ -16,7 +16,7 @@
   1008,
   1009
  ],
- "param_source": "docs/LOG.md [WS-B] H4 protocol (pre-data); results/recog_scores.parquet",
+ "param_source": "H4 protocol (pre-registered; paper, Protocol and amendments); results/recog_scores.parquet",
  "scores_provenance": {
   "git": "bfb82ea",
   "sim_version": "0.1.0",
@@ -35,7 +35,7 @@
    1008,
    1009
   ],
-  "param_source": "docs/LOG.md [WS-B] H4 protocol (pre-data); scripts/recog_scene.py; scripts/brain/mb.py",
+  "param_source": "H4 protocol (pre-registered; paper, Protocol and amendments); scripts/recog_scene.py; scripts/brain/mb.py",
   "dino": "facebookresearch/dinov2 dinov2_vits14 (torch hub, Apache-2.0), 22056576 params, device mps"
  },
  "definition": "Mann-Whitney AUROC, target probes vs swapped-decoy probes per azimuth bin, pooled over distance (3,6,12 m), 2 random suns, 2 jitter reps and 10 layouts; 95% CI = percentile bootstrap over layouts (2000). Catchment = consecutive 15-deg bins from 0 with AUROC >= 0.75.",

@@ -1,6 +1,6 @@
 """KT2 (H1 pilot): six arbiters in a 2D point-mass find-and-return mission, equal tuning, paired test.
 
-Pre-registered in docs/LOG.md ([WS-A] KT2). The 2D world (no obstacles, no rendering):
+Pre-registered (KT2; the paper's Protocol and amendments section). The 2D world (no obstacles, no rendering):
   agent: constant 2 m/s, turn rate <= 120 deg/s, 50 Hz; heading from a compass (noise + faults);
   path integrator (PI) integrates odometry speed along the compass heading (Stone 2017 in spirit,
   vector form, not the neural model); home drive = PI home vector, or the true home direction once

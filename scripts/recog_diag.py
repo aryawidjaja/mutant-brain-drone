@@ -1,4 +1,4 @@
-"""EXPLORATORY post-hoc diagnostic for H4 (declared in docs/LOG.md before running): does the pipeline carry
+"""EXPLORATORY post-hoc diagnostic for H4 (declared before running): does the pipeline carry
 object signal when the pose matches the goal view, and how much pose jitter / sun change breaks each recogniser?
 
 Training seeds 0-4 only. Probes at theta 0, 6 m; jitter scale s in {0, 0.25, 0.5, 1} times the pre-registered

@@ -7,7 +7,6 @@ node_modules/
 
 # internal notes, secrets, large inputs
 docs/
-CLAUDE.md
 .env
 data/raw/
 vendor/

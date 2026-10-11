@@ -1,6 +1,6 @@
 // Find-and-return mission, JS twin of scripts/mission.py (batch 1). Runs in a Web Worker or in Node; no DOM.
 //   const m = createMission(scenario);  m.step();  m.frame()  (contract C6)
-// Protocol, constants and metric definitions: see scripts/mission.py and docs/LOG.md "[WS-D] mission protocol".
+// Protocol, constants and metric definitions: see scripts/mission.py.
 import { Rng } from './rng.js';
 import { load } from './scenario.js';
 import { buildWorld } from './world.js';

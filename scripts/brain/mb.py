@@ -9,7 +9,7 @@ Rate-based abstraction of their spiking model:
                (one-shot; Ardin: "setting it to zero when KC activity coincides with reward").
   familiarity= 1 - (active KCs whose weight is still 1) / (active KCs). 1 = seen before, ~0 = novel.
 
-JS port notes (workstream D): the wiring is idx[j, i] = floor(u * n_in) for the uniforms of
+JS port notes: the wiring is idx[j, i] = floor(u * n_in) for the uniforms of
 `new Rng(seed, 10)` drawn in order j=0..n_kc-1, i=0..k_in-1 (row-major). KC drive = sum of x[idx[j, :]].
 Active = drive >= the k-th largest drive (ties may admit a few extra KCs; same rule in JS).
 """

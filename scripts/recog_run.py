@@ -1,6 +1,6 @@
 """H4 render + recogniser pass: every probe of every test layout -> one score per recogniser x LF on/off.
 
-Protocol: docs/LOG.md "[WS-B] H4 protocol (pre-data)". Renders with recog_scene.Scene (worker processes),
+Protocol: the paper's Protocol and amendments section. Renders with recog_scene.Scene (worker processes),
 features and scores in the main process (DINOv2 on MPS if available).
 
   uv run python scripts/recog_run.py                 # test layouts 1000-1009 -> results/recog_scores.parquet
@@ -211,7 +211,7 @@ def run(seeds, out_path, grey_path=None, cost_path=None, contact=True, plan_kw=N
             timing[seed] = time.time() - t1
             print(f"layout {seed}: {len(probes)} probes, score {timing[seed]:.1f}s, elapsed {time.time() - t0:.0f}s", flush=True)
     df = pd.DataFrame(rows)
-    st = stamp(seed=list(map(int, seeds)), param_source="docs/LOG.md [WS-B] H4 protocol (pre-data); scripts/recog_scene.py; scripts/brain/mb.py",
+    st = stamp(seed=list(map(int, seeds)), param_source="H4 protocol (pre-registered; paper, Protocol and amendments); scripts/recog_scene.py; scripts/brain/mb.py",
                dino=f"facebookresearch/dinov2 dinov2_vits14 (torch hub, Apache-2.0), {dino.n_params} params, device {dino.dev}")
     df.attrs["provenance"] = json.dumps(st)
     import pyarrow as pa, pyarrow.parquet as pq

@@ -1,7 +1,7 @@
 """Engineered state-machine arbiter (the "fair rival" baseline), written blind.
 
 Written from the C2 interface spec only, before any fault data or competing
-arbiter code was seen, then frozen (hash logged in docs/LOG.md).
+arbiter code was seen, then frozen (hash recorded before any fault data).
 
 States (viz["state"]):
     0 SEARCH    follow the exploration drive; nothing confirmed yet

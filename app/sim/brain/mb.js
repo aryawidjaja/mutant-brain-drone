@@ -1,4 +1,4 @@
-// Mushroom-body familiarity (Ardin et al. 2016 style), JS port of scripts/brain/mb.py (WS-B) as used by the mission.
+// Mushroom-body familiarity (Ardin et al. 2016 style), JS port of scripts/brain/mb.py as used by the mission.
 // Wiring: idx[j][i] = floor(u * nIn) for the uniforms of new Rng(seed, 10) drawn in order j = 0..nKc-1, i = 0..kIn-1.
 // KC active if its drive >= the k-th largest drive; familiarity = 1 - |active AND w| / |active|; 1 bit per KC->MBON.
 // The mission feeds integer pixel ranks (rank equalisation of mb.equalise, whose L2 normalisation is a common factor),

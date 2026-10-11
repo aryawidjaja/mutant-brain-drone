@@ -1,6 +1,6 @@
 """KT3 (H3): the stubbornness frontier. Hold a hidden target vs release a decoy, as each arm's memory knob is swept.
 
-Pre-registered in docs/LOG.md ([WS-A] KT3). Uses KT2-tuned params for everything but the swept knob.
+Pre-registered (KT3; the paper's Protocol and amendments section). Uses KT2-tuned params for everything but the swept knob.
 Usage: uv run python scripts/kt3_stubbornness.py [--selfcheck]
 """
 import json, os, sys

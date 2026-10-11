@@ -1,4 +1,4 @@
-// MOCK summary for building the Results charts (workstream E). Synthetic numbers, NOT results.
+// MOCK summary for building the Results charts. Synthetic numbers, NOT results.
 // The integrator's scripts/export_app_summary.py writes data/summary.json + data/summary.js (window.APP_SUMMARY)
 // with the same keys, plus a _source entry per number; the app prefers those and shows a MOCK DATA watermark otherwise.
 // Shapes:

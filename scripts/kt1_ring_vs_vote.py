@@ -1,6 +1,6 @@
 """KT1 (H2): does the ring's steady steering differ from a static population vote by > 5 deg anywhere?
 
-Pre-registered in docs/LOG.md ([WS-A] KT1). Writes results/kt1.json and results/fig_kt1.png.
+Pre-registered (KT1; the paper's Protocol and amendments section). Writes results/kt1.json and results/fig_kt1.png.
 Usage: uv run python scripts/kt1_ring_vs_vote.py [--selfcheck]
 """
 import json, sys

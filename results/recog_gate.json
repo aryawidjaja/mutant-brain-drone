@@ -16,7 +16,7 @@
   1008,
   1009
  ],
- "param_source": "docs/LOG.md [WS-B] H4 protocol (pre-data); results/recog_scores.parquet",
+ "param_source": "H4 protocol (pre-registered; paper, Protocol and amendments); results/recog_scores.parquet",
  "gates": {
   "a_mb_below_0.75_at_0deg": {
    "fires": true,

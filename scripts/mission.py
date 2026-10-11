@@ -1,6 +1,6 @@
 """Find-and-return mission: batched Python reference (app/sim/mission.js is the batch-1 JS twin).
 
-Protocol (logged in docs/LOG.md "[WS-D] mission protocol" before any mission data):
+Protocol (fixed before any mission data; the paper's Protocol and amendments section):
   * Before t = 0 the mushroom body (MB) is loaded with the target "picture": the looks of the target taken on a
     previous visit along a learning flight of brain.learning_flight_s seconds (5 views/s around the target, eye.py
     learning_poses); learning_flight_s = 0 means one photo from 4 m in front. The drone has no map and no GPS.
@@ -491,7 +491,7 @@ if __name__ == "__main__":
     t0 = time.time()
     res = {}
     for arb in ("ring", "vote"):
-        prm = {"g_home": 3.0} if arb == "ring" else {}     # A's default ring never turns home (LOG [WS-D])
+        prm = {"g_home": 3.0} if arb == "ring" else {}     # the default ring never turns home 
         scs = [sample_scenario(s, fault="none", arbiter=arb, params=prm, obstacle_density=0.1, max_time_s=150.0) for s in range(10)]
         df = run_batch(scs)
         res[arb] = df

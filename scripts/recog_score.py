@@ -1,6 +1,6 @@
 """H4 scoring: target-vs-swapped-decoy AUROC per recogniser x LF x angle, layout bootstrap CIs, catchments, KT4 gates.
 
-Definitions are the pre-registered ones (docs/LOG.md "[WS-B] H4 protocol (pre-data)").
+Definitions are the pre-registered ones (the paper's Protocol and amendments section).
   uv run python scripts/recog_score.py              # results/recog_scores.parquet -> recog_auroc.json, recog_gate.json, fig_recog_*.png
   uv run python scripts/recog_score.py --selfcheck  # synthetic data with a known answer
 """
@@ -209,7 +209,7 @@ def main():
     prov = json.loads(pq.read_schema(os.path.join(RES, "recog_scores.parquet")).metadata[b"provenance"])
     out, _ = analyse(df)
     cost = json.load(open(os.path.join(RES, "recog_cost.json")))
-    st = stamp(seed=out["layouts"], param_source="docs/LOG.md [WS-B] H4 protocol (pre-data); results/recog_scores.parquet")
+    st = stamp(seed=out["layouts"], param_source="H4 protocol (pre-registered; paper, Protocol and amendments); results/recog_scores.parquet")
     json.dump({**st, "scores_provenance": prov, "definition": "Mann-Whitney AUROC, target probes vs swapped-decoy probes per azimuth bin, pooled over "
                "distance (3,6,12 m), 2 random suns, 2 jitter reps and 10 layouts; 95% CI = percentile bootstrap over layouts (2000). "
                "Catchment = consecutive 15-deg bins from 0 with AUROC >= 0.75.", **out,

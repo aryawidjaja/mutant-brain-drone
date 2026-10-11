@@ -8,8 +8,8 @@
 //   runs/manifest.json     {runs: [{file, label}]}; runs/<file> = {meta: {scenario, arbiter, seed, git, sim_version, label},
 //                          world: <C5>, frames: [<C6 frame>, ...] at 10 Hz; frame.eye optional, {w, h, b64} or {w, h, rgb}}
 //   runs/bundle.js         window.RUN_BUNDLE = {manifest, runs: {file: run}}   (for file://)
-//   assets/targets/manifest.json  {items: [{file, kind, label, role}]} (workstream B; also a bare array)
-//   sim/vehicle_params.js  ES module; SOURCES = {name: {value, unit, source}} (workstream C; P/default also accepted)
+//   assets/targets/manifest.json  {items: [{file, kind, label, role}]} (also a bare array)
+//   sim/vehicle_params.js  ES module; SOURCES = {name: {value, unit, source}} (P/default also accepted)
 'use strict';
 (async () => {
 const $ = (id) => document.getElementById(id);
@@ -188,7 +188,7 @@ async function buildGallery() {
     });
   } else {
     for (const kind of ['tent', 'pad', 'backpack']) {
-      const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = kind; b.title = kind + ' (mock gallery: drawn from the world appearance; workstream B writes assets/targets/manifest.json)';
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = kind; b.title = kind + ' (mock gallery: drawn from the world appearance)';
       const c = document.createElement('canvas'); c.width = c.height = 64; b.appendChild(c);
       P.pic(c, { kind, appearance: { base: { tent: [0.86, 0.47, 0.16], pad: [0.18, 0.45, 0.82], backpack: [0.66, 0.14, 0.2] }[kind], accent: [0.95, 0.92, 0.85], pattern: { tent: 'stripes', pad: 'chevron', backpack: 'dots' }[kind] } });
       b.onclick = () => { galPick = null; K.tkind = kind; syncKnobs(); knobChanged(); };
@@ -387,7 +387,7 @@ async function modelPanel() {
   if (HTTP) {
     try {
       if ((await fetch('sim/vehicle_params.js', { method: 'HEAD', cache: 'no-store' })).ok) { const m = await import(new URL('sim/vehicle_params.js', location.href).href); params = m.SOURCES || m.default || m.PARAMS || m.P || m.params || null; }
-      else why = 'app/sim/vehicle_params.js is not written yet (workstream C).';
+      else why = 'app/sim/vehicle_params.js is not written yet.';
     } catch (e) { why = 'Could not load app/sim/vehicle_params.js: ' + e.message; }
   } else why = 'Open over http to load app/sim/vehicle_params.js.';
   const t = $('model');

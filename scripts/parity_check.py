@@ -2,7 +2,7 @@
 dryden.js, batch 1, run in Node via scripts/parity_runner.mjs) on fixed-seed scenarios, 10 s each.
 
 PLAN gate: max position error < 1 cm over 10 s in every scenario. Writes results/parity.json; exits 1 on fail.
-Brain-module parity lives in scripts/parity_brain.py (workstream D) -> results/parity_brain.json; it can reuse
+Brain-module parity lives in scripts/parity_brain.py -> results/parity_brain.json; it can reuse
 run_node() below.
 Run: uv run python scripts/parity_check.py
 """
