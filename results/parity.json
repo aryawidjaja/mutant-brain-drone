@@ -615,11 +615,18 @@
   }
  ],
  "provenance": {
-  "git": "5558aec",
+  "git": "4476594",
   "sim_version": "0.1.0",
-  "created": "2026-10-11T18:57:29",
+  "created": "2026-10-12T00:31:25",
   "python": "3.12.12",
   "numpy": "2.5.4",
+  "code_sha256": {
+   "scripts/dryden.py": "cc577521940146fd791e45606f0773fc0b67a97679209dfd394cac3d75cbe4c8",
+   "scripts/parity_check.py": "76e2443390b7b4de9a3ee6ca93622677e9267acd7d3bce19e080d150f446f3e7",
+   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+   "scripts/quad.py": "78dafc0ca45bcb7d82c3e7d9d04b3269cbea7e8d4b82bc5e1e1a2520b22a4703",
+   "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001"
+  },
   "seed": [
    0,
    0,

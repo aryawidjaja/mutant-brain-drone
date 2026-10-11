@@ -335,13 +335,31 @@
    }
   ]
  },
- "js_seconds": 11.605663061141968,
- "wall_seconds": 120.68407988548279,
- "git": "7f27826-dirty",
+ "js_seconds": 3.704209804534912,
+ "wall_seconds": 39.060575008392334,
+ "git": "4476594",
  "sim_version": "0.1.0",
- "created": "2026-10-11T19:25:00",
+ "created": "2026-10-12T00:32:04",
  "python": "3.12.12",
  "numpy": "2.5.4",
+ "code_sha256": {
+  "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scripts/brain/arbiters.py": "aef56df98dfc7faa9489e40ce6e0e0722fe50964133a3bad635209410cbbf383",
+  "scripts/brain/avoid.py": "08c7686a19ac4309a80f3556cdf9ad34a629c583c7536c0f8b12366ba6303fa0",
+  "scripts/brain/eye.py": "19cf461ffc3a76b0af5575f3dfbd165aad0c059d828232f60d292094d88c2fd3",
+  "scripts/brain/mb.py": "c94aada7b8b84793e8d14985cc90e6729322553f859172b00649c28c974a5ac9",
+  "scripts/brain/mind.py": "09aba0091ab2f431863e5c629855324bedfc862d40ece98550b124c82f5b968b",
+  "scripts/brain/pi.py": "0c6fcedf8b5f760150cf6f8d6d63db8098c867c11494ddecf687ade895aef445",
+  "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
+  "scripts/dryden.py": "cc577521940146fd791e45606f0773fc0b67a97679209dfd394cac3d75cbe4c8",
+  "scripts/mission.py": "1217437e1c58cd4434974baa92cc31709b20da52f2951f1029355fe31a2ce915",
+  "scripts/parity_brain.py": "a4e189f74bb232dd4d1bb53e957b56a1090c90e9c0034932602efd896e5f205e",
+  "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+  "scripts/quad.py": "78dafc0ca45bcb7d82c3e7d9d04b3269cbea7e8d4b82bc5e1e1a2520b22a4703",
+  "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001",
+  "scripts/scenario.py": "3539258058aed19476a346a8a5c0e56a3fe9f2b65068ce60e1eeedca5a94ba60",
+  "scripts/world.py": "cf8f94afd398160c00b5d51cd1a1a7497417d786b3668fe2430174881d800383"
+ },
  "seed": "fixed set (see results)",
  "param_source": "scripts/parity_brain.py"
 }
