@@ -1,0 +1,386 @@
+{
+ "git": "953c543",
+ "sim_version": "0.1.0",
+ "created": "2026-10-11T17:51:21",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "seed": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "param_source": "scripts/recog_diag.py (EXPLORATORY, post-hoc; training seeds)",
+ "note": "AUROC target vs swapped decoys at theta 0, 6 m, LF off, pooled over 5 training layouts; keys = jitter scale (x pre-registered jitter). s=0 has 1 probe per object per layout (n_pos=5, n_neg=15), else 8 reps.",
+ "results": {
+  "pixels": {
+   "memory_sun": {
+    "0": {
+     "auroc": 1.0,
+     "target_score_mean": 0.0,
+     "decoy_score_mean": -0.002511607715860009
+    },
+    "0.25": {
+     "auroc": 0.569,
+     "target_score_mean": -0.00870842207223177,
+     "decoy_score_mean": -0.009172153659164906
+    },
+    "0.5": {
+     "auroc": 0.5356,
+     "target_score_mean": -0.012318131513893604,
+     "decoy_score_mean": -0.012608963064849377
+    },
+    "1": {
+     "auroc": 0.519,
+     "target_score_mean": -0.016741782426834106,
+     "decoy_score_mean": -0.016898835077881813
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.5467,
+     "target_score_mean": -0.0069541968405246735,
+     "decoy_score_mean": -0.0073490752838552
+    },
+    "0.25": {
+     "auroc": 0.5327,
+     "target_score_mean": -0.01065920852124691,
+     "decoy_score_mean": -0.010888878256082535
+    },
+    "0.5": {
+     "auroc": 0.5177,
+     "target_score_mean": -0.013241970911622047,
+     "decoy_score_mean": -0.013396365568041801
+    },
+    "1": {
+     "auroc": 0.5075,
+     "target_score_mean": -0.01709921658039093,
+     "decoy_score_mean": -0.017189864069223404
+    }
+   }
+  },
+  "colour": {
+   "memory_sun": {
+    "0": {
+     "auroc": 1.0,
+     "target_score_mean": 1.0,
+     "decoy_score_mean": 0.9876368045806885
+    },
+    "0.25": {
+     "auroc": 0.6693,
+     "target_score_mean": 0.9825254678726196,
+     "decoy_score_mean": 0.9763848185539246
+    },
+    "0.5": {
+     "auroc": 0.6057,
+     "target_score_mean": 0.9707638621330261,
+     "decoy_score_mean": 0.9651276469230652
+    },
+    "1": {
+     "auroc": 0.5456,
+     "target_score_mean": 0.9439437985420227,
+     "decoy_score_mean": 0.9389296174049377
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.56,
+     "target_score_mean": 0.5248246192932129,
+     "decoy_score_mean": 0.5220503807067871
+    },
+    "0.25": {
+     "auroc": 0.5308,
+     "target_score_mean": 0.5190544128417969,
+     "decoy_score_mean": 0.5161458253860474
+    },
+    "0.5": {
+     "auroc": 0.5234,
+     "target_score_mean": 0.5160375833511353,
+     "decoy_score_mean": 0.513098418712616
+    },
+    "1": {
+     "auroc": 0.5176,
+     "target_score_mean": 0.4990936815738678,
+     "decoy_score_mean": 0.49615901708602905
+    }
+   }
+  },
+  "pixels_crop": {
+   "memory_sun": {
+    "0": {
+     "auroc": 1.0,
+     "target_score_mean": 0.0,
+     "decoy_score_mean": -0.005649539642035961
+    },
+    "0.25": {
+     "auroc": 0.6604,
+     "target_score_mean": -0.011274607852101326,
+     "decoy_score_mean": -0.012609904631972313
+    },
+    "0.5": {
+     "auroc": 0.5946,
+     "target_score_mean": -0.014767633751034737,
+     "decoy_score_mean": -0.015623909421265125
+    },
+    "1": {
+     "auroc": 0.5525,
+     "target_score_mean": -0.01768462359905243,
+     "decoy_score_mean": -0.018096227198839188
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.64,
+     "target_score_mean": -0.009513511322438717,
+     "decoy_score_mean": -0.010904395021498203
+    },
+    "0.25": {
+     "auroc": 0.5756,
+     "target_score_mean": -0.014321113005280495,
+     "decoy_score_mean": -0.014961016364395618
+    },
+    "0.5": {
+     "auroc": 0.5617,
+     "target_score_mean": -0.016644125804305077,
+     "decoy_score_mean": -0.017056522890925407
+    },
+    "1": {
+     "auroc": 0.5206,
+     "target_score_mean": -0.018884381279349327,
+     "decoy_score_mean": -0.019050654023885727
+    }
+   }
+  },
+  "mb": {
+   "memory_sun": {
+    "0": {
+     "auroc": 0.9,
+     "target_score_mean": 1.0,
+     "decoy_score_mean": 0.8645290215588723
+    },
+    "0.25": {
+     "auroc": 0.5679,
+     "target_score_mean": 0.43693159203980103,
+     "decoy_score_mean": 0.4112421888023668
+    },
+    "0.5": {
+     "auroc": 0.5406,
+     "target_score_mean": 0.2566243781094527,
+     "decoy_score_mean": 0.24126005081851468
+    },
+    "1": {
+     "auroc": 0.5034,
+     "target_score_mean": 0.10171766169154231,
+     "decoy_score_mean": 0.09959337183718373
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.5533,
+     "target_score_mean": 0.5820000000000001,
+     "decoy_score_mean": 0.558782752902156
+    },
+    "0.25": {
+     "auroc": 0.5252,
+     "target_score_mean": 0.34331965174129353,
+     "decoy_score_mean": 0.3319949119911991
+    },
+    "0.5": {
+     "auroc": 0.5049,
+     "target_score_mean": 0.22073694029850746,
+     "decoy_score_mean": 0.21735451250348917
+    },
+    "1": {
+     "auroc": 0.5107,
+     "target_score_mean": 0.10319962686567166,
+     "decoy_score_mean": 0.09937126865671643
+    }
+   }
+  },
+  "mb_edge": {
+   "memory_sun": {
+    "0": {
+     "auroc": 1.0,
+     "target_score_mean": 1.0,
+     "decoy_score_mean": 0.8852923501305355
+    },
+    "0.25": {
+     "auroc": 0.59,
+     "target_score_mean": 0.6836822139303482,
+     "decoy_score_mean": 0.6545856135986733
+    },
+    "0.5": {
+     "auroc": 0.5443,
+     "target_score_mean": 0.5471820846263731,
+     "decoy_score_mean": 0.530187989507906
+    },
+    "1": {
+     "auroc": 0.52,
+     "target_score_mean": 0.3512424018521255,
+     "decoy_score_mean": 0.3418992537313433
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.5267,
+     "target_score_mean": 0.6739999999999999,
+     "decoy_score_mean": 0.6540597014925373
+    },
+    "0.25": {
+     "auroc": 0.5468,
+     "target_score_mean": 0.5615696517412936,
+     "decoy_score_mean": 0.5467921038372494
+    },
+    "0.5": {
+     "auroc": 0.5292,
+     "target_score_mean": 0.4641772388059701,
+     "decoy_score_mean": 0.4532226776019268
+    },
+    "1": {
+     "auroc": 0.5127,
+     "target_score_mean": 0.3105876865671642,
+     "decoy_score_mean": 0.3045874792703151
+    }
+   }
+  },
+  "mb_crop": {
+   "memory_sun": {
+    "0": {
+     "auroc": 1.0,
+     "target_score_mean": 1.0,
+     "decoy_score_mean": 0.647
+    },
+    "0.25": {
+     "auroc": 0.648,
+     "target_score_mean": 0.30213681592039804,
+     "decoy_score_mean": 0.24441003316749585
+    },
+    "0.5": {
+     "auroc": 0.5981,
+     "target_score_mean": 0.15928682084626372,
+     "decoy_score_mean": 0.12939740653169796
+    },
+    "1": {
+     "auroc": 0.5363,
+     "target_score_mean": 0.06561194029850748,
+     "decoy_score_mean": 0.05905887230514097
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.7,
+     "target_score_mean": 0.454,
+     "decoy_score_mean": 0.3560315091210614
+    },
+    "0.25": {
+     "auroc": 0.5713,
+     "target_score_mean": 0.1863464238214866,
+     "decoy_score_mean": 0.1590373360097204
+    },
+    "0.5": {
+     "auroc": 0.5407,
+     "target_score_mean": 0.10721461996945965,
+     "decoy_score_mean": 0.0944838739470962
+    },
+    "1": {
+     "auroc": 0.5057,
+     "target_score_mean": 0.05283281611743264,
+     "decoy_score_mean": 0.04973553847922106
+    }
+   }
+  },
+  "dino_cls": {
+   "memory_sun": {
+    "0": {
+     "auroc": 1.0,
+     "target_score_mean": 0.9999998807907104,
+     "decoy_score_mean": 0.9233055114746094
+    },
+    "0.25": {
+     "auroc": 0.8387,
+     "target_score_mean": 0.9701582193374634,
+     "decoy_score_mean": 0.9049282670021057
+    },
+    "0.5": {
+     "auroc": 0.8246,
+     "target_score_mean": 0.9596579670906067,
+     "decoy_score_mean": 0.8970562219619751
+    },
+    "1": {
+     "auroc": 0.8169,
+     "target_score_mean": 0.9419822692871094,
+     "decoy_score_mean": 0.8827415704727173
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.7467,
+     "target_score_mean": 0.9403666257858276,
+     "decoy_score_mean": 0.874411404132843
+    },
+    "0.25": {
+     "auroc": 0.7727,
+     "target_score_mean": 0.9283771514892578,
+     "decoy_score_mean": 0.8659653067588806
+    },
+    "0.5": {
+     "auroc": 0.7642,
+     "target_score_mean": 0.9190370440483093,
+     "decoy_score_mean": 0.8615084886550903
+    },
+    "1": {
+     "auroc": 0.7777,
+     "target_score_mean": 0.9126927256584167,
+     "decoy_score_mean": 0.8560915589332581
+    }
+   }
+  },
+  "dino_patch": {
+   "memory_sun": {
+    "0": {
+     "auroc": 0.8533,
+     "target_score_mean": 0.9599258303642273,
+     "decoy_score_mean": 0.8093786835670471
+    },
+    "0.25": {
+     "auroc": 0.8369,
+     "target_score_mean": 0.9328977465629578,
+     "decoy_score_mean": 0.7922418713569641
+    },
+    "0.5": {
+     "auroc": 0.8325,
+     "target_score_mean": 0.9253330230712891,
+     "decoy_score_mean": 0.7859522700309753
+    },
+    "1": {
+     "auroc": 0.8421,
+     "target_score_mean": 0.9068771600723267,
+     "decoy_score_mean": 0.7710283994674683
+    }
+   },
+   "new_sun": {
+    "0": {
+     "auroc": 0.7733,
+     "target_score_mean": 0.9052136540412903,
+     "decoy_score_mean": 0.7762893438339233
+    },
+    "0.25": {
+     "auroc": 0.8181,
+     "target_score_mean": 0.8953712582588196,
+     "decoy_score_mean": 0.7660871148109436
+    },
+    "0.5": {
+     "auroc": 0.8254,
+     "target_score_mean": 0.8902247548103333,
+     "decoy_score_mean": 0.7593101859092712
+    },
+    "1": {
+     "auroc": 0.8317,
+     "target_score_mean": 0.8778997659683228,
+     "decoy_score_mean": 0.7515590786933899
+    }
+   }
+  }
+ }
+}

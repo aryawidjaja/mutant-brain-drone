@@ -1,0 +1,146 @@
+{
+ "source": "scripts/recog_scene.py --gallery (MuJoCo 3.15 offscreen render, forest seed 0, procedural textures, CC0-equivalent: generated here)",
+ "size_px": 256,
+ "items": [
+  {
+   "id": "target",
+   "file": "target.png",
+   "label": "Target: ridge tent (orange/grey stripes)",
+   "role": "target",
+   "kind": "tent",
+   "base": [
+    0.93,
+    0.45,
+    0.12
+   ],
+   "accent": [
+    0.33,
+    0.35,
+    0.38
+   ],
+   "pattern": "stripes",
+   "view": {
+    "theta_deg": 15,
+    "dist_m": 3.6,
+    "height_m": 1.8
+   }
+  },
+  {
+   "id": "d1_tex",
+   "file": "d1_tex.png",
+   "label": "Decoy 1: same tent, check pattern",
+   "role": "decoy",
+   "kind": "tent",
+   "base": [
+    0.93,
+    0.45,
+    0.12
+   ],
+   "accent": [
+    0.33,
+    0.35,
+    0.38
+   ],
+   "pattern": "checks",
+   "view": {
+    "theta_deg": 15,
+    "dist_m": 3.6,
+    "height_m": 1.8
+   }
+  },
+  {
+   "id": "d2_mesh",
+   "file": "d2_mesh.png",
+   "label": "Decoy 2: dome tent, same fabric",
+   "role": "decoy",
+   "kind": "tent",
+   "base": [
+    0.93,
+    0.45,
+    0.12
+   ],
+   "accent": [
+    0.33,
+    0.35,
+    0.38
+   ],
+   "pattern": "stripes",
+   "shape": "dome",
+   "view": {
+    "theta_deg": 15,
+    "dist_m": 3.6,
+    "height_m": 1.8
+   }
+  },
+  {
+   "id": "d3_twin",
+   "file": "d3_twin.png",
+   "label": "Decoy 3: near-twin, door open, no guy-lines",
+   "role": "decoy",
+   "kind": "tent",
+   "base": [
+    0.93,
+    0.45,
+    0.12
+   ],
+   "accent": [
+    0.33,
+    0.35,
+    0.38
+   ],
+   "pattern": "stripes",
+   "detail": "door open, no guy-lines",
+   "view": {
+    "theta_deg": 15,
+    "dist_m": 3.6,
+    "height_m": 1.8
+   }
+  },
+  {
+   "id": "pad",
+   "file": "pad.png",
+   "label": "Supply drop pad",
+   "role": "target",
+   "kind": "pad",
+   "base": [
+    0.93,
+    0.45,
+    0.12
+   ],
+   "accent": [
+    1,
+    1,
+    1
+   ],
+   "pattern": "H",
+   "view": {
+    "theta_deg": 15,
+    "dist_m": 3.0,
+    "height_m": 3.0
+   }
+  },
+  {
+   "id": "backpack",
+   "file": "backpack.png",
+   "label": "Backpack",
+   "role": "target",
+   "kind": "backpack",
+   "base": [
+    0.2,
+    0.32,
+    0.65
+   ],
+   "accent": [
+    0.93,
+    0.45,
+    0.12
+   ],
+   "pattern": "straps",
+   "view": {
+    "theta_deg": 15,
+    "dist_m": 1.4,
+    "height_m": 1.3
+   }
+  }
+ ]
+}

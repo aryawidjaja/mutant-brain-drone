@@ -1,0 +1,53 @@
+{
+ "git": "953c543",
+ "sim_version": "0.1.0",
+ "created": "2026-10-11T17:54:36",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "seed": [
+  1000,
+  1001,
+  1002,
+  1003,
+  1004,
+  1005,
+  1006,
+  1007,
+  1008,
+  1009
+ ],
+ "param_source": "docs/LOG.md [WS-B] H4 protocol (pre-data); results/recog_scores.parquet",
+ "gates": {
+  "a_mb_below_0.75_at_0deg": {
+   "fires": true,
+   "value": 0.502,
+   "rule": "MB (LF off) AUROC at 0 deg < 0.75"
+  },
+  "b_mb_not_above_pixels": {
+   "fires": true,
+   "max_mb_minus_pixels_lf_on": 0.0023999999999999577,
+   "max_mb_minus_pixels_lf_off": 0.008500000000000063,
+   "fires_lf_off_version": true,
+   "rule": "MB+LF minus pixels+LF <= 0.03 at every angle"
+  },
+  "c_lf_widening_below_1.5": {
+   "fires": true,
+   "value": 0.0,
+   "catchment_off": 0,
+   "catchment_on": 0,
+   "rule": "MB catchment(LF on)/catchment(LF off) < 1.5"
+  },
+  "d_colour_ge_mb": {
+   "fires": false,
+   "colour_lf_on": 0.49696937321937323,
+   "mb_lf_on": 0.5020949074074074,
+   "colour_lf_off": 0.4971518874643875,
+   "mb_lf_off": 0.4989476495726496,
+   "rule": "colour+LF mean AUROC over 13 angles >= MB+LF"
+  }
+ },
+ "learning_flight_claim": "KILLED",
+ "h4_mb_ge_0.75_at_0deg": false,
+ "h4_widening_ge_1.5": false,
+ "source": "results/recog_auroc.json"
+}

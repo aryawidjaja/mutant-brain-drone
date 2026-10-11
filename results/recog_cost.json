@@ -1,0 +1,52 @@
+{
+ "git": "bfb82ea",
+ "sim_version": "0.1.0",
+ "created": "2026-10-11T17:49:52",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "seed": 1009,
+ "param_source": "scripts/recog_run.py time_queries",
+ "ms_per_query_median": {
+  "pixels": 0.5293124704621732,
+  "colour": 0.2876459911931306,
+  "mb": 1.8549165106378496,
+  "mb_edge": 1.8088125216308981,
+  "dino_cls": 17.81137500074692,
+  "dino_patch": 19.000208500074223
+ },
+ "ms_note": "one query vs the 13-view memory, M4, numpy CPU for pixels/colour/MB, DINOv2 on mps, excl. rendering",
+ "stored_goal_bytes": {
+  "lf_off": {
+   "pixels": 1024,
+   "colour": 1024,
+   "mb": 2500,
+   "mb_edge": 2500,
+   "pixels_crop": 1024,
+   "mb_crop": 2500,
+   "dino_cls": 768,
+   "dino_patch": 768
+  },
+  "lf_on": {
+   "pixels": 13312,
+   "colour": 13312,
+   "mb": 2500,
+   "mb_edge": 2500,
+   "pixels_crop": 13312,
+   "mb_crop": 2500,
+   "dino_cls": 9984,
+   "dino_patch": 9984
+  }
+ },
+ "model_bytes": {
+  "pixels": 0,
+  "colour": 0,
+  "mb": 0,
+  "mb_edge": 0,
+  "pixels_crop": 0,
+  "mb_crop": 0,
+  "dino_cls": 88226304,
+  "dino_patch": 88226304
+ },
+ "notes": "MB: 20,000 1-bit KC->MBON weights; PN->KC wiring regenerated from seed (400,000 B if stored as uint16). pixels uint8 32x32 per view; colour uint16 512 bins per view; DINO fp16 384-d per view, weights fp32.",
+ "wall_s_total": 89.35212206840515
+}
