@@ -21,7 +21,7 @@ from kt2_five_arms import N_CONFIGS, SEARCH_SEED
 from kt3_stubbornness import SWEEPS, pareto_interp, dominance_frontier, verdict
 from mission import run_batch
 from provenance import stamp
-from scenario import sample_scenario
+from scenario import fault_params, sample_scenario
 from stats import boot_idx, holm, paired_bootstrap, paired_diff
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -136,6 +136,14 @@ def auc_table(df):
     return pd.DataFrame(per)                                   # index seed, columns faults
 
 
+def param_value(fault, sev):
+    """Severity fraction -> the fault's own parameter value (labels match kt2.json, e.g. 'occlusion:10.0')."""
+    p = fault_params(fault, sev)
+    v = {"occlusion": "duration_s", "decoy": "similarity", "eye_columns": "frac", "false_sun": "offset_deg",
+         "speed_scale": "dev", "gust": "level"}.get(fault)
+    return 1.0 if v is None else (p[v] if isinstance(p[v], str) else round(float(p[v]), 4))
+
+
 def cfg_index(uid):
     return int(uid.split("__")[1][1:])
 
@@ -162,34 +170,47 @@ def reduce(stage):
         for a in ARBITERS:
             print(a, sorted(scores[a].values())[-3:])
     elif stage == "test":
+        tuned = json.loads((ROOT / "results/tuned3d_params.json").read_text())["arms"]
         df["split"] = "test"
+        df["sev_frac"] = df.severity
+        lv = {(f, None if v is None else round(v, 6)): i for f, ss in [("none", [None])] + list(FAULT_SEV.items()) for i, v in enumerate(ss, start=0 if f == "none" else 1)}
+        df["level"] = [lv[(f, None if pd.isna(v) else round(v, 6))] for f, v in zip(df.fault, df.sev_frac)]
+        df["severity"] = [str(None) if f == "none" else str(param_value(f, v)) for f, v in zip(df.fault, df.sev_frac)]
+        auc = {a: auc_table(df[df.arbiter == a].assign(severity=df.sev_frac)) for a in ARBITERS}
         (ROOT / "results/runs").mkdir(exist_ok=True)
-        df.drop(columns=["unit"]).to_parquet(ROOT / "results/runs/mission_test.parquet")
-        auc = {a: auc_table(df[df.arbiter == a]) for a in ARBITERS}
+        df.drop(columns=["unit", "sev_frac"]).to_parquet(ROOT / "results/runs/mission_test.parquet")
         agg = {a: auc[a].mean(1).sort_index().to_numpy() for a in ARBITERS}
         others = [a for a in ARBITERS if a != "ring"]
         best = paired_bootstrap(lambda r, *o: r.mean() - max(x.mean() for x in o), agg["ring"], *[agg[a] for a in others])
         pair = {a: paired_diff(agg["ring"], agg[a]) for a in others}
-        adj = holm([pair[a]["p"] for a in others])
-        for a, pa in zip(others, adj):
+        for a, pa in zip(others, holm([pair[a]["p"] for a in others])):
             pair[a]["p_holm"] = pa
         ok = df.assign(ok=success(df))
-        curves = {a: {f: [{"severity": 0.0 if v is None else float(v), "success": float(ok[(ok.arbiter == a) & ((ok.fault == "none") if v is None else ((ok.fault == f) & np.isclose(ok.severity.fillna(-1), v)))].ok.mean())}
-                          for v in [None] + FAULT_SEV[f]] for f in FAULT_SEV} for a in ARBITERS}
+        sbc = {a: {f"{f}:{v}": float(g.ok.mean()) for (f, lvl, v), g in ok[ok.arbiter == a].groupby(["fault", "level", "severity"], sort=True)} for a in ARBITERS}
         fault_auc = {a: {f: float(auc[a][f].mean()) for f in FAULT_SEV} for a in ARBITERS}
+        worst = {}
+        for a in ARBITERS:
+            f = min(fault_auc[a], key=fault_auc[a].get)
+            c = min((k for k in sbc[a] if k != "none:None"), key=sbc[a].get)
+            worst[a] = {"fault": f, "auc": fault_auc[a][f], "worst_condition": c, "worst_condition_success": sbc[a][c]}
+        sub = lambda a: df[df.arbiter == a]
         res = {"test": "H1 mission factorial (3D)", "seeds": "test 1000-1299", "n_seeds": len(agg["ring"]), "conds": len(CONDS), "world": WORLD,
-               "auc": {a: {"mean": float(agg[a].mean()), "ci": [float(x) for x in np.quantile(
-                   [agg[a][i].mean() for i in boot_idx(len(agg[a]))], [0.025, 0.975])]} for a in ARBITERS},
-               "ring_minus_best_other": best, "ring_vs": pair, "fault_auc": fault_auc,
-               "worst_fault": {a: min(fault_auc[a], key=fault_auc[a].get) for a in ARBITERS},
-               "success_curves": curves,
-               "rates": {a: {k: float(df[df.arbiter == a][k].mean()) for k in ("success_target", "success_home", "wrong_object_stop")} |
-                         {"collision_rate": float((df[df.arbiter == a].collisions > 0).mean()), "success": float(success(df[df.arbiter == a]).mean()),
-                          "median_time_s": float(df[df.arbiter == a].time_s.median())} for a in ARBITERS},
+               "aggregate_auc": {a: dict(zip(("mean", "lo", "hi"), [float(agg[a].mean())] + [float(x) for x in np.quantile(
+                   [agg[a][i].mean() for i in boot_idx(len(agg[a]))], [0.025, 0.975])])) for a in ARBITERS},
+               "ring_minus_best_other": best, "best_other_point": max(others, key=lambda a: agg[a].mean()),
+               "ring_minus_each": pair, "per_fault_auc": fault_auc, "success_by_condition": sbc, "worst": worst,
+               "wrong_object_stop_rate": {a: float(sub(a).wrong_object_stop.mean()) for a in ARBITERS},
+               "t_hold_occlusion_mean_s": {a: float(sub(a).t_hold_occlusion_s.mean()) for a in ARBITERS},
+               "t_release_decoy_mean_s": {a: float(sub(a).t_release_decoy_s.mean()) for a in ARBITERS},
+               "success_rate": {a: float(success(sub(a)).mean()) for a in ARBITERS},
+               "collision_rate": {a: float((sub(a).collisions > 0).mean()) for a in ARBITERS},
+               "tuned_params": {a: tuned[a]["params"] for a in ARBITERS},
+               "gate": ("H1 holds: ring better than best other" if best["lo"] > 0 else "ring worse than best other" if best["hi"] < 0
+                        else "H1 null: CI of ring minus best other includes 0"),
                "h1_rule": "H1 holds if the 95% CI of ring minus best other excludes 0 (two-sided)",
                "provenance": st | {"tuned_params": "results/tuned3d_params.json"}}
         (ROOT / "results/mission_h1.json").write_text(json.dumps(res, indent=1, default=float))
-        print(json.dumps({a: res["auc"][a] for a in ARBITERS}), "\nring - best other", best)
+        print(json.dumps(res["aggregate_auc"]), "\nring - best other", best, res["gate"])
     elif stage == "h3":
         df["arm_pt"] = df.unit.str.split("__").str[1].str[1:].astype(int)
         df["proto"] = df.unit.str.split("__").str[2]
@@ -225,13 +246,18 @@ def reduce(stage):
         res = {"test": "H3 stubbornness frontier in the 3D mission", "seeds": "test 1000-1299", "world": WORLD,
                "protocols": {"hold": "occlusion 10 s (severity 1)", "release": "swapped decoy, similarity 0.8 (severity 2/3)"},
                "points": {a: [{"knob": SWEEPS[a][0], "value": None if v is None else float(v), "hold_mean_s": float(mh[a][j]),
-                               "release_mean_s": float(mr[a][j]), "n_hold": int(np.isfinite(H[a][j]).sum()), "n_release": int(np.isfinite(R[a][j]).sum()),
+                               "release_mean_s": float(mr[a][j]), "hold_sem": float(np.nanstd(H[a][j]) / np.sqrt(np.isfinite(H[a][j]).sum())),
+                               "release_sem": float(np.nanstd(R[a][j]) / np.sqrt(np.isfinite(R[a][j]).sum())), "n_hold": int(np.isfinite(H[a][j]).sum()), "n_release": int(np.isfinite(R[a][j]).sum()),
                                "hold_ci": [float(x) for x in np.nanquantile([np.nanmean(H[a][j][i]) for i in boot_idx(len(seeds), 2000)], [.025, .975])],
                                "release_ci": [float(x) for x in np.nanquantile([np.nanmean(R[a][j][i]) for i in boot_idx(len(seeds), 2000)], [.025, .975])]}
                               for j, v in enumerate(SWEEPS[a][1])] for a in SWEEPS},
                "spearman_vs_gain": {"hold": float(spearmanr(SWEEPS["ring"][1], mh["ring"])[0]),
                                     "release": float(spearmanr(SWEEPS["ring"][1], mr["ring"])[0])},
-               "ring_vs_rival": out, "rule": "same as KT3 (ALIVE needs >= 2 adjacent ring gains with lower CI of both deltas > 0)",
+               "t_cross_s": None, "gate": out["preregistered"]["gate"], "dead_because": out["preregistered"]["dead_because"],
+               "ring_vs_rival": out["preregistered"]["delta"],
+               "posthoc_dominance_frontier": {"note": "post hoc, labelled: R(h) = min rival release over points with hold >= h; 2,000 resamples",
+                                              "gate": out["posthoc_dominance"]["gate"], "dead_because": out["posthoc_dominance"]["dead_because"],
+                                              "delta": out["posthoc_dominance"]["delta"]}, "rule": "same as KT3 (ALIVE needs >= 2 adjacent ring gains with lower CI of both deltas > 0)",
                "provenance": st | {"tuned_params": "results/tuned3d_params.json"}}
         (ROOT / "results/mission_h3.json").write_text(json.dumps(res, indent=1))
         print("H3 3D:", out["preregistered"]["gate"], out["preregistered"]["dead_because"], "| posthoc:", out["posthoc_dominance"]["gate"])
@@ -252,6 +278,7 @@ def selfcheck():
     t0 = time.time()
     df = run_batch([scen("vote", configs("vote")[0], sd, "train", "none", None) for sd in (0, 1)])
     assert len(df) == 2 and set(df.columns) >= {"success_target", "t_hold_occlusion_s"}
+    assert param_value("occlusion", 1.0) == 10.0 and param_value("gust", 0.9) == "severe" and param_value("decoy", 2 / 3) == 0.8
     print(f"run_3d self-check OK ({time.time() - t0:.0f} s for 2 missions)")
 
 
