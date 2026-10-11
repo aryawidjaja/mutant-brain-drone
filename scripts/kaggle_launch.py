@@ -23,7 +23,7 @@ subprocess.run("pip install -q {pip}", shell=True, check=True)
 os.chdir("/kaggle/working/repo")
 env = dict(os.environ, OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1", KT_PROCS="4")
 r = subprocess.run([sys.executable] + {cmd!r}, env=env)
-subprocess.run("mkdir -p /kaggle/working/out && cp -r {out}/* /kaggle/working/out/ 2>/dev/null; cp -r results/*.json /kaggle/working/out/ 2>/dev/null; true", shell=True)
+subprocess.run("mkdir -p /kaggle/working/out && cp -r {out}/* /kaggle/working/out/ 2>/dev/null; cp -r results/*.json results/*.png /kaggle/working/out/ 2>/dev/null; true", shell=True)
 subprocess.run("rm -rf /kaggle/working/repo", shell=True)
 sys.exit(r.returncode)
 '''
@@ -35,7 +35,8 @@ def sh(cmd, **kw):
 
 def code():
     head = sh("git rev-parse --short HEAD", cwd=ROOT).stdout.strip()
-    assert sh("git status --porcelain -- scripts app/sim schema", cwd=ROOT).stdout.strip() == "", "commit scripts first"
+    if sh("git status --porcelain -- scripts app/sim schema", cwd=ROOT).stdout.strip():
+        print("note: uncommitted changes are NOT included; packaging HEAD only")
     with tempfile.TemporaryDirectory() as d:
         sh(f"git archive --format=tar.gz -o {d}/code.tar.gz HEAD", cwd=ROOT, check=True)
         (Path(d) / "dataset-metadata.json").write_text(json.dumps({"title": "mbd-code", "id": CODE, "licenses": [{"name": "other"}]}))
@@ -53,7 +54,7 @@ def push(runner, stage, n):
     for i in range(n):
         with tempfile.TemporaryDirectory() as d:
             cmd = [f"scripts/{runner}", "run", stage, "--shard", str(i), "--nshards", str(n), "--procs", "4"] \
-                if runner != "kt7_stubbornness_v2.py" else [f"scripts/{runner}", stage]
+                if runner != "kt7_stubbornness_v2.py" else [f"scripts/{runner}", "--test", "--procs", "4"]
             (Path(d) / "run.py").write_text(RUN_PY.format(pip=PIP, cmd=cmd, out=OUTDIR.get(runner, "results")))
             (Path(d) / "kernel-metadata.json").write_text(json.dumps({
                 "id": kid(stage, i), "title": kid(stage, i).split("/")[1], "code_file": "run.py", "language": "python",
@@ -74,7 +75,7 @@ def pull(runner, stage, n):
     for i in range(n):
         with tempfile.TemporaryDirectory() as d:
             r = sh(f"kaggle kernels output {kid(stage, i)} -p {d} -q")
-            got = list(Path(d).rglob("*.parquet")) + list(Path(d).rglob("*.json"))
+            got = list(Path(d).rglob("*.parquet")) + list(Path(d).rglob("*.json")) + list(Path(d).rglob("*.png"))
             for f in got:
                 if not (dest / f.name).exists():
                     (dest / f.name).write_bytes(f.read_bytes())
