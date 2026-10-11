@@ -1,0 +1,32 @@
+{
+ "runs": [
+  {
+   "file": "decoy_ring_1010.json",
+   "label": "Swapped decoy (similarity 0.8), ring hub: the look-alike on the reported spot \u00b7 seed 1010"
+  },
+  {
+   "file": "decoy_sm_1010.json",
+   "label": "Swapped decoy (similarity 0.8), state machine: same seed as the ring run \u00b7 seed 1010"
+  },
+  {
+   "file": "occl_ring_g2_1003.json",
+   "label": "Target hidden for 10 s, ring gain 2.0 (strong recurrence) \u00b7 seed 1003"
+  },
+  {
+   "file": "occl_ring_g0_1003.json",
+   "label": "Target hidden for 10 s, ring gain 0 (no recurrence); same seed \u00b7 seed 1003"
+  },
+  {
+   "file": "none_ring_1004.json",
+   "label": "No fault, ring hub: find the tent and fly home \u00b7 seed 1004"
+  },
+  {
+   "file": "sun_ring_1002.json",
+   "label": "False sun (90\u00b0 compass offset during the outbound flight), ring hub \u00b7 seed 1002"
+  }
+ ],
+ "_source": "scripts/export_runs.py",
+ "git": "7f27826-dirty",
+ "sim_version": "0.1.0",
+ "created": "2026-10-11T19:14:56"
+}

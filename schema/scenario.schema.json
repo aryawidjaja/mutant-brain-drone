@@ -20,7 +20,7 @@
     "home": {"$ref": "#/$defs/vec3"},
     "target": {
       "type": "object", "required": ["kind", "pos"], "additionalProperties": false,
-      "properties": {"kind": {"enum": ["tent", "pad", "backpack"]}, "pos": {"$ref": "#/$defs/vec3"}, "yaw_deg": {"type": "number", "default": 0}}
+      "properties": {"kind": {"enum": ["tent", "pad", "backpack"]}, "pos": {"$ref": "#/$defs/vec3"}, "yaw_deg": {"type": "number", "default": 0}, "picture": {"type": "integer", "minimum": 0, "maximum": 3, "description": "gallery index of the target appearance; absent = drawn from the seed"}}
     },
     "decoys": {
       "type": "array", "default": [],

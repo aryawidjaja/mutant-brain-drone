@@ -31,7 +31,8 @@ export function buildWorld(sc) {
   const land = sc.world.landscape;
   const sun = { azimuth_deg: 360 * U(), elevation_deg: 25 + 35 * U() };
   const t = sc.target;
-  const [base, accent, pattern, period] = GALLERY[t.kind][Math.min(3, Math.floor(U() * 4))];
+  const u = U();   // always drawn, so a chosen picture leaves the layout unchanged
+  const [base, accent, pattern, period] = GALLERY[t.kind][t.picture ?? Math.min(3, Math.floor(u * 4))];
   let objects = [{ role: 'target', kind: t.kind, x: t.pos[0], y: t.pos[1], z: t.pos[2], yaw_deg: t.yaw_deg, dims: DIMS[t.kind], t_s: 0.0,
     appearance: { base, accent, pattern, period_m: period, similarity: 1.0 } }];
   for (const dc of sc.decoys) {

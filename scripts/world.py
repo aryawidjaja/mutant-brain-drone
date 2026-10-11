@@ -49,7 +49,8 @@ def build_world(sc):
     land = sc["world"]["landscape"]
     sun = {"azimuth_deg": 360 * U(), "elevation_deg": 25 + 35 * U()}
     t = sc["target"]
-    base, accent, pattern, period = GALLERY[t["kind"]][min(3, int(U() * 4))]
+    u = U()                                              # always drawn, so a chosen picture leaves the layout unchanged
+    base, accent, pattern, period = GALLERY[t["kind"]][t["picture"] if "picture" in t else min(3, int(u * 4))]
     objects = [{"role": "target", "kind": t["kind"], "x": t["pos"][0], "y": t["pos"][1], "z": t["pos"][2],
                 "yaw_deg": t["yaw_deg"], "dims": DIMS[t["kind"]], "t_s": 0.0,
                 "appearance": {"base": base, "accent": accent, "pattern": pattern, "period_m": period, "similarity": 1.0}}]

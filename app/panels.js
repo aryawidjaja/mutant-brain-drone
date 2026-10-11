@@ -72,17 +72,27 @@ function fam(c, h, T, css) {
   line(h.commit, css.muted, 1); line(h.fam, css.ink, 1.6);
 }
 
-// ---------- steering hub: ring of neurons + drive pulls (ring arms), or a heading dial (other arms)
+// ---------- steering hub, drawn in the drone's compass frame (north up = the drone's own sense of north; it differs
+// from true north under compass faults). Ring arms and the vote: ring of heading neurons (neuron i prefers 2*pi*i/n)
+// with the pull of each drive outside it (the vote shows its input bump; it has no dynamics). Vector sum: the drive
+// vectors. Accumulator and state machine: per-slot evidence at each slot's perceived bearing.
+const SM_STATES = ['SEARCH', 'APPROACH', 'HOLD', 'HOME'];
 function hub(c, f, css) {
   const { x, W, H } = ctx2d(c), cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.3, arb = f.arbiter ? f.arbiter.name : '';
+  const viz = (f.arbiter && f.arbiter.viz) || {};
   const P = (ang, r) => [cx + r * Math.cos(ang), cy - r * Math.sin(ang)];
-  const role = roleCol(css, arb), yaw = f.quad.euler_deg[2] * D2R;
+  const role = roleCol(css, arb), own = f.pi && Number.isFinite(f.pi.heading_est_deg) ? f.pi.heading_est_deg * D2R : f.quad.euler_deg[2] * D2R;
+  const hv = f.pi ? f.pi.home_est_compass || f.pi.home_est : null;
   x.strokeStyle = css.line; x.lineWidth = 1; x.beginPath(); x.arc(cx, cy, R, 0, TAU); x.stroke();
   x.fillStyle = css.muted; x.font = `10px ${css.mono}`; x.textAlign = 'center';
   x.fillText('N', cx, cy - R * 1.62); x.fillText('E', cx + R * 1.62, cy + 3); x.fillText('S', cx, cy + R * 1.62 + 6); x.fillText('W', cx - R * 1.62, cy + 3);
+  const bar = (a, v, col, solid = true, w = 3) => {
+    const [x0, y0] = P(a, R * 1.06), [x1, y1] = P(a, R * (1.06 + 0.5 * clamp(v, 0, 1)));
+    x.strokeStyle = col; x.lineWidth = w; x.setLineDash(solid ? [] : [3, 3]); x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke(); x.setLineDash([]);
+  };
+  const label = (a, r, s) => { const [lx, ly] = P(a, r); x.fillStyle = css.muted; x.textAlign = 'center'; x.fillText(s, lx, ly + 3); };
   const ring = f.ring && f.ring.activity && f.ring.activity.length ? f.ring : null;
-  const isRing = /^ring/.test(arb) && ring;
-  if (isRing) {
+  if (ring && (/^ring/.test(arb) || arb === 'vote')) {
     const n = ring.n || ring.activity.length, act = ring.activity, dr = ring.drives || {};
     let amax = 1e-6; for (let i = 0; i < n; i++) amax = Math.max(amax, act[i]);
     let dmax = 1e-6; for (const k of ['objects', 'home', 'search']) if (dr[k]) for (let i = 0; i < n; i++) dmax = Math.max(dmax, dr[k][i]);
@@ -99,25 +109,40 @@ function hub(c, f, css) {
       x.globalAlpha = 0.12 + 0.88 * a; x.fillStyle = role; x.beginPath(); x.arc(px, py, rr, 0, TAU); x.fill();
       x.globalAlpha = 1; x.strokeStyle = css.line2; x.lineWidth = 1; x.stroke();
     }
-    x.fillStyle = css.muted; x.textAlign = 'left'; x.fillText(`peak ${amax.toFixed(2)}`, 4, H - 4);
+    x.fillStyle = css.muted; x.textAlign = 'left'; x.fillText(`${arb === 'vote' ? 'input peak' : 'peak'} ${amax.toFixed(2)}`, 4, H - 4);
+  } else if (arb === 'sum' && viz.vectors) {
+    const V = viz.vectors, cols = { objects: css.dobj, home: css.dhome, search: css.dsearch };
+    const tot = [0, 1].map((i) => Object.values(V).reduce((s, v) => s + v[i], 0));
+    const m = Math.max(1e-6, Math.hypot(...tot), ...Object.values(V).map((v) => Math.hypot(...v))), s = (R * 1.5) / m;
+    for (const [k, v] of Object.entries(V)) if (Math.hypot(...v) * s > 2) arrow(x, cx, cy, cx + v[0] * s, cy - v[1] * s, cols[k] || css.muted, 2.5, 7);
+    x.fillStyle = css.muted; x.textAlign = 'left'; x.fillText(`|sum| ${Math.hypot(...tot).toFixed(2)}`, 4, H - 4);
   } else {
-    // dial: object evidence (teal, dashed when not visible), home drive (violet)
-    for (const o of f.objects || []) {
-      const a = o.bearing_deg * D2R, s = clamp(o.strength, 0, 1), [x0, y0] = P(a, R * 1.06), [x1, y1] = P(a, R * (1.06 + 0.5 * Math.max(s, 0.08)));
-      x.strokeStyle = css.dobj; x.lineWidth = 3; x.setLineDash(o.visible ? [] : [3, 3]); x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke(); x.setLineDash([]);
-      x.fillStyle = css.muted; x.textAlign = 'center'; const [lx, ly] = P(a, R * 1.06 + R * 0.5 * Math.max(s, 0.08) + 8); x.fillText(String(o.slot), lx, ly + 3);
+    const ev = viz.evidence ? Array.from(viz.evidence) : null, objs = f.objects || [];
+    let emax = 1e-6; if (ev) for (const v of ev) emax = Math.max(emax, v);
+    const sm = arb === 'state_machine', acc = arb === 'accumulator';
+    for (const o of objs) {
+      const a = o.bearing_deg * D2R, v = ev ? (acc ? ev[o.slot] / emax : ev[o.slot]) : o.strength;
+      const chosen = sm ? viz.target === o.slot : acc ? viz.choice === o.slot : false;
+      bar(a, Math.max(v, 0.06), chosen ? role : css.dobj, o.visible, chosen ? 4.5 : 3);
+      label(a, R * 1.06 + R * 0.5 * clamp(Math.max(v, 0.06), 0, 1) + 9, String(o.slot) + (sm && viz.rejected && viz.rejected[o.slot] ? '×' : ''));
     }
-    if (f.phase === 'home' && f.pi) { const a = Math.atan2(f.pi.home_est[1], f.pi.home_est[0]), [x0, y0] = P(a, R * 1.06), [x1, y1] = P(a, R * 1.5); x.strokeStyle = css.dhome; x.lineWidth = 3; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke(); }
+    if (hv) {
+      const ha = Math.atan2(hv[1], hv[0]), K = objs.length;
+      if (acc && ev && ev.length > K) bar(ha, ev[K] / emax, viz.choice === K ? role : css.dhome);
+      else if (f.phase === 'home') bar(ha, 0.9, css.dhome);
+    }
+    x.textAlign = 'center';
+    if (sm) { x.fillStyle = css.ink; x.font = `600 11px ${css.mono}`; x.fillText(SM_STATES[viz.state] || String(viz.state ?? ''), cx, cy + R + 4 - R * 0.35); x.font = `10px ${css.mono}`; }
+    if (acc && ev && ev.length > objs.length + 1) { x.fillStyle = css.muted; x.textAlign = 'left'; x.fillText(`search ${ev[objs.length + 1].toFixed(2)}${viz.choice === objs.length + 1 ? ' ◂' : ''}`, 4, H - 4); }
   }
-  // heading command (role colour) and actual heading (ink)
+  // heading command (role colour) and the drone's own heading estimate (ink)
   const hc = f.ring && Number.isFinite(f.ring.heading_cmd_deg) ? f.ring.heading_cmd_deg * D2R : null;
   if (hc !== null) { const [hx, hy] = P(hc, R * 0.82); arrow(x, cx, cy, hx, hy, role, 2.5, 8); }
-  const [yx, yy] = P(yaw, R * 0.6); arrow(x, cx, cy, yx, yy, css.ink, 1.2, 6);
+  const [yx, yy] = P(own, R * 0.6); arrow(x, cx, cy, yx, yy, css.ink, 1.2, 6);
   const commit = f.arbiter && Number.isFinite(f.arbiter.commit) ? f.arbiter.commit : null;
   if (commit !== null) { x.fillStyle = css.muted; x.textAlign = 'right'; x.fillText(`commit ${commit.toFixed(2)}`, W - 4, H - 4); }
   x.textAlign = 'left';
 }
-
 // ---------- home vector: estimate vs truth, drone at the centre, north up
 function homev(c, pi, css) {
   const { x, W, H } = ctx2d(c), cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.42;
@@ -297,5 +322,5 @@ function chartAuroc(S, W = 420, H = 260) {
   return svg(W, H, 'Re-finding the target (H4)', s);
 }
 
-window.Panels = { eye, pic, fam, hub, homev, att, map, chartFrontier, chartSeverity, chartAuroc, ROLE, roleCol, ARMNAME, eyeBytes };
+window.Panels = { SM_STATES, eye, pic, fam, hub, homev, att, map, chartFrontier, chartSeverity, chartAuroc, ROLE, roleCol, ARMNAME, eyeBytes };
 })();

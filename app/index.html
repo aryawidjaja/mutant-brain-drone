@@ -102,7 +102,7 @@ body { background: var(--bg); color: var(--ink); font: 13px/1.4 var(--sans); -we
 .kn .off { opacity: .45; }
 .acts { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
 .gal { display: flex; gap: 4px; flex-wrap: wrap; grid-column: 1 / -1; }
-.gal button { padding: 0; border: 1px solid var(--line2); border-radius: 2px; background: var(--panel2); cursor: pointer; width: 46px; height: 46px; overflow: hidden; }
+.gal button { padding: 0; border: 1px solid var(--line2); border-radius: 2px; background: var(--panel2); color: var(--muted); font-size: 10.5px; cursor: pointer; width: 31px; height: 31px; overflow: hidden; }
 .gal button[aria-pressed="true"] { outline: 2px solid var(--a); outline-offset: -2px; }
 .gal img, .gal canvas { width: 100%; height: 100%; display: block; object-fit: cover; }
 .fine { color: var(--muted); font-size: 11.5px; margin: 6px 0 0; }
@@ -263,7 +263,7 @@ footer.credits a { color: inherit; }
   <aside class="side only-res" id="runs" aria-label="Recorded runs">
     <details open><summary class="ph">Recorded run</summary>
       <div class="body"><select id="runsel" style="width:100%"></select><table id="runmeta" style="margin-top:6px"></table>
-      <p class="fine">Recorded by the Python reference pipeline (frames at 10 Hz). Replays never recompute anything.</p></div></details>
+      <p class="fine">Recorded by the Python reference (scripts/export_runs.py; 5 frames per second, eye image every 2 s). Showcase seeds were picked to illustrate behaviour; they are not results. Replays never recompute anything.</p></div></details>
   </aside>
 
   <section class="vp" id="view" aria-label="3D view">
@@ -350,6 +350,7 @@ footer.credits a { color: inherit; }
 <!-- Classic scripts on purpose: browsers refuse type="module" scripts from file://. The Results and Paper modes work from
      file:// with the *.js data bundles; the live simulator needs http (`npx serve app`) for its module worker. -->
 <script src="data/parity.js" onerror="this.remove()"></script>
+<script src="data/tuned_params.js" onerror="this.remove()"></script>
 <script src="data/summary.js" onerror="this.remove()"></script>
 <script src="data/mock_summary.js" onerror="this.remove()"></script>
 <script src="panels.js"></script>

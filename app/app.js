@@ -8,7 +8,7 @@
 //   runs/manifest.json     {runs: [{file, label}]}; runs/<file> = {meta: {scenario, arbiter, seed, git, sim_version, label},
 //                          world: <C5>, frames: [<C6 frame>, ...] at 10 Hz; frame.eye optional, {w, h, b64} or {w, h, rgb}}
 //   runs/bundle.js         window.RUN_BUNDLE = {manifest, runs: {file: run}}   (for file://)
-//   assets/targets/manifest.json  {items: [{file, kind, label, role}]} (also a bare array)
+//   data/tuned_params.js   window.TUNED = {_source, <arm>: params}; window.YAW_SURROGATE = {K, tau_s, wc_radps, ...}
 //   sim/vehicle_params.js  ES module; SOURCES = {name: {value, unit, source}} (P/default also accepted)
 'use strict';
 (async () => {
@@ -51,18 +51,19 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Wind', 'wsp', 'Mean wind', 'rng', 1, 0, 8, 0.1, 'Mean wind speed', (v) => v.toFixed(1) + ' m/s'],
   ['Wind', 'wdir', 'From', 'rng', 270, 0, 359, 1, 'Direction the wind blows FROM (compass, 0 = north)', (v) => v + '°'],
   ['Wind', 'turb', 'Gusts', 'sel', 'light', ['none', 'light', 'moderate', 'severe'], 0, 0, 'Dryden turbulence intensity (MIL-F-8785C, low altitude)'],
-  ['Faults', 'decoy', 'Decoy', 'sel', 'none', ['none', 'swap', 'beside', 'route'], 0, 0, 'none; swap = the decoy stands on the target spot and the target moves 10 m away (the swap control, as in scripts/scenario.py); beside = 6 m from the target; route = halfway along the way'],
+  ['Faults', 'decoy', 'Decoy', 'sel', 'none', ['none', 'swap', 'beside', 'route'], 0, 0, 'none; swap = the look-alike stands on the reported spot and the real target sits 10 m to the side (the swap control; the study draws 8–14 m in a random direction); beside = 6 m from the target; route = halfway along the way'],
   ['Faults', 'dkind', 'Decoy kind', 'sel', 'tent', ['tent', 'pad', 'backpack'], 0, 0, 'Kind of the decoy object', null, 'decoy'],
   ['Faults', 'dsim', 'Similarity', 'rng', 0.8, 0.5, 0.95, 0.05, 'How much the decoy looks like the target', (v) => v.toFixed(2), 'decoy'],
   ['Faults', 'dt', 'Decoy at', 'rng', 0, 0, 120, 1, 'Time the decoy appears', (v) => v + ' s', 'decoy'],
   ['Faults', 'occ', 'Occlusion', 'chk', false, 0, 0, 0, 'Hide the target for a while'],
-  ['Faults', 'occt', 'Starts', 'rng', 30, 0, 200, 1, 'Occlusion start', (v) => v + ' s', 'occ'],
+  ['Faults', 'occt', 'Starts', 'rng', 0, 0, 20, 1, 'Seconds after the target is first seen within 10 m (the study uses 0)', (v) => '+' + v + ' s', 'occ'],
   ['Faults', 'occd', 'Lasts', 'rng', 5, 1, 10, 0.5, 'Occlusion duration', (v) => v + ' s', 'occ'],
   ['Faults', 'comp', 'Compass ½', 'chk', false, 0, 0, 0, 'Half-silence the compass (polarisation sensors on one side)'],
   ['Faults', 'compt', 'Starts', 'rng', 20, 0, 200, 1, 'Compass fault start', (v) => v + ' s', 'comp'],
   ['Faults', 'eyec', 'Dead eye cols', 'chk', false, 0, 0, 0, 'Kill a fraction of the eye columns'],
   ['Faults', 'eyect', 'Starts', 'rng', 20, 0, 200, 1, 'Eye fault start', (v) => v + ' s', 'eyec'],
   ['Faults', 'eyecf', 'Fraction', 'rng', 0.25, 0.1, 0.4, 0.05, 'Fraction of dead columns', (v) => Math.round(v * 100) + '%', 'eyec'],
+  ['Faults', 'eyecs', 'First col', 'rng', 27, 0, 71, 1, 'First dead column of 72 (5° each, left to right across the panorama: column 0 looks straight back, columns 35–36 straight ahead)', (v) => String(v), 'eyec'],
   ['Faults', 'sun', 'False sun', 'chk', false, 0, 0, 0, 'A false sun (bright reflection) shifts the compass'],
   ['Faults', 'sunt', 'Starts', 'rng', 20, 0, 200, 1, 'False sun start', (v) => v + ' s', 'sun'],
   ['Faults', 'suno', 'Offset', 'rng', 60, 30, 120, 5, 'False sun offset', (v) => v + '°', 'sun'],
@@ -70,11 +71,23 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Faults', 'spdt', 'Starts', 'rng', 0, 0, 200, 1, 'Speed error start', (v) => v + ' s', 'spd'],
   ['Faults', 'spds', 'Scale', 'rng', 1.2, 0.7, 1.3, 0.05, 'Odometry scale factor', (v) => '×' + v.toFixed(2), 'spd'],
   ['Brain', 'arb', 'Arbiter', 'sel', 'ring', ARBS, 0, 0, 'Which arbiter steers: ring hub (under test), ring without recurrence (control), or a rival'],
-  ['Brain', 'gain', 'Ring gain', 'rng', 1, 0, 3, 0.05, 'Recurrent gain of the ring (0 = no memory; same as ring_static)', (v) => v.toFixed(2), 'arb=ring'],
-  ['Brain', 'lf', 'Learning flight', 'chk', true, 0, 0, 0, 'A 10 s bee-style learning flight before the search'],
+  ['Brain', 'prm', 'Params', 'sel', 'tuned', ['tuned', 'default'], 0, 0, 'Arbiter parameters: the frozen tuned values (file named below) or the code defaults'],
+  ['Brain', 'gain', 'Ring gain', 'rng', 1, 0, 3, 0.01, 'Recurrent gain of the ring (0 = no memory; same as ring_static). Selecting the ring with tuned params sets the tuned value.', (v) => v.toFixed(2), 'arb=ring'],
+  ['Brain', 'lf', 'Learning flight', 'chk', true, 0, 0, 0, 'Bee-style learning flight: the target is memorised from 5 views per second along a zig-zag arc 2–7 m out. Off = one photo from 4 m.'],
+  ['Brain', 'lfs', 'Duration', 'rng', 10, 1, 30, 1, 'Learning flight length (the study uses 10 s)', (v) => v + ' s', 'lf'],
+  ['Brain', 'yaw', 'Yaw surrogate', 'chk', false, 0, 0, 0, 'Exploratory, live view only: adds a yaw-rate damping term from a transfer function fitted to the Shiu-model fly yaw circuit. Off in every reported run.'],
 ];
 const ARBNAME = { ring: 'Ring hub', ring_static: 'Ring, no recurrence', vote: 'Static vote', sum: 'Vector sum', accumulator: 'Leaky accumulator', state_machine: 'State machine' };
 const K = Object.fromEntries(KN.filter((k) => k[3] !== 'gallery').map((k) => [k[1], k[4]]));
+K.pic = null; // target picture: gallery index 0-3 for the target kind, or null = drawn from the seed
+const TUNED = window.TUNED || null, YAWFIT = window.YAW_SURROGATE || null, YAW_K = 0.013; // rad/s per Hz: about half the yaw rate fed back at low frequency
+if (!TUNED) K.prm = 'default';
+const tunedGain = () => (TUNED && TUNED.ring && Number.isFinite(TUNED.ring.ring_gain) ? TUNED.ring.ring_gain : 1);
+if (TUNED) K.gain = tunedGain();
+function armParams() { // brain.params for the chosen arbiter; ring_gain travels in brain.ring_gain
+  if (K.prm !== 'tuned' || !TUNED || !TUNED[K.arb]) return {};
+  const p = { ...TUNED[K.arb] }; delete p.ring_gain; return p;
+}
 const r1 = (v) => Math.round(v * 100) / 100;
 function scenario() {
   const home = [K.hx, K.hy, 0], b = (90 - K.tbear) * D2R, tp = [r1(home[0] + K.dist * Math.cos(b)), r1(home[1] + K.dist * Math.sin(b)), 0];
@@ -84,20 +97,20 @@ function scenario() {
   if (K.decoy !== 'none') {
     const pos = K.decoy === 'swap' ? tp.slice() : K.decoy === 'beside' ? [r1(tp[0] - 6 * Math.sin(b)), r1(tp[1] + 6 * Math.cos(b)), 0] : [r1((home[0] + tp[0]) / 2 - 3 * Math.sin(b)), r1((home[1] + tp[1]) / 2 + 3 * Math.cos(b)), 0];
     decoys.push({ kind: K.dkind, pos, swap: K.decoy === 'swap', similarity: K.dsim, t_s: K.dt });
-    if (K.decoy === 'swap') { tp[0] = r1(tp[0] - 10 * Math.sin(b)); tp[1] = r1(tp[1] + 10 * Math.cos(b)); } // as scripts/scenario.py: the target moves 10 m off its spot
+    if (K.decoy === 'swap') { tp[0] = r1(tp[0] - 10 * Math.sin(b)); tp[1] = r1(tp[1] + 10 * Math.cos(b)); } // as scripts/scenario.py: the target moves off its spot (8-14 m there, 10 m here)
   }
   const faults = [];
   if (K.occ) faults.push({ kind: 'occlusion', t_s: K.occt, params: { duration_s: K.occd } });
   if (K.comp) faults.push({ kind: 'compass_half', t_s: K.compt, params: {} });
-  if (K.eyec) faults.push({ kind: 'eye_columns', t_s: K.eyect, params: { frac: K.eyecf } });
+  if (K.eyec) faults.push({ kind: 'eye_columns', t_s: K.eyect, params: { frac: K.eyecf, start_col: K.eyecs } });
   if (K.sun) faults.push({ kind: 'false_sun', t_s: K.sunt, params: { offset_deg: K.suno } });
   if (K.spd) faults.push({ kind: 'speed_scale', t_s: K.spdt, params: { scale: K.spds } });
   const wf = K.wdir * D2R;
   return {
     seed: K.seed, world: { size_m: size, landscape: K.land, obstacle_density: K.dens, light: K.light, fog_m: K.fogon ? K.fog : null },
-    home, target: { kind: K.tkind, pos: tp, yaw_deg: K.tyaw }, decoys,
+    home, target: { kind: K.tkind, pos: tp, yaw_deg: K.tyaw, ...(K.pic !== null ? { picture: K.pic } : {}) }, decoys,
     wind: { mean_mps: [r1(-K.wsp * Math.sin(wf)), r1(-K.wsp * Math.cos(wf)), 0], turbulence: K.turb }, faults,
-    brain: { arbiter: K.arb, ring_gain: K.arb === 'ring' ? K.gain : 0, learning_flight_s: K.lf ? 10 : 0 },
+    brain: { arbiter: K.arb, ring_gain: K.arb === 'ring' ? K.gain : 0, learning_flight_s: K.lf ? K.lfs : 0, params: armParams() },
     mission: { max_time_s: K.maxt, dt_s: 0.002 },
   };
 }
@@ -106,7 +119,9 @@ function fromScenario(sc) { // inverse of scenario(), for #s= links
   Object.assign(K, { seed: sc.seed | 0, hx: h[0], hy: h[1], tkind: sc.target.kind, tyaw: Math.round(sc.target.yaw_deg || 0), dist: Math.round(Math.hypot(dx, dy)),
     tbear: Math.round(((90 - Math.atan2(dy, dx) / D2R) % 360 + 360) % 360), maxt: sc.mission.max_time_s,
     land: sc.world.landscape, dens: sc.world.obstacle_density, light: sc.world.light ?? 1, fogon: sc.world.fog_m != null, fog: sc.world.fog_m || K.fog,
-    turb: sc.wind.turbulence, arb: sc.brain.arbiter, gain: sc.brain.ring_gain ?? 1, lf: (sc.brain.learning_flight_s ?? 10) > 0 });
+    turb: sc.wind.turbulence, arb: sc.brain.arbiter, gain: sc.brain.ring_gain ?? 1, lf: (sc.brain.learning_flight_s ?? 10) > 0,
+    pic: Number.isInteger(sc.target.picture) ? sc.target.picture : null, prm: TUNED && Object.keys(sc.brain.params || {}).length ? 'tuned' : 'default' });
+  if (K.lf) K.lfs = sc.brain.learning_flight_s ?? 10;
   const w = sc.wind.mean_mps; K.wsp = r1(Math.hypot(w[0], w[1])); if (K.wsp) K.wdir = Math.round(((Math.atan2(-w[0], -w[1]) / D2R) % 360 + 360) % 360);
   const d = (sc.decoys || [])[0];
   K.decoy = !d ? 'none' : d.swap ? 'swap' : Math.hypot(d.pos[0] - t[0], d.pos[1] - t[1]) < 8 ? 'beside' : 'route';
@@ -114,15 +129,15 @@ function fromScenario(sc) { // inverse of scenario(), for #s= links
   const F = Object.fromEntries((sc.faults || []).map((f) => [f.kind, f]));
   K.occ = !!F.occlusion; if (F.occlusion) { K.occt = F.occlusion.t_s; K.occd = F.occlusion.params.duration_s ?? 5; }
   K.comp = !!F.compass_half; if (F.compass_half) K.compt = F.compass_half.t_s;
-  K.eyec = !!F.eye_columns; if (F.eye_columns) { K.eyect = F.eye_columns.t_s; K.eyecf = F.eye_columns.params.frac ?? 0.25; }
+  K.eyec = !!F.eye_columns; if (F.eye_columns) { K.eyect = F.eye_columns.t_s; K.eyecf = F.eye_columns.params.frac ?? 0.25; K.eyecs = F.eye_columns.params.start_col ?? 0; }
   K.sun = !!F.false_sun; if (F.false_sun) { K.sunt = F.false_sun.t_s; K.suno = F.false_sun.params.offset_deg ?? 60; }
   K.spd = !!F.speed_scale; if (F.speed_scale) { K.spdt = F.speed_scale.t_s; K.spds = F.speed_scale.params.scale ?? 1.2; }
 }
 const b64u = { enc: (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
   dec: (s) => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))))) };
 const hashP = () => new URLSearchParams(location.hash.slice(1));
-function writeHash() { const h = new URLSearchParams(); h.set('m', mode); if (mode === 'sim') h.set('s', b64u.enc(scenario())); history.replaceState(null, '', '#' + h.toString()); }
-try { const s = hashP().get('s'); if (s) fromScenario(b64u.dec(s)); } catch (e) { showErr(new Error('Could not read the scenario in the link: ' + e.message)); }
+function writeHash() { const h = new URLSearchParams(); h.set('m', mode); if (mode === 'sim') { h.set('s', b64u.enc(scenario())); if (K.yaw) h.set('y', '1'); } history.replaceState(null, '', '#' + h.toString()); }
+try { const s = hashP().get('s'); if (s) fromScenario(b64u.dec(s)); K.yaw = hashP().get('y') === '1'; } catch (e) { showErr(new Error('Could not read the scenario in the link: ' + e.message)); }
 
 // knob DOM, built from KN
 const kEls = {};
@@ -144,9 +159,12 @@ function buildKnobs() {
       box.insertAdjacentHTML('beforeend', `<label for="k-${id}" title="${esc(tip)}" data-dep="${dep || ''}">${label}</label>${ctl}${type === 'sel' ? '' : `<output id="o-${id}" data-dep="${dep || ''}"></output>`}`);
     }
     const el = $('k-' + id); kEls[id] = { el, type, fmt, dep };
+    if (id === 'yaw') box.insertAdjacentHTML('beforeend', '<p class="fine" id="prmsrc" style="grid-column:1/-1;margin:2px 0 0"></p>');
     el.addEventListener(type === 'rng' ? 'input' : 'change', () => {
       K[id] = type === 'chk' ? el.checked : type === 'sel' ? el.value : +el.value;
       if (type === 'num') K[id] = clamp(Math.round(K[id] / step) * step || 0, a, b);
+      if (id === 'tkind') K.pic = null;
+      if ((id === 'arb' || id === 'prm') && K.arb === 'ring' && K.prm === 'tuned' && TUNED) K.gain = tunedGain();
       syncKnobs(); knobChanged();
     });
   }
@@ -163,7 +181,12 @@ function syncKnobs() {
   const nf = ['occ', 'comp', 'eyec', 'sun', 'spd'].filter((k) => K[k]).length + (K.decoy !== 'none' ? 1 : 0);
   const kw = $('kw-Faults'); if (kw) kw.textContent = nf ? `${nf} on` : 'none';
   const kb = $('kw-Brain'); if (kb) kb.textContent = ARBNAME[K.arb];
-  document.querySelectorAll('#gal button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === K.tkind && (!galPick || b.dataset.i === String(galPick.i)))));
+  if (kEls.prm) { kEls.prm.el.disabled = !TUNED; }
+  const ps = $('prmsrc');
+  if (ps) ps.innerHTML = (K.prm === 'tuned' && TUNED ? `Params: tuned, from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (2D kill-test tuning, a stand-in until the 3D tuning is frozen)' : ''}.` : 'Params: code defaults (untuned).')
+    + (K.yaw ? ` Yaw surrogate on: exploratory, not used for any reported number${YAWFIT ? ` (fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms)` : ''}.` : '');
+  if (kEls.yaw) kEls.yaw.el.disabled = !YAWFIT;
+  document.querySelectorAll('#gal button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.i === 'seed' ? K.pic === null : b.dataset.kind === K.tkind && b.dataset.i === String(K.pic))));
 }
 let pendingReset = false;
 function knobChanged() {
@@ -173,27 +196,25 @@ function knobChanged() {
 }
 
 // ---------------------------------------------------------------- target picture gallery
-let galPick = null; const galImgs = [];
+// The pictures are the appearance presets of app/sim/world.js (GALLERY): picking one sets scenario.target.picture, so
+// the drone is shown, and the world contains, exactly that target. "Seed" leaves the choice to the world seed.
 async function buildGallery() {
-  const g = $('gal'); let list = null;
-  if (HTTP) try { const r = await fetch('assets/targets/manifest.json', { cache: 'no-cache' }); if (r.ok) { const j = await r.json(); list = Array.isArray(j) ? j : j.items || j.targets || j.images || null; } } catch (e) { /* mock below */ }
-  if (list && list.length) {
-    const first = list.findIndex((t) => t.role === 'target' && t.kind === K.tkind);
-    list.slice(0, 18).forEach((t, i) => {
-      const img = new Image(); img.src = 'assets/targets/' + t.file; img.alt = t.label || t.kind; galImgs[i] = img;
-      const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = t.kind; b.dataset.i = i; b.title = t.label || t.file; b.appendChild(img.cloneNode());
-      b.onclick = () => { galPick = { i, img, kind: t.kind }; K.tkind = t.kind; syncKnobs(); knobChanged(); };
-      g.appendChild(b);
-      if (i === first) galPick = { i, img, kind: t.kind };
-    });
+  const g = $('gal'); let G = null;
+  if (HTTP) try { G = (await import(new URL('sim/world.js', location.href).href)).GALLERY; } catch (e) { console.warn('gallery: sim/world.js', e); }
+  const add = (kind, i, title, ap) => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = kind; b.dataset.i = String(i); b.title = title;
+    const c = document.createElement('canvas'); c.width = c.height = 64; b.appendChild(c); P.pic(c, { kind, appearance: ap });
+    b.onclick = () => { if (i === 'seed') K.pic = null; else { K.tkind = kind; K.pic = i; } syncKnobs(); knobChanged(); };
+    g.appendChild(b);
+  };
+  if (G) {
+    const s = document.createElement('button'); s.type = 'button'; s.dataset.i = 'seed'; s.textContent = 'seed'; s.title = 'Let the world seed choose the picture'; s.className = 'mono';
+    s.onclick = () => { K.pic = null; syncKnobs(); knobChanged(); }; g.appendChild(s);
+    for (const kind of ['tent', 'pad', 'backpack']) G[kind].forEach(([base, accent, pattern], i) => add(kind, i, `${kind} ${i + 1}: ${pattern}`, { base, accent, pattern }));
   } else {
-    for (const kind of ['tent', 'pad', 'backpack']) {
-      const b = document.createElement('button'); b.type = 'button'; b.dataset.kind = kind; b.title = kind + ' (mock gallery: drawn from the world appearance)';
-      const c = document.createElement('canvas'); c.width = c.height = 64; b.appendChild(c);
-      P.pic(c, { kind, appearance: { base: { tent: [0.86, 0.47, 0.16], pad: [0.18, 0.45, 0.82], backpack: [0.66, 0.14, 0.2] }[kind], accent: [0.95, 0.92, 0.85], pattern: { tent: 'stripes', pad: 'chevron', backpack: 'dots' }[kind] } });
-      b.onclick = () => { galPick = null; K.tkind = kind; syncKnobs(); knobChanged(); };
-      g.appendChild(b);
-    }
+    for (const kind of ['tent', 'pad', 'backpack']) add(kind, 'seed', kind + ' (picture drawn from the seed; open over http for the full gallery)',
+      { base: { tent: [0.9, 0.45, 0.1], pad: [0.95, 0.85, 0.1], backpack: [0.85, 0.2, 0.1] }[kind], accent: [0.95, 0.9, 0.8], pattern: { tent: 'stripes', pad: 'chevron', backpack: 'stripes' }[kind] });
+    g.querySelectorAll('button').forEach((b) => { b.onclick = () => { K.tkind = b.dataset.kind; K.pic = null; syncKnobs(); knobChanged(); }; });
   }
   syncKnobs();
 }
@@ -205,6 +226,15 @@ function resetView(world, scen, dur) {
   if (S3) { S3.setWorld(world); S3.clearTrail(); }
   objTags();
   panelDirty = true;
+}
+// pi.home_est is kept in the drone's compass frame; rotate it by the compass error (true yaw - heading estimate) so
+// the map, 3D view and home panel draw it in the world frame. The raw vector stays in pi.home_est_compass (hub dial).
+function worldPi(f) {
+  const pi = f && f.pi;
+  if (!pi || pi.home_est_compass || !Number.isFinite(pi.heading_est_deg)) return f;
+  const a = (f.quad.euler_deg[2] - pi.heading_est_deg) * D2R, [x, y] = pi.home_est, c = Math.cos(a), s = Math.sin(a);
+  f.pi = { ...pi, home_est_compass: pi.home_est, home_est: [c * x - s * y, s * x + c * y] };
+  return f;
 }
 function pushFrame(f) {
   const tr = view.trail;
@@ -230,6 +260,7 @@ function noSim(why) {
   const el = $('nosim'); el.classList.add('on');
   el.innerHTML = `<div>The live simulator runs in a Web Worker, which browsers only allow over http.<br>Serve the folder with <code>npx serve app</code> and open the address it prints.<br><span style="font-size:11.5px">${esc(why || '')}</span><br><br>The Results and Paper modes work from here.</div>`;
 }
+const simOpts = () => (K.yaw && YAWFIT ? { yawSurrogate: { fit: { K: YAWFIT.K, tau_s: YAWFIT.tau_s, wc_radps: YAWFIT.wc_radps }, k: YAW_K } } : {});
 function resetSim() {
   pendingReset = false; $('reset').textContent = 'Reset'; $('reset').classList.remove('pri');
   if (!sim.ok) { const sc = scenario(); resetView(null, sc, sc.mission.max_time_s); return; }
@@ -239,7 +270,7 @@ function resetSim() {
   const sc = scenario();
   w.onmessage = (e) => { if (w === sim.w) onSim(e.data, sc); };
   w.onerror = (e) => { if (w === sim.w) showErr(new Error('Simulator worker: ' + (e.message || 'failed to start'))); };
-  w.postMessage({ cmd: 'init', scenario: sc, speed: +$('speed').value });
+  w.postMessage({ cmd: 'init', scenario: sc, speed: +$('speed').value, opts: simOpts() });
   resetView(null, sc, sc.mission.max_time_s);
 }
 function onSim(d, sc) {
@@ -251,6 +282,7 @@ function onSim(d, sc) {
     badge(); banners();
   } else if (d.type === 'frame') {
     if (mode !== 'sim') return;
+    worldPi(d.frame);
     if (view.frame && d.frame.t < view.frame.t) return;
     if (!view.frame || d.frame.t !== view.frame.t) pushFrame(d.frame);
     view.frame = d.frame; view.T = d.frame.t; sim.rtf = d.rtf; sim.cpu = d.cpu; panelDirty = true;
@@ -298,7 +330,7 @@ function runBatch() {
       <p class="fine">20 seeds, no confidence intervals: a quick look only. The paper's numbers come from the Python reference on held-out test seeds.</p>`;
     batchW.terminate(); batchW = null; $('batch').textContent = 'Run 20 seeds';
   };
-  batchW.postMessage({ cmd: 'batch', scenario: sc, seeds });
+  batchW.postMessage({ cmd: 'batch', scenario: sc, seeds, opts: simOpts() });
 }
 
 // ---------------------------------------------------------------- Results mode
@@ -337,14 +369,16 @@ async function enterResults() {
 async function selectRun(i) {
   const entry = results.list[i], run = await results.get(entry.file);
   const fr = run.frames, dur = fr.length ? fr[fr.length - 1].t : 1;
+  fr.forEach(worldPi);
   results.run = run; results.playing = false;
   resetView(run.world, run.meta.scenario || null, dur);
   for (const f of fr) pushFrame(f);
   view.T = 0; showRunFrame(); playIcon();
   const m = run.meta, o = fr.length ? fr[fr.length - 1].outcome || {} : {};
   const row = (k, v) => `<tr><td>${k}</td><td class="num">${esc(v)}</td></tr>`;
-  $('runmeta').innerHTML = row('Arbiter', ARBNAME[m.arbiter] || m.arbiter) + row('Seed', m.seed) + row('Git', m.git) + row('Sim version', m.sim_version) +
-    ['success_target', 'success_home', 'wrong_object_stop', 'collisions', 'time_s', 'path_len_m', 'home_error_m', 'max_bank_deg', 't_hold_occlusion_s', 't_release_decoy_s'].filter((k) => k in o).map((k) => row(k.replace(/_/g, ' '), o[k] === null ? '–' : String(o[k]))).join('');
+  $('runmeta').innerHTML = (m.label ? `<tr><td class="wrap" colspan="2" style="text-align:left">${esc(m.label)}</td></tr>` : '') + row('Arbiter', ARBNAME[m.arbiter] || m.arbiter) + row('Seed', m.seed) + row('Git', m.git) + row('Sim version', m.sim_version) +
+    (m.params_source ? row('Params', m.params_source.split('/').pop()) : '') +
+    ['success_target', 'success_home', 'wrong_object_stop', 'collisions', 'time_s', 'path_len_m', 'home_error_m', 'max_bank_deg', 't_hold_occlusion_s', 't_release_decoy_s'].filter((k) => k in o).map((k) => row(k.replace(/_/g, ' '), o[k] === null ? '–' : typeof o[k] === 'number' ? String(+o[k].toFixed(2)) : String(o[k]))).join('');
 }
 function showRunFrame() {
   const fr = results.run.frames; if (!fr.length) return;
@@ -371,16 +405,20 @@ function banners() {
     : mode === 'results' ? [results.mockRun && 'Mock replay: the recorded run is synthetic (made by the mock simulator).', results.mockS && 'Mock summary: the charts show synthetic numbers (<span class="mono">data/mock_summary.js</span>), not results.'].filter(Boolean).join(' ') : '';
   msg('mock', mk);
 }
-const SIMP = [
-  ['Eye', 'an analytic ray-cast low-resolution panorama (same geometry and colours in Python and JS), not a rendered camera image; the H4 recognition study uses MuJoCo renders.'],
-  ['Optic flow and looming', 'computed geometrically from the scene, engineered from published principles (no flyvis LPLC2 or HS cells).'],
-  ['Inner attitude loop', 'a standard cascade PID, standing in for the fly halteres; the same for every arbiter.'],
-  ['Yaw circuit', 'the FlyWire/Shiu yaw circuit is too slow for live use; where shown, it is a transfer-function surrogate fitted to its measured frequency response (fit error in the paper).'],
-  ['Motors', 'first-order lag and saturation; thrust and drag torque from per-motor coefficients.'],
-  ['Wind', 'Dryden turbulence (MIL-F-8785C, low altitude) plus a mean wind.'],
-  ['Path integrator', 'Stone et al. 2017 model, reimplemented from the paper.'],
-  ['Mushroom body', 'Ardin et al. 2016-style one-shot familiarity network.'],
-  ['Object slots', 'a perfect tracker keeps each object in the same slot (slot order random per seed).'],
+const SIMP = [ // each line checked against the code it names (app/sim, scripts)
+  ['Rigid body', '6-DOF quadrotor, RK4 at 500 Hz; mass and inertia from the MuJoCo Menagerie bitcraze_crazyflie_2 model (27 g; inertia from Landry 2015). Motor thrust, rotor-speed, torque and linear drag constants from Förster 2015, who measured a different unit (28.0 g, inertia about 16.6/16.7/29.3 × 10⁻⁶ kg m²): the mismatch is kept and stated.'],
+  ['Motors', 'first-order lag, τ = 0.065 s, derived from Förster\'s discrete motor pole (0.9695 at 500 Hz); it lumps motor dynamics and some latency. Thrust saturates at the full-command value.'],
+  ['Inner loop', 'a cascade PID (velocity → attitude → rate → mixer) stands in for the fly\'s halteres; the same for every arbiter.'],
+  ['Wind', 'Dryden turbulence per MIL-F-8785C (low altitude), formulas as documented by MathWorks (Aerospace Blockset), discretised exactly per filter stage; gust axes along world x, y, z (not rotated into the mean wind), plus a mean wind.'],
+  ['Eye', 'an analytic ray-cast 72 × 12 panorama (5° per pixel, 360° × 60°), not a rendered camera image. The mushroom body sees a separate 16 × 12 grey "look" of each visible object (an attention window that keeps the object filling the frame, blurred by acuity), rank-equalised. The recognition study (H4) uses MuJoCo renders instead.'],
+  ['Visibility', 'an object is seen when present, large enough (≥ 4°), above fog contrast 0.2, with 2 of 3 sight lines clear of obstacles, not in a dead eye column and not occluded. A perfect tracker keeps each object in the same slot (slot order random per seed).'],
+  ['Optic flow and looming', 'geometric optic flow from 72 horizontal ray-casts (range ≤ 20 m) plus noise, not a model of motion detectors (no flyvis, no LPLC2 or HS cells). Flow balancing and looming avoidance are added after the arbiter, at the descending-neuron level.'],
+  ['Mushroom body', 'Ardin et al. 2016-style: 20,000 Kenyon cells, 10 random inputs each, 1% active (k-winners), one-shot binary depression of the output weights.'],
+  ['Learning flight', 'a set of views, not a flown manoeuvre: 5 looks per second along a zig-zag arc 2–7 m from the target, stored before t = 0. Off = one look from 4 m.'],
+  ['Path integrator', 'Stone et al. 2017, reimplemented from the paper\'s text, with three stated departures: a multiplicative CPU4 update (as the prose describes), rectified-linear TN2 speed cells, and a population-vector readout of CPU4 (no CPU1 steering layer). The home vector lives in the compass frame; compass faults rotate it.'],
+  ['Ring hub', 'Sun, Yue & Mangan 2020-style, with departures: 32 neurons (not 8 per hemisphere), 30° excitation width, quasi-steady inhibition, activation clipped to [0, 1], state carried across ticks (that is its memory), tunable time constant; ring gain scales the whole recurrent loop.'],
+  ['Stop rule', 'shared by every arbiter, outside it: stop within 2 m (horizontal) of a visible object whose 1-s mean evidence exceeds 0.6. Stopping at a look-alike counts as a wrong-object stop; then the home drive takes over and landing relies on the path integrator alone.'],
+  ['Instruction', 'the drone is given a rough vector to the reported spot (bearing error 8°, distance error 10%, 1 SD), then searches an outward spiral around it.'],
 ];
 async function modelPanel() {
   let params = null, why = '';
@@ -399,7 +437,9 @@ async function modelPanel() {
     });
     t.innerHTML = `<thead><tr><th>Vehicle parameter</th><th>Value</th></tr></thead>` + rows.join('');
   } else t.innerHTML = `<tr><td class="wrap" colspan="2">Vehicle parameters with sources will be listed here. ${esc(why)} Mass and inertia come from the MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> model; motor constants from a separately cited source.</td></tr>`;
-  $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js exists.</li>' : '');
+  const yawLi = YAWFIT ? `<li><b>Yaw circuit (optional):</b> the owner's Shiu-model fly yaw circuit is too slow for live use. The "Yaw surrogate" toggle uses a transfer function fitted to its measured frequency response (gain ${YAWFIT.K.toFixed(3)} Hz per °/s, delay ${(YAWFIT.tau_s * 1000).toFixed(1)} ms, corner ${YAWFIT.fc_hz.toFixed(1)} Hz; fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms) as a small yaw-rate damping term. Exploratory, live view only, off by default and in every reported run.</li>` : '<li><b>Yaw circuit:</b> a fitted surrogate of the Shiu-model yaw circuit exists (app/sim/yaw_surrogate.js) but its fit file is not loaded here.</li>';
+  const prmLi = `<li><b>Arbiter parameters:</b> ${TUNED ? `tuned values from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (tuned in the 2D kill-test world, used here as a stand-in until the 3D tuning is frozen)' : ''}` : 'code defaults (no tuned file found)'}.</li>`;
+  $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + yawLi + prmLi + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js loads.</li>' : '');
 }
 
 // ---------------------------------------------------------------- panels
@@ -419,11 +459,20 @@ function placeTags() {
   }
   put('tagH', w.home[0], w.home[1], 0.3);
 }
+const n2 = (x) => (typeof x === 'number' ? x.toFixed(2) : String(x));
+function vizRows(f) { // the arbiter's own state, readable
+  const a = f.arbiter || {}, v = a.viz || {}, K = (f.objects || []).length;
+  if (a.name === 'state_machine') return [['state', P.SM_STATES[v.state] ?? v.state], ['committed to', v.target >= 0 ? `slot ${v.target}` : 'none'],
+    ['evidence', Array.from(v.evidence || []).map((x, k) => `${k}: ${n2(x)}`).join(' · ')], ['rejected', (v.rejected || []).map((x, k) => (x ? k : null)).filter((x) => x !== null).join(', ') || 'none']];
+  if (a.name === 'accumulator') { const lab = (k) => (k < K ? `slot ${k}` : k === K ? 'home' : 'search'); return [['evidence', Array.from(v.evidence || []).map((x, k) => `${lab(k)} ${n2(x)}`).join(' · ')], ['choice', lab(v.choice)]]; }
+  if (a.name === 'sum' && v.vectors) return Object.entries(v.vectors).map(([k, u]) => [k, `${Math.hypot(u[0], u[1]).toFixed(2)} at ${(Math.atan2(u[1], u[0]) / D2R).toFixed(0)}°`]);
+  return Object.entries(v).map(([k, x]) => [k, Array.isArray(x) ? x.slice(0, 8).map(n2).join(' · ') : typeof x === 'object' ? JSON.stringify(x) : n2(x)]);
+}
 function drawPanels() {
   const f = view.frame;
   P.map($('map'), view.world, view.trail, f, css, { col: roleColor(), present });
   const tgt = view.world && view.world.objects.find((o) => o.role === 'target');
-  P.pic($('pic'), tgt || { kind: K.tkind, appearance: {} }, galPick && galPick.kind === (tgt || {}).kind ? galPick.img : null);
+  P.pic($('pic'), tgt || { kind: K.tkind, appearance: {} });
   if (!f) return;
   P.eye($('eye'), f.eye);
   P.fam($('fam'), view.hist, f.t, css);
@@ -433,9 +482,13 @@ function drawPanels() {
   const arb = f.arbiter ? f.arbiter.name : arbOf();
   $('hubwho').textContent = ARBNAME[arb] || arb;
   $('hubcmdkey').innerHTML = `<i style="background:${roleColor()}"></i>heading command`;
-  $('hubnote').textContent = /^ring/.test(arb) ? 'Ring of heading neurons (world frame, north up): brightness = activity. Bars outside the ring = input from each drive at that heading.' : 'Dial (world frame, north up): teal bars = object evidence per slot (dashed = not visible); violet = home drive.';
-  const viz = f.arbiter && f.arbiter.viz ? Object.entries(f.arbiter.viz).filter(([k]) => k !== 'ring' && k !== 'drives') : [];
-  $('viz').innerHTML = viz.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${Array.isArray(v) || ArrayBuffer.isView(v) ? Array.from(v).slice(0, 8).map((x) => typeof x === 'number' ? x.toFixed(2) : esc(x)).join(' · ') : typeof v === 'number' ? v.toFixed(2) : typeof v === 'string' ? esc(v) : esc(JSON.stringify(v))}</td></tr>`).join('');
+  const FR = 'Compass frame (the drone\'s own north; true north only when the compass is right). Ink arrow = own heading, coloured arrow = heading command.';
+  $('hubnote').textContent = (/^ring/.test(arb) ? 'Ring of 32 heading neurons: brightness = activity. Bars outside the ring = input from each drive at that heading.'
+    : arb === 'vote' ? 'Static vote: the summed input bump (no dynamics, no memory); the command is its interpolated peak.'
+      : arb === 'sum' ? 'Vector sum: one arrow per drive (teal objects, violet home, grey search); the command is their sum.'
+        : arb === 'accumulator' ? 'Leaky accumulator: bar = evidence per slot (dashed = not visible), violet = home option; the largest wins (orange/blue).'
+          : arb === 'state_machine' ? 'State machine: state name in the centre; bars = filtered evidence per slot, the committed target highlighted, × = rejected.' : '') + ' ' + FR;
+  $('viz').innerHTML = vizRows(f).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${esc(v)}</td></tr>`).join('');
   $('famv').textContent = Number.isFinite(f.familiarity) ? `familiarity ${f.familiarity.toFixed(2)}` : '';
   if (f.pi) { const e = f.pi.home_est, t = f.pi.home_true; $('hverr').textContent = `error ${Math.hypot(e[0] - t[0], e[1] - t[1]).toFixed(1)} m`; }
   $('mindtxt').textContent = f.mind ? f.mind.text : '–'; $('mindtru').textContent = f.mind ? f.mind.truth : '–';

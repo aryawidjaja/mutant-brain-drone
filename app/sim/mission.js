@@ -12,6 +12,8 @@ import { PathIntegrator, SIGMA_COMPASS, SIGMA_SPEED } from './brain/pi.js';
 import { reflex, collided } from './brain/avoid.js';
 import { say, steeringSlot } from './brain/mind.js';
 import { make, driveInputs, N_RING } from './brain/arbiters.js';
+import { YawSurrogate } from './yaw_surrogate.js';
+import { GAINS } from './vehicle_params.js';
 
 export const DT_B = 0.02, SUB = 10, EYE_EVERY = 5, K_MAX = 4;
 export const ALT = 2.5, V_CRUISE = 2.0, V_NEAR = 1.0, T_TAKEOFF = 2.0, TURN_MAX = 120 * Math.PI / 180;
@@ -43,7 +45,10 @@ function freshMB() {
   return m;
 }
 
-export function createMission(scenario) {
+/** opts.yawSurrogate = {fit: {K, tau_s, wc_radps}, k} adds an exploratory yaw-rate damping term (live app only; off by
+ *  default, and off in every reported run): the fitted yaw-circuit surrogate turns the body yaw rate (deg/s) into a
+ *  DNa02 rate difference (Hz), and k (rad/s per Hz) adds it to the yaw-rate set-point via the yaw set-point. */
+export function createMission(scenario, opts = {}) {
   const sc = load(stripMeta(scenario));
   if (sc.decoys.length + 1 > K_MAX) throw new Error(`at most ${K_MAX - 1} decoys`);
   const world = buildWorld(sc);
@@ -61,6 +66,7 @@ export function createMission(scenario) {
   const yaw0 = 2 * Math.PI * u0 - Math.PI;
   const quad = new Quad(QP, [home[0] * 1, home[1] * 1, home[2] * 0], yaw0);
   const ctrl = new Controller();
+  const ys = opts.yawSurrogate ? new YawSurrogate(opts.yawSurrogate.fit, DT_B / SUB) : null;
   const dryden = new Dryden(sc.seed, sc.wind.turbulence, sc.wind.mean_mps, ALT, V_CRUISE);
   const pi = new PathIntegrator();
   const mb = freshMB();
@@ -233,7 +239,7 @@ export function createMission(scenario) {
     const dt = DT_B / SUB;
     for (let i = 0; i < SUB; i++) {
       st.wind = Array.from(dryden.step(dt));
-      const m = ctrl.update(quad, sp, dt);
+      const m = ctrl.update(quad, ys ? { ...sp, yaw: sp.yaw + opts.yawSurrogate.k * ys.step(quad.omega[2] * R2D) / GAINS.kp_yaw } : sp, dt);
       quad.step(m, st.wind, dt);
       const lv = st.phase < 4 ? 1 : 0;
       st.path += lv * Math.hypot(quad.vel[0], quad.vel[1]) * DT_B / SUB;
@@ -282,7 +288,7 @@ export function createMission(scenario) {
       ring: { n: N_RING, activity: act, drives: { objects: Array.from(drv.objects), home: Array.from(drv.home), search: Array.from(drv.search) },
         heading_cmd_deg: res.heading_cmd * R2D },
       arbiter: { name: sc.brain.arbiter, commit: res.commit, viz },
-      pi: { home_est: z.hv.slice(), home_true: homeTrue },
+      pi: { home_est: z.hv.slice(), home_true: homeTrue, heading_est_deg: z.headingEst * R2D },
       avoid: { yaw_offset_deg: z.yawOff * R2D, loom: z.loom },
       mind: { text: m.text, truth: m.truth },
       faults_active: fa,
