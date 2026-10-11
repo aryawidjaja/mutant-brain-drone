@@ -1,4 +1,4 @@
-// The six heading arbiters (contract C2), JS port of scripts/brain/arbiters.py and scripts/brain/state_machine.py
+// The six heading arbiters, JS port of scripts/brain/arbiters.py and scripts/brain/state_machine.py
 // (mirrored line by line, batch 1). obs: {objects: {bearing[K], strength[K], visible[K]},
 // home: {bearing, strength}, search: {bearing, strength}, heading}. step(obs, dt) -> {heading_cmd, commit, viz}.
 export const ARBITERS = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine'];

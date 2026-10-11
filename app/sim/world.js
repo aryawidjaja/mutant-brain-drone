@@ -1,4 +1,4 @@
-// World builder (contract C5), JS twin of scripts/world.py. Deterministic from scenario.seed via Rng stream 0.
+// World builder, JS twin of scripts/world.py. Deterministic from scenario.seed via Rng stream 0.
 // Angles CCW from +x (east), including yaw_deg and sun.azimuth_deg. parity_brain.py asserts equality with Python.
 import { Rng } from './rng.js';
 

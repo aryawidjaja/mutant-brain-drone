@@ -1,4 +1,4 @@
-"""The six heading arbiters (contract C2). Numpy, vectorised over a leading batch axis B.
+"""The six heading arbiters. Numpy, vectorised over a leading batch axis B.
 
 Every arm maps the same `obs` (objects, home, search drives; world-frame bearings from the
 drone's own compass) to a heading command. Params are scalars shared by the batch.

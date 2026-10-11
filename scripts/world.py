@@ -1,4 +1,4 @@
-"""World builder (contract C5): procedural meadow / forest / urban from the scenario seed (Rng stream 0).
+"""World builder: procedural meadow / forest / urban from the scenario seed (Rng stream 0).
 
 Identical in app/sim/world.js (parity_brain.py asserts equality). Only +, *, floor on the uniform draws (no trig),
 so Python and JS agree bit-for-bit.

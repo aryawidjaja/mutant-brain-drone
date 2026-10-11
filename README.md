@@ -26,7 +26,7 @@ A small simulated drone is shown a picture of a target (for example a tent at a 
 
 The question: does the ring hub's recurrent memory earn its place? It should keep steering toward a target that is briefly hidden, but it may also keep chasing a look-alike after the evidence has turned. We measured that trade-off and compared the ring with five arbiters given the same random-search tuning budget: a static vote, the ring with recurrence switched off, a vector sum, a leaky evidence accumulator and a state machine frozen before any fault data. A second question was whether a learning flight lets the few-kilobyte mushroom-body memory re-find the target among look-alikes standing on its exact spot, compared with raw pixels, a colour histogram and DINOv2 features.
 
-Everything is simulation. The results describe these models in this simulator, not insects or real drones. Hypotheses were fixed before the data; every later change and every post hoc analysis is listed in the paper's "Protocol and amendments" section.
+Everything is simulation. The results describe these models in this simulator, not insects or real drones. Hypotheses and metrics were drafted before any data; the record is an internal log without independent timestamps, and the public commits start after the 2D kill tests and the recognition study. Every amendment and every post hoc analysis is listed in the paper's "Protocol and amendments" section.
 
 ## Key results
 
@@ -38,14 +38,14 @@ Every number below is generated from `app/data/summary.json` by `scripts/export_
 | --- | --- | --- | --- |
 | H2, 2D kill test | Ring vs best-matching static vote, max heading difference D* (kill if ≤ 5°) | 62.9° pre-registered; 48.9–62.9° by vote-width grid; 5.4–6.9° without equal-certainty cells (post hoc) | Passed as written; at the kill line outside ties |
 | H1, 2D pilot | Aggregate AUC, ring − best other arm (300 test seeds) | −0.005 [−0.012, −0.003]; permutation p = 0.38 (post hoc) | Pre-registered CI excludes 0 (against the ring); consistent with exchangeable arms |
-| H1, 3D mission | Aggregate AUC, ring (0.623) − best other (0.631), 300 test seeds | −0.009 [−0.016, −0.002]; permutation p = 0.003; decoy fault AUC ring 0.491 vs state machine 0.552 | Holds, against the ring |
+| H1, 3D mission | Aggregate AUC, tuned ring (gain 0.022, 0.623) − best other (0.631), 300 test seeds | −0.009 [−0.016, −0.002]; permutation p = 0.003; decoy fault AUC ring 0.491 vs state machine 0.552; not ring-specific (post hoc): vector sum p = 0.003, ring without recurrence p = 0.027; without the decoy fault all six arms 0.643–0.645 | Holds, against the ring, but the state machine and accumulator lead only on swapped decoys |
 | H3, 2D kill test | Hold of a hidden target vs release of a fading look-alike; accumulator − ring release at the ring’s hold | ring gain 0→3: release 1.22 s → 20 s cap (other parameters fixed); Δ −1.87 to −18.7 s; best of 64 ring configurations −1.19 s (post hoc, training seeds) | Better-trade-off claim rejected |
-| H3, 3D mission | Same sweeps in the mission (wrong stops before the crossing count as the 20 s cap) | ring hold peaks at 3.25 s (gain 0.3) then falls to 1.29 s (Spearman with gain −0.91); release rises 6.59 → 10.60 s (0.99) | Inconclusive (pre-registered rule and both sensitivities) |
+| H3, 3D mission | Same sweeps in the mission (wrong stops before the crossing count as the 20 s cap) | for gains ≤ 0.8 the ring's hold peaks at 3.25 s (gain 0.3); release 6.59 → 8.52 s; from gain 1.0 the ring never stopped at a hidden target and 99% of its runs reached the time limit (post hoc) | Inconclusive (pre-registered rule; also on common seeds, Amendment 4, and under the post hoc dominance frontier) |
 | H4, renders | AUROC, target vs look-alikes on the same spot, at the stored azimuth (0°), no flight → with learning flight | mushroom body 0.502 → 0.502; raw pixels 0.506; DINOv2 0.761 → 0.799 | Learning-flight claim rejected for the mushroom body |
 
 <!-- RESULTS:END -->
 
-In plain words: in this simulator the insect parts did not beat simple engineered parts. In the full mission, the ring hub was fooled slightly more often by look-alikes than the best rival and tied on every other fault. With its other parameters fixed, turning up its memory made it hold a hidden target longer and also chase a fading look-alike longer, and a leaky accumulator did better on both. The tuner chose a ring with almost no recurrence in both worlds. The mushroom body could not tell the target from look-alikes on the same spot once distance, height or light changed, with or without a learning flight; DINOv2 could.
+In plain words: in this simulator the insect parts did not beat simple engineered parts. In the full mission, the tuned ring hub (which had almost no recurrence) was fooled by look-alikes on the target's spot slightly more often than the state machine and the accumulator, and so were the vector sum and the ring without recurrence (post hoc); on every other fault all six arms tied. In the full-mission stubbornness test the comparison was inconclusive, and at high gain the ring no longer completed the mission. With its other parameters fixed, turning up its memory made it hold a hidden target longer and also chase a fading look-alike longer, and a leaky accumulator did better on both. The tuner chose a ring with almost no recurrence in both worlds. The mushroom body could not tell the target from look-alikes on the same spot once distance, height or light changed, with or without a learning flight; DINOv2 could.
 
 <img src="paper/figures/fig4.png" alt="Stubbornness frontier of the ring hub and its rivals" width="100%">
 
@@ -90,14 +90,14 @@ uv run python scripts/export_app_summary.py
 node scripts/export_paper.mjs                              # needs Chrome, pandoc, tectonic, rsvg-convert, poppler
 ```
 
-The 3D stages take tens of CPU-hours. They were sharded on free GitHub Actions runners with `.github/workflows/sim.yml` (`gh workflow run sim -f stage=test -f nshards=64`; results pulled with `gh run download` into `results/3d/`) and reduced locally. Seeds 0–99 are training seeds (tuning only); 1000–1299 are test seeds (reporting only).
+The 3D stages take tens of CPU-hours. They were sharded on free GitHub Actions runners with `.github/workflows/sim.yml` (`gh workflow run sim -f stage=test -f nshards=64`; results pulled with `gh run download` into `results/3d/`, which is not tracked) and reduced locally into `results/runs/` and the `results/mission_*.json` summaries. Seeds 0–99 are training seeds (tuning only); 1000–1299 are test seeds (reporting only).
 
 ## Repository layout
 
 ```
 scripts/        every analysis step: vehicle (quad.py, dryden.py), brain (brain/), mission (mission.py, world.py, scenario.py),
                 kill tests (kt*.py), recognition (recog_*.py), 3D runner (run_3d.py), statistics, exports
-results/        every number in the paper traces to a file here (results/3d/ holds the per-unit 3D runs)
+results/        every number in the paper traces to a file here (per-unit 3D runs are consolidated in results/runs/)
 app/            the static app: index.html, the JS simulator (app/sim/), the web paper (guide.js), data bundles
 paper/          generated submission files (PDF, LaTeX, Word, BibTeX, arXiv zip)
 schema/         the scenario format shared by Python and JavaScript

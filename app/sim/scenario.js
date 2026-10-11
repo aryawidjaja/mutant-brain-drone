@@ -1,4 +1,4 @@
-// Scenario contract C1 (JS twin of scripts/scenario.py): validate, fill defaults, hash, sample.
+// Scenario (JS twin of scripts/scenario.py): validate, fill defaults, hash, sample.
 // The schema below is a verbatim copy of schema/scenario.schema.json (scenario.py's self-check asserts it).
 import { Rng } from './rng.js';
 

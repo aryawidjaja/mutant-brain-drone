@@ -130,6 +130,10 @@ def aggregate_curve(runs, arm):
     return v.mean(0), np.percentile(bm, 2.5, 0), np.percentile(bm, 97.5, 0)
 
 
+def minmax_(v):
+    return [min(v), max(v)]
+
+
 def seed_fault_auc(runs, arm):
     """{fault: [seeds] AUC} with the KT2/3D definition: trapezoid over x = level / n_levels, no-fault run at x = 0."""
     r = runs[runs.arbiter == arm].copy()
@@ -199,6 +203,9 @@ def h1_block(o, pre, fname, d, runs_name):
         runs = pd.read_parquet(rp)
         o.put(f'{pre}.n_runs', len(runs), f'derived: rows of results/runs/{runs_name}')
         o.put(f'{pre}.row_git', sorted(runs.git.unique().tolist()), f'derived: distinct git stamps of the rows in results/runs/{runs_name}')
+        dd = runs[runs.fault == 'decoy']
+        o.put(f'{pre}.decoy_wrong_stop_by_level', [[float(lv), *[float(v) for v in minmax_(g.groupby('arbiter').wrong_object_stop.mean())]] for lv, g in dd.groupby('level')],
+              f'derived: results/runs/{runs_name}, decoy fault: [level, min over arms, max over arms] of the wrong-object-stop rate')
         for a in ARMS:
             fa = seed_fault_auc(runs, a)
             for f, v in fa.items():
@@ -284,6 +291,11 @@ def build():
     o.put('meta.code_git', head, 'derived: git rev-parse --short HEAD at export time')
     files = sorted(p.relative_to(RES).as_posix() for p in RES.rglob('*') if p.is_file() and not p.name.startswith('.'))
     o.put('meta.n_result_files', len(files), 'derived: count of files under results/')
+    try:
+        tracked = subprocess.check_output(['git', 'ls-files', 'results'], cwd=ROOT, text=True).split()
+    except Exception:
+        tracked = []
+    o.put('meta.n_result_files_tracked', len(tracked), 'derived: git ls-files results | count')
     prov = {}
     for f in files:
         if f.endswith('.json'):
@@ -476,13 +488,38 @@ def build():
         o.put('mission.h1', None, 'derived: results/mission_h1.json missing (pending)')
     if m3:
         h3_block(o, 'mission.h3', 'mission_h3.json', m3)
-        h3u = sorted((RES / '3d' / 'h3').glob('*.parquet'))
-        if h3u:
-            g = pd.concat([pd.read_parquet(f, columns=['git']) for f in h3u]).git
-            o.put('mission.h3.row_git', sorted(g.unique().tolist()), 'derived: distinct git stamps of the rows in results/3d/h3/*.parquet')
-            o.put('mission.h3.n_units', len(h3u), 'derived: count of results/3d/h3/*.parquet')
+        hp = RES / 'runs' / 'mission_h3.parquet'
+        if hp.exists():
+            g = pd.read_parquet(hp, columns=['git']).git
+            o.put('mission.h3.row_git', sorted(g.unique().tolist()), 'derived: distinct git stamps of the rows in results/runs/mission_h3.parquet')
+            o.put('mission.h3.n_rows', len(g), 'derived: rows of results/runs/mission_h3.parquet')
     else:
         o.put('mission.h3', None, 'derived: results/mission_h3.json missing (pending)')
+
+    import hashlib
+    for fn in ['mission_h1.json', 'mission_h3.json']:
+        mj = load(fn)
+        if mj and 'code_sha256' in mj.get('provenance', {}):
+            c, ok = mj['provenance']['git'].replace('-dirty', ''), True
+            for path, h in mj['provenance']['code_sha256'].items():
+                try:
+                    ok &= hashlib.sha256(subprocess.check_output(['git', 'show', f'{c}:{path}'], cwd=ROOT, stderr=subprocess.DEVNULL)).hexdigest() == h
+                except Exception:
+                    ok = False
+            o.put(f'meta.code_hash_match.{fn[:-5]}', ok, 'derived: every provenance/code_sha256 entry equals sha256 of git show <stamped commit>:<path>')
+    md = load('mission_diag.json')
+    if md:
+        for a, pts in md['h3'].items():
+            for i, q in enumerate(pts):
+                for k in q:
+                    if k != 'knob':
+                        o.copy(f'diag.h3.{a}.{i}.{k}', 'mission_diag.json', f'h3/{a}/{i}/{k}', md)
+        for a in ARMS:
+            for k in ['est', 'percentile', 'p_two_sided']:
+                o.copy(f'diag.h1.perm.{a}.{k}', 'mission_diag.json', f'h1/each_arm_minus_best_other_permutation/{a}/{k}', md)
+            o.copy(f'diag.h1.no_decoy.{a}', 'mission_diag.json', f'h1/aggregate_auc_without_decoy_fault/{a}', md)
+        o.copy('diag.label', 'mission_diag.json', 'label', md)
+        o.copy('diag.git', 'mission_diag.json', 'provenance/git', md)
 
     # ---- the Results tab's chart keys
     o.d = listify(o.d)
@@ -507,12 +544,17 @@ def readme_block(d):
     r, pp = K2['ring_minus_best_other'], K2['posthoc_permutation']
     rows.append(('H1, 2D pilot', f"Aggregate AUC, ring − best other arm ({K2['n_seeds']} test seeds)",
                  f"{f(r['est'])} [{f(r['lo'])}, {f(r['hi'])}]; permutation p = {f(pp['p_two_sided'], 2)} (post hoc)", 'Pre-registered CI excludes 0 (against the ring); consistent with exchangeable arms'))
-    M1 = d['mission']['h1']
+    M1, DG = d['mission']['h1'], d.get('diag')
     if M1:
         r1, p1 = M1['ring_minus_best_other'], M1['permutation_test']
-        rows.append(('H1, 3D mission', f"Aggregate AUC, ring ({f(M1['aggregate_auc']['ring']['mean'])}) − best other ({f(M1['aggregate_auc'][M1['best_other_point']]['mean'])}), {M1['n_seeds']} test seeds",
-                     f"{f(r1['est'])} [{f(r1['lo'])}, {f(r1['hi'])}]; permutation p = {f(p1['p_two_sided'])}; decoy fault AUC ring {f(M1['per_fault_auc']['ring']['decoy'])} vs state machine {f(M1['per_fault_auc']['state_machine']['decoy'])}",
-                     'Holds, against the ring' if p1['p_two_sided'] < 0.05 and p1['est'] < p1['null_mean'] else 'Holds' if p1['p_two_sided'] < 0.05 else 'Null'))
+        extra = ''
+        if DG:
+            nd = [DG['h1']['no_decoy'][a] for a in ARMS]
+            extra = (f"; not ring-specific (post hoc): vector sum p = {f(DG['h1']['perm']['sum']['p_two_sided'])}, ring without recurrence p = {f(DG['h1']['perm']['ring_static']['p_two_sided'])}; "
+                     f"without the decoy fault all six arms {f(min(nd))}–{f(max(nd))}")
+        rows.append(('H1, 3D mission', f"Aggregate AUC, tuned ring (gain {f(M1['tuned']['ring']['ring_gain'])}, {f(M1['aggregate_auc']['ring']['mean'])}) − best other ({f(M1['aggregate_auc'][M1['best_other_point']]['mean'])}), {M1['n_seeds']} test seeds",
+                     f"{f(r1['est'])} [{f(r1['lo'])}, {f(r1['hi'])}]; permutation p = {f(p1['p_two_sided'])}; decoy fault AUC ring {f(M1['per_fault_auc']['ring']['decoy'])} vs state machine {f(M1['per_fault_auc']['state_machine']['decoy'])}" + extra,
+                     ('Holds, against the ring, but the state machine and accumulator lead only on swapped decoys' if p1['p_two_sided'] < 0.05 and p1['est'] < p1['null_mean'] else 'Holds' if p1['p_two_sided'] < 0.05 else 'Null')))
     acc = [q for q in K3['delta']['accumulator'] if q['delta_s'] is not None]
     ring = K3['points']['ring']
     env = d.get('env')
@@ -524,11 +566,19 @@ def readme_block(d):
     M3 = d['mission']['h3']
     if M3:
         r3 = M3['points']['ring']
-        pk = max(r3, key=lambda p: p['hold_mean_s'])
-        rows.append(('H3, 3D mission', 'Same sweeps in the mission (wrong stops before the crossing count as the 20 s cap)',
-                     f"ring hold peaks at {f(pk['hold_mean_s'], 2)} s (gain {pk['value']:.1f}) then falls to {f(r3[-1]['hold_mean_s'], 2)} s (Spearman with gain {f(M3['spearman']['hold'], 2)}); "
-                     f"release rises {f(r3[0]['release_mean_s'], 2)} → {f(r3[-1]['release_mean_s'], 2)} s ({f(M3['spearman']['release'], 2)})",
-                     'Better-trade-off claim rejected' if M3['gate'] == 'DEAD' else 'Inconclusive (pre-registered rule and both sensitivities)' if M3['gate'] == 'INCONCLUSIVE' else M3['gate']))
+        ok = [p for p in r3 if p['value'] <= 0.8]
+        pk = max(ok, key=lambda p: p['hold_mean_s'])
+        res = f"for gains ≤ 0.8 the ring's hold peaks at {f(pk['hold_mean_s'], 2)} s (gain {pk['value']:.1f}); release {f(ok[0]['release_mean_s'], 2)} → {f(ok[-1]['release_mean_s'], 2)} s"
+        if DG:
+            dr = DG['h3']['ring']
+            g1 = [q for q in dr if q['value'] >= 1.0]
+            lo_, hi_ = f(100 * min(q['occlusion_time_limit_rate'] for q in g1), 0), f(100 * max(q['occlusion_time_limit_rate'] for q in g1), 0)
+            stops = max(q['occlusion_target_stop_rate'] for q in g1)
+            res += (f"; from gain 1.0 the ring {'never stopped' if stops == 0 else f'stopped in at most {f(100 * stops, 0)}% of runs'} at a hidden target and "
+                    f"{lo_ if lo_ == hi_ else lo_ + '–' + hi_}% of its runs reached the time limit (post hoc)")
+        rows.append(('H3, 3D mission', 'Same sweeps in the mission (wrong stops before the crossing count as the 20 s cap)', res,
+                     'Better-trade-off claim rejected' if M3['gate'] == 'DEAD' else
+                     'Inconclusive (pre-registered rule; also on common seeds, Amendment 4, and under the post hoc dominance frontier)' if M3['gate'] == 'INCONCLUSIVE' else M3['gate']))
     else:
         rows.append(('H3, 3D mission', 'Same sweeps in the mission', 'Pending', 'Pending'))
     R = d['h4']['rec']

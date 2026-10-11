@@ -1,4 +1,4 @@
-"""Scenario contract C1: validate against schema/scenario.schema.json, fill defaults, hash, sample.
+"""Scenario: validate against schema/scenario.schema.json, fill defaults, hash, sample.
 
 The validator is a ~40-line walker of the JSON schema itself (type, enum, required, additionalProperties,
 minimum/maximum/exclusiveMinimum, minItems/maxItems, items, $ref, default), so it follows the schema file.
