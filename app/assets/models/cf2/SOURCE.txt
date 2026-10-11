@@ -1,0 +1,7 @@
+Crazyflie 2 visual meshes (cf2_0.obj ... cf2_6.obj), copied unchanged from
+MuJoCo Menagerie, bitcraze_crazyflie_2 (commit 0059d4335f8156206f63a35662313385f7ad6d74):
+https://github.com/google-deepmind/mujoco_menagerie/tree/main/bitcraze_crazyflie_2
+Licence: MIT (see LICENSE in this folder; Copyright (c) 2024 whoenig).
+Materials (from cf2.xml): cf2_0 propeller_plastic, cf2_1 medium_gloss_plastic, cf2_2 polished_gold,
+cf2_3 polished_plastic, cf2_4 burnished_chrome, cf2_5 body_frame_plastic, cf2_6 white.
+Units: metres, body frame x forward, y left, z up.

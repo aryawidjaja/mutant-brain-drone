@@ -28,7 +28,11 @@ let S3 = null;
 try {
   const THREE = await import('three');
   let OC = null; try { OC = (await import('three/addons/controls/OrbitControls.js')).OrbitControls; } catch (e) { console.warn('OrbitControls failed to load', e); }
-  S3 = window.makeScene3D(THREE, OC, $('view'));
+  const X = {}; // render-only addons; the scene falls back to simpler parts without any of them
+  await Promise.all([['objects/Sky.js', (m) => { X.Sky = m.Sky; }], ['loaders/OBJLoader.js', (m) => { X.OBJLoader = m.OBJLoader; }],
+    ['utils/BufferGeometryUtils.js', (m) => { X.mergeGeometries = m.mergeGeometries; X.mergeVertices = m.mergeVertices; }]]
+    .map(([f, set]) => import('three/addons/' + f).then(set, (e) => console.warn(f + ' failed to load', e))));
+  S3 = window.makeScene3D(THREE, OC, $('view'), X);
 } catch (e) { console.warn('three.js failed to load', e); const d = document.createElement('div'); d.className = 'nosim on'; d.textContent = '3D view unavailable (three.js could not load). The map and panels still work.'; $('view').prepend(d); }
 
 // ---------------------------------------------------------------- knobs -> C1 scenario
@@ -439,7 +443,8 @@ async function modelPanel() {
   } else t.innerHTML = `<tr><td class="wrap" colspan="2">Vehicle parameters with sources will be listed here. ${esc(why)} Mass and inertia come from the MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> model; motor constants from a separately cited source.</td></tr>`;
   const yawLi = YAWFIT ? `<li><b>Yaw circuit (optional):</b> the author's earlier Shiu-model fly yaw circuit (flight-test-the-fly) is too slow for live use. The "Yaw surrogate" toggle uses a transfer function fitted to its measured frequency response (gain ${YAWFIT.K.toFixed(3)} Hz per °/s, delay ${(YAWFIT.tau_s * 1000).toFixed(1)} ms, corner ${YAWFIT.fc_hz.toFixed(1)} Hz; fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms) as a small yaw-rate damping term. Exploratory, live view only, off by default and in every reported run.</li>` : '<li><b>Yaw circuit:</b> a fitted surrogate of the Shiu-model yaw circuit exists (app/sim/yaw_surrogate.js) but its fit file is not loaded here.</li>';
   const prmLi = `<li><b>Arbiter parameters:</b> ${TUNED ? `tuned values from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (tuned in the 2D kill-test world, used here as a stand-in until the 3D tuning is frozen)' : ''}` : 'code defaults (no tuned file found)'}.</li>`;
-  $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + yawLi + prmLi + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js loads.</li>' : '');
+  const gfxLi = '<li><b>Graphics:</b> Visual detail (grass, textures, foliage) is decorative; the drone\'s eye and collisions use the simplified world geometry. Credits: drone meshes from MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> (MIT); ground, bark, rock, asphalt, concrete and fabric textures from ambientCG (CC0; Grass004, Ground037, Ground106, Bark014, Rock051, Asphalt031, Concrete034, Fabric061); sky from the three.js Sky addon (MIT, Preetham daylight model).</li>';
+  $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + yawLi + prmLi + gfxLi + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js loads.</li>' : '');
 }
 
 // ---------------------------------------------------------------- panels
@@ -555,6 +560,12 @@ document.querySelectorAll('[data-mode]').forEach((b) => { b.onclick = () => setM
 // ---------------------------------------------------------------- theme, camera, resize, loop
 function applyTheme() { readCss(); if (S3) S3.setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark', css, roleColor()); panelDirty = true; if (mode === 'results') drawCharts(); }
 $('theme').onclick = () => { const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = t; try { localStorage.setItem('mbd-theme', t); } catch (e) { /* private */ } applyTheme(); };
+const QDEF = matchMedia('(pointer: coarse)').matches || innerWidth < 900 ? 'balanced' : 'high';
+function setQuality(q) {
+  if (!['high', 'balanced', 'low'].includes(q)) q = QDEF;
+  $('quality').value = q; $('sb-q').textContent = q; if (S3 && S3.setQuality) S3.setQuality(q);
+}
+$('quality').onchange = () => { setQuality($('quality').value); try { localStorage.setItem('mbd-quality', $('quality').value); } catch (e) { /* private */ } };
 function setCam(m) { if (!S3) return; S3.setCam(m); document.querySelectorAll('#cams button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cam === m))); }
 document.querySelectorAll('#cams button').forEach((b) => { b.onclick = () => setCam(b.dataset.cam); });
 $('mapbtn').onclick = () => { const w = $('mapwrap'); w.hidden = !w.hidden; $('mapbtn').setAttribute('aria-pressed', String(!w.hidden)); };
@@ -606,6 +617,8 @@ if (!HTTP) noSim('Opened from file://');
 const m0 = hashP().get('m');
 setMode(m0 === 'results' || m0 === 'paper' ? m0 : 'sim');
 setCam('chase');
+let q0 = null; try { q0 = localStorage.getItem('mbd-quality'); } catch (e) { /* private */ }
+setQuality(q0);
 requestAnimationFrame(loop);
 window.MBD = { get view() { return view; }, get K() { return K; }, scenario, setMode, sim };
 })();

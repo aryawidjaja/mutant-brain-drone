@@ -1,0 +1,15 @@
+Textures in this folder: all from ambientCG (https://ambientcg.com), licence CC0 1.0 Universal (public domain).
+Downloaded 2026-10-12 as the 1K-JPG packages, then resized and re-encoded (JPEG) to keep the app small.
+
+file                         source asset   URL
+grass_color/normal.jpg       Grass004      https://ambientcg.com/view?id=Grass004
+dirt_color/normal.jpg        Ground037     https://ambientcg.com/view?id=Ground037
+soil_color/normal.jpg        Ground106     https://ambientcg.com/view?id=Ground106
+bark_color/normal.jpg        Bark014       https://ambientcg.com/view?id=Bark014
+rock_color/normal.jpg        Rock051       https://ambientcg.com/view?id=Rock051
+asphalt_color/normal.jpg     Asphalt031    https://ambientcg.com/view?id=Asphalt031
+concrete_color/normal.jpg    Concrete034   https://ambientcg.com/view?id=Concrete034
+fabric_normal.jpg            Fabric061     https://ambientcg.com/view?id=Fabric061
+
+Licence text: https://docs.ambientcg.com/license/ (CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/)
+Normal maps are the OpenGL (NormalGL) variants.
