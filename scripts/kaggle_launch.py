@@ -54,8 +54,8 @@ def kid(stage, i):
     return f"{USER}/mbd-{stage.replace('_', '-')}-{i}"
 
 
-def push(runner, stage, n):
-    for i in range(n):
+def push(runner, stage, n, only=None):
+    for i in (range(n) if only is None else [only]):
         with tempfile.TemporaryDirectory() as d:
             cmd = [f"scripts/{runner}", "run", stage, "--shard", str(i), "--nshards", str(n), "--procs", "4"] \
                 if runner != "kt7_stubbornness_v2.py" else [f"scripts/{runner}", "--test", "--procs", "4"]
@@ -92,5 +92,5 @@ if __name__ == "__main__":
         assert RUN_PY.format(pip=PIP, cmd=["x"], out="results").count("extractall") == 1
         assert kid("tune_r1", 3) == f"{USER}/mbd-tune-r1-3"
         print("kaggle_launch self-check OK"); sys.exit(0)
-    {"code": lambda: code(), "push": lambda: push(a[1], a[2], int(a[3])), "status": lambda: status(a[1], int(a[2])),
+    {"code": lambda: code(), "push": lambda: push(a[1], a[2], int(a[3])), "push-one": lambda: push(a[1], a[2], int(a[3]), int(a[4])), "status": lambda: status(a[1], int(a[2])),
      "pull": lambda: pull(a[1], a[2], int(a[3]))}[a[0]]()
