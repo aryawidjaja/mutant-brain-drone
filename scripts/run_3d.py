@@ -31,10 +31,10 @@ FAULT_SEV = {"occlusion": [0, 1 / 3, 2 / 3, 1], "decoy": [0, 1 / 3, 2 / 3, 1], "
              "eye_columns": [0, 1 / 3, 2 / 3, 1], "false_sun": [0, 1 / 3, 2 / 3, 1],
              "speed_scale": [0.25, 0.5, 0.75, 1.0], "gust": [0.1, 0.5, 0.9]}
 CONDS = [("none", None)] + [(f, s) for f, ss in FAULT_SEV.items() for s in ss]      # 25 conditions
-R1_SEEDS, R2_SEEDS, R2_TOP = range(0, 5), range(0, 40), 8
+R1_SEEDS, R2_SEEDS, R2_TOP = range(0, 5), range(0, 20), 4        # rung 2 per Amendment 3
 TEST_SEEDS = range(1000, 1300)
 H3_PROTOCOLS = {"occlusion": ("occlusion", 1.0), "decoy": ("decoy", 2 / 3)}
-CHUNK = 250                                                   # max rows per run_batch call
+CHUNK = 300                                                   # max rows per run_batch call
 
 
 def configs(arm):
@@ -71,8 +71,8 @@ def units(stage):
         tuned = json.loads((ROOT / "results/tuned3d_params.json").read_text())["arms"]
         for arm in ARBITERS:
             for ci, (f, v) in enumerate(CONDS):
-                for k in (0, 150):
-                    seeds = list(TEST_SEEDS)[k:k + 150]
+                for k in (0,):
+                    seeds = list(TEST_SEEDS)
                     out.append((f"{arm}__k{ci:02d}__s{k:03d}", [scen(arm, tuned[arm]["params"], s, "test", f, v) for s in seeds]))
     elif stage == "h3":
         tuned = json.loads((ROOT / "results/tuned3d_params.json").read_text())["arms"]
@@ -80,8 +80,8 @@ def units(stage):
             for j, val in enumerate(vals):
                 p = dict(tuned[arm]["params"]) | ({knob: float(val)} if knob else {})
                 for proto, (f, v) in H3_PROTOCOLS.items():
-                    for k in (0, 150):
-                        seeds = list(TEST_SEEDS)[k:k + 150]
+                    for k in (0,):
+                        seeds = list(TEST_SEEDS)
                         out.append((f"{arm}__p{j:02d}__{proto}__s{k:03d}", [scen(arm, p, s, "test", f, v) for s in seeds]))
     else:
         raise SystemExit(f"unknown stage {stage}")
@@ -164,7 +164,7 @@ def reduce(stage):
                 c = sorted(s.items(), key=lambda kv: (-kv[1], kv[0]))[0][0]
                 arms[a] = {"params": configs(a)[c], "config_index": c, "train_auc": s[c], "rung2": s, "n_params": len(CLASSES[a].PARAM_SPACE)}
             res = {"stage": "r2 (frozen before any test seed)", "budget": f"{N_CONFIGS} configs (default_rng({SEARCH_SEED})); rung 1 train seeds 0-4; "
-                   f"rung 2 top {R2_TOP} on train seeds 0-39; {len(CONDS)} conditions; same for every arm",
+                   f"rung 2 top {R2_TOP} on train seeds 0-19; {len(CONDS)} conditions; same for every arm",
                    "objective": "mean over 7 faults of mean-over-seeds success-vs-severity AUC", "world": WORLD, "arms": arms, "provenance": st}
             (ROOT / "results/tuned3d_params.json").write_text(json.dumps(res, indent=1))
         for a in ARBITERS:

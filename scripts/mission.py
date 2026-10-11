@@ -36,7 +36,7 @@ Metrics (C7; definitions follow scripts/kt2_five_arms.py where they overlap):
 Usage: uv run python scripts/mission.py            (self-check: 10 easy meadow seeds, ring and vote)
        uv run python scripts/mission.py --time     (time a batch of 50 seeds x 300 s, print the extrapolation)
 """
-import json, math, os, sys, time
+import json, math, os, sys, time, types
 
 import numpy as np
 
@@ -432,16 +432,103 @@ class Mission:
         o = self.finish()
         return {k: (bool(v[b]) if v.dtype == bool else (None if not np.isfinite(v[b]) else float(v[b]))) for k, v in o.items()}
 
-    def run(self, max_time=None):
+    def run(self, max_time=None, compact=True):
+        """Run to the end. With compact=True (and no frame logging) finished rows are dropped from the batch once a
+        quarter of it is done; their outcomes are frozen at that point (every outcome field stops changing when a row
+        ends), so the result equals the uncompacted run row for row. Returns finish() in the original row order."""
         T = max_time or max(s["mission"]["max_time_s"] for s in self.sc)
         Tr = np.array([s["mission"]["max_time_s"] for s in self.sc])
+        orig = np.arange(self.B)
+        done = {}
         while self.t < T - 1e-9 and (self.phase < 4).any():
             self.step()
             over = (self.phase < 4) & (self.t >= Tr - 1e-9)
             self.t_end = np.where(over, self.t, self.t_end)
             self.end_pos = np.where(over[:, None], self.quad.pos[:, :2], self.end_pos)
             self.phase = np.where(over, 4, self.phase)
-        return self.finish()
+            fin = self.phase >= 4
+            if compact and not self.log_rows and self.B >= 4 and fin.sum() >= max(2, self.B // 4) and (~fin).sum() >= 1:
+                o = self.finish()
+                for j in np.flatnonzero(fin):
+                    done[orig[j]] = {k: v[j] for k, v in o.items()}
+                keep = ~fin
+                orig, Tr = orig[keep], Tr[keep]
+                self._compact(keep)
+        o = self.finish()
+        for j in range(self.B):
+            done[orig[j]] = {k: v[j] for k, v in o.items()}
+        return {k: np.array([done[i][k] for i in range(len(done))]) for k in o}
+
+    # ponytail: per-row state is found by probing two tiny missions (B = 2 and 3) and keeping the attribute paths
+    # whose leading dimension follows B; Dryden groups are re-indexed explicitly (their per-axis constants have length 3).
+    _ROW_PATHS = {}
+
+    def _row_paths(self):
+        key = json.dumps([self.sc[0]["brain"]["arbiter"], self.sc[0]["brain"]["params"]], sort_keys=True)
+        if key not in Mission._ROW_PATHS:
+            probes = []
+            for n in (2, 3):
+                m = Mission([dict(self.sc[0], seed=self.sc[0]["seed"])] * n)
+                m.step()
+                probes.append(dict(_walk(m)))
+            a, b = probes
+            Mission._ROW_PATHS[key] = [p for p in a if p in b and p[0] != "wind_groups" and _lead(a[p]) == 2 and _lead(b[p]) == 3]
+        return Mission._ROW_PATHS[key]
+
+    def _compact(self, keep):
+        idx = np.flatnonzero(keep)
+        for path in self._row_paths():
+            v = _get(self, path)
+            _set(self, path, v[idx] if isinstance(v, np.ndarray) else [v[i] for i in idx])
+        new = np.full(len(keep), -1)
+        new[idx] = np.arange(len(idx))
+        groups = []
+        for rows, d in self.wind_groups:
+            k = keep[rows]
+            if k.any():
+                for name in ("mean", "x1", "x2", "wind"):
+                    setattr(d, name, getattr(d, name)[k])
+                d.rng.a = d.rng.a[k]
+                d.B = int(k.sum())
+                groups.append((new[rows[k]], d))
+        self.wind_groups = groups
+        for o in (self, self.S, self.quad, self.pi, self.ctrl, self.arb):
+            if hasattr(o, "B"):
+                o.B = len(idx)
+        self.last = None
+
+
+def _walk(o, path=(), seen=None):
+    """Yield (path, value) for every array / list / tuple reachable through attributes and dicts of a Mission."""
+    seen = set() if seen is None else seen
+    if id(o) in seen:
+        return
+    seen.add(id(o))
+    items = o.items() if isinstance(o, dict) else vars(o).items()
+    for k, v in items:
+        p = path + (k,)
+        if isinstance(v, (np.ndarray, list, tuple)):
+            yield p, v
+        elif isinstance(v, dict) or (hasattr(v, "__dict__") and not isinstance(v, (type, types.FunctionType, types.MethodType, types.ModuleType))):
+            yield from _walk(v, p, seen)
+
+
+def _lead(v):
+    return (v.shape[0] if v.ndim else None) if isinstance(v, np.ndarray) else (len(v) if isinstance(v, list) else None)
+
+
+def _get(o, path):
+    for k in path:
+        o = o[k] if isinstance(o, dict) else getattr(o, k)
+    return o
+
+
+def _set(o, path, v):
+    parent = _get(o, path[:-1])
+    if isinstance(parent, dict):
+        parent[path[-1]] = v
+    else:
+        setattr(parent, path[-1], v)
 
 
 def _jsonable(v, b):

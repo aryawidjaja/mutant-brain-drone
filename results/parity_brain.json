@@ -335,11 +335,11 @@
    }
   ]
  },
- "js_seconds": 11.897339105606079,
- "wall_seconds": 127.22930192947388,
- "git": "5558aec",
+ "js_seconds": 11.605663061141968,
+ "wall_seconds": 120.68407988548279,
+ "git": "7f27826-dirty",
  "sim_version": "0.1.0",
- "created": "2026-10-11T18:59:36",
+ "created": "2026-10-11T19:25:00",
  "python": "3.12.12",
  "numpy": "2.5.4",
  "seed": "fixed set (see results)",
