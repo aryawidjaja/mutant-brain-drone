@@ -132,6 +132,20 @@ body { background: var(--bg); color: var(--ink); font: 13px/1.4 var(--sans); -we
 #map { display: block; width: 230px; height: 230px; }
 .tag3d { left: 0; top: 0; padding: 0 4px; font: 500 10px/14px var(--mono); color: var(--ink); background: color-mix(in srgb, var(--panel) 80%, transparent); border: 1px solid var(--line2); border-radius: 2px; pointer-events: none; white-space: nowrap; }
 .tag3d[hidden] { display: none; }
+.vp > canvas.hud { pointer-events: none; }
+.wb.hud-on #chips { display: none; }
+/* help: "?" buttons with one shared tooltip (text also in a visually hidden span the button and control point to) */
+.hq { display: inline-grid; place-items: center; width: 15px; height: 15px; margin: 0 0 0 5px; padding: 0; border: 1px solid var(--line2); border-radius: 50%;
+  background: transparent; color: var(--muted); font: 600 9.5px/1 var(--sans); cursor: help; vertical-align: 1px; flex: none; font-variant-caps: normal; letter-spacing: 0; }
+.hq:hover, .hq:focus-visible, .hq[aria-expanded="true"] { color: var(--ink); border-color: var(--muted); }
+.hq:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.htip { position: fixed; z-index: 60; max-width: min(320px, calc(100vw - 16px)); padding: 8px 10px; background: var(--panel2); color: var(--ink); border: 1px solid var(--line2);
+  border-radius: 4px; font: 12px/1.45 var(--sans); box-shadow: 0 6px 20px rgba(0,0,0,.35); display: none; pointer-events: none; }
+.htip.on { display: block; }
+.htip b { font-weight: 600; }
+.htip .tag { display: inline-block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+.v2note { grid-column: 1 / -1; margin: 2px 0 0; }
 .nosim { position: absolute; inset: 0; display: none; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
 .nosim.on { display: grid; }
 .nosim.on > div { background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line2); border-radius: 3px; padding: 14px 18px; color: var(--ink); }
@@ -227,6 +241,7 @@ footer.credits a { color: inherit; }
   .side summary, .dock summary { min-height: 44px; }
   .tl { height: 52px; }
   .kn { gap: 10px 8px; }
+  .hq { width: 22px; height: 22px; font-size: 11px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -267,6 +282,7 @@ footer.credits a { color: inherit; }
   </aside>
 
   <section class="vp" id="view" aria-label="3D view">
+    <canvas id="hud" class="hud" aria-hidden="true"></canvas>
     <div id="chips" class="ov"></div>
     <div class="ov tools">
       <div class="grp ovbox" id="cams" role="group" aria-label="Camera view">
@@ -275,7 +291,7 @@ footer.credits a { color: inherit; }
         <button type="button" class="ib" data-cam="free" title="Free: drag to orbit, scroll to zoom, right-drag to pan (3)" aria-label="Free orbit view"><svg viewBox="0 0 16 16"><ellipse cx="8" cy="8" rx="6" ry="2.6"/><path d="M11.6 3.6l1.6 1.9-2.4.6"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg></button>
       </div>
       <div class="grp ovbox"><select id="quality" aria-label="Graphics quality" title="Graphics quality (render only; the simulation is the same at every level)"><option value="high">High</option><option value="balanced">Balanced</option><option value="low">Low</option></select></div>
-      <div class="grp ovbox"><button type="button" class="ib" id="mapbtn" aria-pressed="true" title="Top-down map (M)" aria-label="Toggle top-down map"><svg viewBox="0 0 16 16"><path d="M2 4l4-1.5 4 1.5 4-1.5v9.5l-4 1.5-4-1.5-4 1.5z"/><path d="M6 2.5v9.5M10 4v9.5"/></svg></button></div>
+      <div class="grp ovbox"><button type="button" class="ib" id="hudbtn" aria-pressed="true" title="Flight display overlay: horizon, heading, speed and altitude tapes (H)" aria-label="Toggle flight display overlay"><svg viewBox="0 0 16 16"><path d="M1.5 8h4M10.5 8h4M6 8l2 1.6L10 8"/><path d="M4 3.5h8M4 12.5h8"/></svg></button><button type="button" class="ib" id="mapbtn" aria-pressed="true" title="Top-down map (M)" aria-label="Toggle top-down map"><svg viewBox="0 0 16 16"><path d="M2 4l4-1.5 4 1.5 4-1.5v9.5l-4 1.5-4-1.5-4 1.5z"/><path d="M6 2.5v9.5M10 4v9.5"/></svg></button></div>
     </div>
     <div id="badge" class="ov ovbox"></div>
     <div id="tagT" class="ov tag3d" hidden></div><div id="tagD0" class="ov tag3d" hidden></div><div id="tagD1" class="ov tag3d" hidden></div><div id="tagD2" class="ov tag3d" hidden></div><div id="tagH" class="ov tag3d" hidden>home</div>
@@ -339,7 +355,7 @@ footer.credits a { color: inherit; }
     <span title="Physics real-time factor: simulated seconds per wall-clock second (target = speed). Capacity: how many times faster than real time the worker could run.">RTF <b id="sb-rtf">–</b></span>
     <span>Physics <b id="sb-src">–</b></span>
     <span class="grow"></span>
-    <span>Keys: Space run · R reset · 1–3 camera · M map · T theme</span>
+    <span>Keys: Space run · R reset · 1–3 camera · M map · H display · T theme</span>
   </div>
 </div>
 
@@ -357,6 +373,7 @@ footer.credits a { color: inherit; }
 <script src="data/mock_summary.js" onerror="this.remove()"></script>
 <script src="panels.js"></script>
 <script src="scene3d.js"></script>
+<script src="hud.js"></script>
 <script src="app.js"></script>
 <script src="guide.js" defer onerror="this.remove()"></script>
 </body>

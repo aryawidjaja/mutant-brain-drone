@@ -39,7 +39,7 @@ try {
 const ARBS = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine'];
 const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Mission', 'seed', 'Seed', 'num', 0, 0, 99999, 1, 'World layout, gusts and noise all follow this seed. The paper reports test seeds 1000–1299.'],
-  ['Mission', 'tkind', 'Target', 'sel', 'tent', ['tent', 'pad', 'backpack'], 0, 0, 'Kind of object the drone is shown and must find'],
+  ['Mission', 'tkind', 'Target', 'sel', 'tent', ['tent', 'backpack'], 0, 0, 'Kind of object the drone is shown and must find'],
   ['Mission', 'gal', 'Picture', 'gallery'],
   ['Mission', 'dist', 'Distance', 'rng', 40, 10, 120, 1, 'Mission distance: home to target, metres', (v) => v + ' m'],
   ['Mission', 'tbear', 'Bearing', 'rng', 55, 0, 359, 1, 'Compass bearing of the target from home (0 = north, clockwise)', (v) => v + '°'],
@@ -56,7 +56,7 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Wind', 'wdir', 'From', 'rng', 270, 0, 359, 1, 'Direction the wind blows FROM (compass, 0 = north)', (v) => v + '°'],
   ['Wind', 'turb', 'Gusts', 'sel', 'light', ['none', 'light', 'moderate', 'severe'], 0, 0, 'Dryden turbulence intensity (MIL-F-8785C, low altitude)'],
   ['Faults', 'decoy', 'Decoy', 'sel', 'none', ['none', 'swap', 'beside', 'route'], 0, 0, 'none; swap = the look-alike stands on the reported spot and the real target sits 10 m to the side (the swap control; the study draws 8–14 m in a random direction); beside = 6 m from the target; route = halfway along the way'],
-  ['Faults', 'dkind', 'Decoy kind', 'sel', 'tent', ['tent', 'pad', 'backpack'], 0, 0, 'Kind of the decoy object', null, 'decoy'],
+  ['Faults', 'dkind', 'Decoy kind', 'sel', 'tent', ['tent', 'backpack'], 0, 0, 'Kind of the decoy object', null, 'decoy'],
   ['Faults', 'dsim', 'Similarity', 'rng', 0.8, 0.5, 0.95, 0.05, 'How much the decoy looks like the target', (v) => v.toFixed(2), 'decoy'],
   ['Faults', 'dt', 'Decoy at', 'rng', 0, 0, 120, 1, 'Time the decoy appears', (v) => v + ' s', 'decoy'],
   ['Faults', 'occ', 'Occlusion', 'chk', false, 0, 0, 0, 'Hide the target for a while'],
@@ -79,8 +79,23 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Brain', 'gain', 'Ring gain', 'rng', 1, 0, 3, 0.01, 'Recurrent gain of the ring (0 = no memory; same as ring_static). Selecting the ring with tuned params sets the tuned value.', (v) => v.toFixed(2), 'arb=ring'],
   ['Brain', 'lf', 'Learning flight', 'chk', true, 0, 0, 0, 'Bee-style learning flight: the target is memorised from 5 views per second along a zig-zag arc 2–7 m out. Off = one photo from 4 m.'],
   ['Brain', 'lfs', 'Duration', 'rng', 10, 1, 30, 1, 'Learning flight length (the study uses 10 s)', (v) => v + ' s', 'lf'],
+  ['Brain', 'ver', 'Version', 'sel', '1', ['1', '2'], 0, 0, 'v1 = the brain of the published first study; v2 = the robust brain under test'],
+  ['Brain', 'hd', 'Heading', 'sel', 'hring', ['hring', 'kf', 'cf', 'v1c'], 0, 0, 'How the v2 brain keeps its heading', null, 'ver=2'],
+  ['Brain', 'mhome', 'Home snapshot', 'chk', true, 0, 0, 0, 'v2: remember the home pad by sight', null, 'ver=2'],
+  ['Brain', 'mland', 'Landing', 'chk', true, 0, 0, 0, 'v2: land on the pad', null, 'ver=2'],
+  ['Brain', 'mfront', 'Insect front end', 'chk', true, 0, 0, 0, 'v2: colour-opponent, oriented front end for the memory', null, 'ver=2'],
+  ['Brain', 'minsp', 'Inspection rule', 'chk', true, 0, 0, 0, 'v2: look from two sides before stopping', null, 'ver=2'],
+  ['Brain', 'mgate', 'Evidence-gated ring', 'chk', true, 0, 0, 0, 'v2: arbiters only listen to objects they can see', null, 'ver=2'],
+  ['Brain', 'tip', 'Operator tip', 'sel', 'default', ['default', 'poor', 'none'], 0, 0, 'How good the rough direction given to the drone is', null, 'ver=2'],
   ['Brain', 'yaw', 'Yaw surrogate', 'chk', false, 0, 0, 0, 'Exploratory, live view only: adds a yaw-rate damping term from a transfer function fitted to the Shiu-model fly yaw circuit. Off in every reported run.'],
 ];
+const OPTNAME = { ver: { 1: 'v1 (published study)', 2: 'v2 (robust, under test)' }, hd: { hring: 'Heading ring', kf: 'Kalman filter', cf: 'Complementary filter', v1c: 'v1 sun compass' },
+  tip: { default: 'Default', poor: 'Poor', none: 'None (search from scratch)' } };
+const MODK = [['mhome', 'home'], ['mland', 'landing'], ['mfront', 'front'], ['minsp', 'inspect'], ['mgate', 'gated_arbiter']];
+const HDEST = { hring: 'ring', kf: 'kf', cf: 'cf' };
+const TIP_POOR = { bearing_sd_deg: 30, dist_sd: 0.3 }; // this app's "poor" tip (the default is 8 deg, 10 %)
+// which v2 scenario fields app/sim/scenario.js accepts (read from its schema; refreshed while the page is open)
+const SUPPORT = { version: false, modules: false, tip: false };
 const ARBNAME = { ring: 'Ring hub', ring_static: 'Ring, no recurrence', vote: 'Static vote', sum: 'Vector sum', accumulator: 'Leaky accumulator', state_machine: 'State machine' };
 const K = Object.fromEntries(KN.filter((k) => k[3] !== 'gallery').map((k) => [k[1], k[4]]));
 K.pic = null; // target picture: gallery index 0-3 for the target kind, or null = drawn from the seed
@@ -114,9 +129,19 @@ function scenario() {
     seed: K.seed, world: { size_m: size, landscape: K.land, obstacle_density: K.dens, light: K.light, fog_m: K.fogon ? K.fog : null },
     home, target: { kind: K.tkind, pos: tp, yaw_deg: K.tyaw, ...(K.pic !== null ? { picture: K.pic } : {}) }, decoys,
     wind: { mean_mps: [r1(-K.wsp * Math.sin(wf)), r1(-K.wsp * Math.cos(wf)), 0], turbulence: K.turb }, faults,
-    brain: { arbiter: K.arb, ring_gain: K.arb === 'ring' ? K.gain : 0, learning_flight_s: K.lf ? K.lfs : 0, params: armParams() },
+    brain: { arbiter: K.arb, ring_gain: K.arb === 'ring' ? K.gain : 0, learning_flight_s: K.lf ? K.lfs : 0, params: armParams(), ...v2Brain() },
     mission: { max_time_s: K.maxt, dt_s: 0.002 },
   };
+}
+function v2Brain() { // brain.version / modules / module_params / tip, only as far as app/sim/scenario.js accepts them
+  if (K.ver !== '2' || !SUPPORT.version) return {};
+  const o = { version: 2 };
+  if (SUPPORT.modules) {
+    o.modules = [...(K.hd !== 'v1c' ? ['heading'] : []), ...MODK.filter(([k]) => K[k]).map(([, m]) => m)];
+    if (K.hd !== 'v1c' && HDEST[K.hd] !== 'ring') o.module_params = { heading_estimator: HDEST[K.hd] };
+  }
+  if (SUPPORT.tip && K.tip !== 'default') o.tip = K.tip === 'none' ? null : { ...TIP_POOR }; // absent = default tip
+  return o;
 }
 function fromScenario(sc) { // inverse of scenario(), for #s= links
   const sw = (sc.decoys || []).find((d) => d.swap), h = sc.home || [0, 0, 0], t = sw ? sw.pos : sc.target.pos, dx = t[0] - h[0], dy = t[1] - h[1];
@@ -127,9 +152,18 @@ function fromScenario(sc) { // inverse of scenario(), for #s= links
     pic: Number.isInteger(sc.target.picture) ? sc.target.picture : null, prm: TUNED && Object.keys(sc.brain.params || {}).length ? 'tuned' : 'default' });
   if (K.lf) K.lfs = sc.brain.learning_flight_s ?? 10;
   const w = sc.wind.mean_mps; K.wsp = r1(Math.hypot(w[0], w[1])); if (K.wsp) K.wdir = Math.round(((Math.atan2(-w[0], -w[1]) / D2R) % 360 + 360) % 360);
+  const br = sc.brain || {};
+  K.ver = br.version === 2 ? '2' : '1';
+  if (br.version === 2) {
+    const ms = br.modules || ['heading', ...MODK.map(([, m]) => m)];
+    MODK.forEach(([k, m]) => { K[k] = ms.includes(m); });
+    K.hd = !ms.includes('heading') ? 'v1c' : ({ ring: 'hring', kf: 'kf', cf: 'cf' }[(br.module_params || {}).heading_estimator || 'ring'] || 'hring');
+    K.tip = !('tip' in br) ? 'default' : br.tip === null ? 'none' : 'poor';
+  }
+  if (K.tkind === 'pad') K.tkind = 'tent'; // the pad is no longer a target choice (it remains the home landing pad)
   const d = (sc.decoys || [])[0];
   K.decoy = !d ? 'none' : d.swap ? 'swap' : Math.hypot(d.pos[0] - t[0], d.pos[1] - t[1]) < 8 ? 'beside' : 'route';
-  if (d) Object.assign(K, { dkind: d.kind, dsim: d.similarity ?? 0.8, dt: d.t_s || 0 });
+  if (d) Object.assign(K, { dkind: d.kind === 'pad' ? 'tent' : d.kind, dsim: d.similarity ?? 0.8, dt: d.t_s || 0 });
   const F = Object.fromEntries((sc.faults || []).map((f) => [f.kind, f]));
   K.occ = !!F.occlusion; if (F.occlusion) { K.occt = F.occlusion.t_s; K.occd = F.occlusion.params.duration_s ?? 5; }
   K.comp = !!F.compass_half; if (F.compass_half) K.compt = F.compass_half.t_s;
@@ -151,18 +185,20 @@ function buildKnobs() {
     const [g, id, label, type, , a, b, step, tip, fmt, dep] = k;
     if (g !== grp) {
       grp = g; const d = document.createElement('details'); d.open = true;
-      d.innerHTML = `<summary class="ph">${g}<span class="who" id="kw-${g}"></span></summary><div class="body"><div class="kn"></div></div>`; host.appendChild(d); box = d.querySelector('.kn');
+      d.innerHTML = `<summary class="ph">${g}${helpBtn(HELP['g:' + g], g)}<span class="who" id="kw-${g}"></span></summary><div class="body"><div class="kn"></div></div>`; host.appendChild(d); box = d.querySelector('.kn');
     }
     if (g === 'Faults' && (type === 'chk' || id === 'decoy') && box.children.length) box.insertAdjacentHTML('beforeend', '<span class="sub"></span>');
-    if (type === 'gallery') { box.insertAdjacentHTML('beforeend', `<label title="Show the drone a new target picture">${label}</label><div class="gal wide" id="gal"></div>`); continue; }
+    if (type === 'gallery') { box.insertAdjacentHTML('beforeend', `<label title="Show the drone a new target picture">${label}${helpBtn(HELP.gal, label)}</label><div class="gal wide" id="gal"></div>`); continue; }
+    const hb = helpBtn(HELP[id] || tip, label), hid = 'hlp' + tipN;
     if (type === 'chk') {
-      box.insertAdjacentHTML('beforeend', `<label class="ck" title="${esc(tip)}"><input type="checkbox" id="k-${id}"><span>${label}</span></label>`);
+      box.insertAdjacentHTML('beforeend', `<label class="ck" data-dep="${dep || ''}"><input type="checkbox" id="k-${id}"><span>${label}</span>${hb}</label>`);
     } else {
-      const ctl = type === 'sel' ? `<select id="k-${id}" class="${type === 'sel' ? 'wide' : ''}">${a.map((o) => `<option value="${o}">${ARBNAME[o] || o}</option>`).join('')}</select>`
+      const ctl = type === 'sel' ? `<select id="k-${id}" class="${type === 'sel' ? 'wide' : ''}">${a.map((o) => `<option value="${o}">${(OPTNAME[id] || {})[o] || ARBNAME[o] || o}</option>`).join('')}</select>`
         : type === 'num' ? `<input type="number" id="k-${id}" min="${a}" max="${b}" step="${step}">` : `<input type="range" id="k-${id}" min="${a}" max="${b}" step="${step}">`;
-      box.insertAdjacentHTML('beforeend', `<label for="k-${id}" title="${esc(tip)}" data-dep="${dep || ''}">${label}</label>${ctl}${type === 'sel' ? '' : `<output id="o-${id}" data-dep="${dep || ''}"></output>`}`);
+      box.insertAdjacentHTML('beforeend', `<label for="k-${id}" data-dep="${dep || ''}">${label}${hb}</label>${ctl}${type === 'sel' ? '' : `<output id="o-${id}" data-dep="${dep || ''}"></output>`}`);
     }
-    const el = $('k-' + id); kEls[id] = { el, type, fmt, dep };
+    const el = $('k-' + id); kEls[id] = { el, type, fmt, dep }; el.setAttribute('aria-describedby', hid);
+    if (id === 'tip') box.insertAdjacentHTML('beforeend', '<p class="fine v2note" id="v2note"></p>');
     if (id === 'yaw') box.insertAdjacentHTML('beforeend', '<p class="fine" id="prmsrc" style="grid-column:1/-1;margin:2px 0 0"></p>');
     el.addEventListener(type === 'rng' ? 'input' : 'change', () => {
       K[id] = type === 'chk' ? el.checked : type === 'sel' ? el.value : +el.value;
@@ -190,6 +226,13 @@ function syncKnobs() {
   if (ps) ps.innerHTML = (K.prm === 'tuned' && TUNED ? `Params: tuned, from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (2D kill-test tuning, a stand-in until the 3D tuning is frozen)' : ''}.` : 'Params: code defaults (untuned).')
     + (K.yaw ? ` Yaw surrogate on: exploratory, not used for any reported number${YAWFIT ? ` (fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms)` : ''}.` : '');
   if (kEls.yaw) kEls.yaw.el.disabled = !YAWFIT;
+  if (kEls.ver) { kEls.ver.el.disabled = !SUPPORT.version; if (!SUPPORT.version) kEls.ver.el.value = '1'; }
+  const v2on = K.ver === '2' && SUPPORT.version;
+  for (const id of ['hd', ...MODK.map(([k]) => k)]) if (kEls[id]) { const off = !v2on || !SUPPORT.modules; kEls[id].el.disabled = off; kEls[id].el.closest('label, select').classList.toggle('off', off); }
+  if (kEls.tip) { const off = !v2on || !SUPPORT.tip; kEls.tip.el.disabled = off; kEls.tip.el.classList.toggle('off', off); }
+  const vn = $('v2note');
+  if (vn) vn.textContent = !SUPPORT.version ? 'Brain v2 controls: coming with v2 (this build of app/sim does not accept brain.version yet).'
+    : !SUPPORT.tip ? 'Operator tip: coming with v2 (app/sim/scenario.js does not define brain.tip yet).' : '';
   document.querySelectorAll('#gal button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.i === 'seed' ? K.pic === null : b.dataset.kind === K.tkind && b.dataset.i === String(K.pic))));
 }
 let pendingReset = false;
@@ -214,9 +257,9 @@ async function buildGallery() {
   if (G) {
     const s = document.createElement('button'); s.type = 'button'; s.dataset.i = 'seed'; s.textContent = 'seed'; s.title = 'Let the world seed choose the picture'; s.className = 'mono';
     s.onclick = () => { K.pic = null; syncKnobs(); knobChanged(); }; g.appendChild(s);
-    for (const kind of ['tent', 'pad', 'backpack']) G[kind].forEach(([base, accent, pattern], i) => add(kind, i, `${kind} ${i + 1}: ${pattern}`, { base, accent, pattern }));
+    for (const kind of ['tent', 'backpack']) G[kind].forEach(([base, accent, pattern], i) => add(kind, i, `${kind} ${i + 1}: ${pattern}`, { base, accent, pattern }));
   } else {
-    for (const kind of ['tent', 'pad', 'backpack']) add(kind, 'seed', kind + ' (picture drawn from the seed; open over http for the full gallery)',
+    for (const kind of ['tent', 'backpack']) add(kind, 'seed', kind + ' (picture drawn from the seed; open over http for the full gallery)',
       { base: { tent: [0.9, 0.45, 0.1], pad: [0.95, 0.85, 0.1], backpack: [0.85, 0.2, 0.1] }[kind], accent: [0.95, 0.9, 0.8], pattern: { tent: 'stripes', pad: 'chevron', backpack: 'stripes' }[kind] });
     g.querySelectorAll('button').forEach((b) => { b.onclick = () => { K.tkind = b.dataset.kind; K.pic = null; syncKnobs(); knobChanged(); }; });
   }
@@ -557,6 +600,143 @@ function setMode(m) {
 }
 document.querySelectorAll('[data-mode]').forEach((b) => { b.onclick = () => setMode(b.dataset.mode); });
 
+// ---------------------------------------------------------------- flight display (HUD) over the 3D view
+const HUD = window.makeHUD ? window.makeHUD($('hud'), $('view')) : null;
+function setHud(onv, save) {
+  if (!HUD) return; HUD.on = onv; $('hudbtn').setAttribute('aria-pressed', String(onv)); $('wb').classList.toggle('hud-on', onv);
+  if (save) try { localStorage.setItem('mbd-hud', onv ? '1' : '0'); } catch (e) { /* private */ }
+}
+$('hudbtn').onclick = () => setHud(!(HUD && HUD.on), true);
+const vRect = (el) => { if (!el || el.hidden || !el.offsetParent) return null; const a = el.getBoundingClientRect(), b = $('view').getBoundingClientRect(); return a.width && a.height ? [a.left - b.left, a.top - b.top, a.width, a.height] : null; };
+let hudAvoid = [], hudAvoidT = 0, hudTop = 0, hudBot = 0;
+function drawHud(now) {
+  if (!HUD || !HUD.on) return;
+  if (now - hudAvoidT > 250) { // overlays the display must not cover
+    hudAvoidT = now; hudAvoid = ['badge', 'mapwrap', 'mind', 'nosim'].map((id) => vRect($(id))).filter(Boolean);
+    const tools = document.querySelector('#view .tools'), tr = vRect(tools); if (tr) hudAvoid.push(tr);
+    hudTop = tr ? tr[1] + tr[3] : 0; const mr = vRect($('mind')); hudBot = mr ? mr[1] : 0;
+  }
+  HUD.draw(view.frame, { avoid: hudAvoid, topY: hudTop, bottomY: hudBot, brain: roleColor(), flag: css.flag, gust: css.gust });
+}
+
+// ---------------------------------------------------------------- help: "?" buttons with one shared tooltip
+const STUDY = 'Part of the study: the paper varies or fixes this.', EXPL = 'Exploratory: live view only, not part of any reported number.', VIEW = 'View only: changes nothing in the simulation.';
+const HELP = {
+  'g:Mission': 'Where the target is, what it looks like, and how long the drone has. ' + STUDY,
+  'g:World': 'The landscape the drone flies through: obstacles, light and fog. ' + STUDY,
+  'g:Wind': 'Steady wind plus random gusts that push the drone around. ' + STUDY,
+  'g:Faults': 'Deliberate problems injected into the drone\'s senses or its world, to test how robust the brain is. ' + STUDY,
+  'g:Brain': 'Which brain flies and which of its parts are switched on.',
+  seed: 'Random seed. The same seed gives the same world layout, gusts and sensor noise, so a run can be repeated exactly. Any whole number; the paper\'s test seeds are 1000–1299 (v1) and 2000–2299 (v2). ' + STUDY,
+  tkind: 'The object the drone is shown a picture of and must find: a tent or a backpack. ' + STUDY,
+  gal: 'The picture shown to the drone before take-off (colours and pattern of the target). "seed" lets the world seed choose. ' + STUDY,
+  dist: 'Straight-line distance from home to the target, in metres. The study uses 25–40 m; up to 120 m here. ' + STUDY,
+  tbear: 'Compass direction of the target as seen from home (0° = north, 90° = east). ' + STUDY,
+  tyaw: 'Which way the target object faces, in degrees. Matters for recognition: the memory must cope with new viewing angles. ' + STUDY,
+  hx: 'Home position, metres east of the world centre. Home is where the drone takes off and must return to. ' + STUDY,
+  hy: 'Home position, metres north of the world centre. ' + STUDY,
+  maxt: 'Mission time limit in seconds. If the drone has not finished by then, the run ends as a failure. Typical 300 s. ' + STUDY,
+  land: 'Kind of landscape: open meadow (few trees), forest (many trees) or urban blocks (buildings). Changes what the eye sees and what the drone must avoid. ' + STUDY,
+  dens: 'How crowded the world is with trees, rocks or buildings, from 0 (empty) to 1 (densest). Typical 0.3. ' + STUDY,
+  light: 'Overall brightness, from 0.1 (dusk) to 1 (full daylight). Dims what the eye sees, so recognition gets harder. ' + STUDY,
+  fogon: 'Turn fog on or off. Fog washes out distant objects in the drone\'s eye. ' + STUDY,
+  fog: 'Fog visibility: the distance in metres at which objects fade into the fog. Lower = thicker fog. Typical 20–60 m. ' + STUDY,
+  wsp: 'Average wind speed in metres per second. The Crazyflie cruises at 2 m/s, so 2–3 m/s of wind is a lot for it. ' + STUDY,
+  wdir: 'Direction the wind blows FROM, as a compass bearing (270° = from the west). ' + STUDY,
+  turb: 'Random gusts on top of the steady wind (Dryden turbulence model, light to severe). Gusts shake the drone and its speed sensing. ' + STUDY,
+  decoy: 'Add a look-alike object. Swap: the look-alike stands where the target was reported and the real one is moved aside (the hardest test). Beside: 6 m from the target. Route: halfway along the way. ' + STUDY,
+  dkind: 'Kind of the look-alike object (tent or backpack). ' + STUDY,
+  dsim: 'How much the look-alike resembles the target, from 0.5 (clearly different) to 0.95 (nearly identical). ' + STUDY,
+  dt: 'Seconds after the start when the look-alike appears. ' + STUDY,
+  occ: 'Hide the target for a while once the drone first sees it up close: does the brain keep heading for it? ' + STUDY,
+  occt: 'Delay, in seconds after the target is first seen within 10 m, before it is hidden. The study uses 0. ' + STUDY,
+  occd: 'How long the target stays hidden, in seconds. Typical 5 s. ' + STUDY,
+  comp: 'Half of the drone\'s sky-compass sensors go silent, so its sense of direction gets worse. ' + STUDY,
+  compt: 'Seconds after the start when the compass fault begins. ' + STUDY,
+  eyec: 'A block of the eye\'s columns stops working (blind sector). ' + STUDY,
+  eyect: 'Seconds after the start when part of the eye goes blind. ' + STUDY,
+  eyecf: 'Fraction of the eye that goes blind, 10–40 %. ' + STUDY,
+  eyecs: 'Where the blind sector starts: column 0 looks straight back, 35–36 straight ahead (72 columns, 5° each). ' + STUDY,
+  sun: 'A false sun (for example a bright reflection) tricks the sky compass into a wrong direction. ' + STUDY,
+  sunt: 'Seconds after the start when the false sun appears. ' + STUDY,
+  suno: 'How far the false sun is from the real one, in degrees; the compass is off by this much. Typical 60°. ' + STUDY,
+  spd: 'The drone\'s speed sense is miscalibrated, so it misjudges distances travelled and the way home. ' + STUDY,
+  spdt: 'Seconds after the start when the speed error begins. ' + STUDY,
+  spds: 'Speed scale error: ×1.2 means the drone thinks it flies 20 % faster than it does. ' + STUDY,
+  arb: 'The decision hub that turns all urges (go to object, go home, search) into one heading. Ring hub = the insect-style ring attractor under test; the others are fair rivals and a no-memory control. ' + STUDY,
+  prm: 'Arbiter settings: the frozen values tuned on training seeds (as in the paper) or the plain code defaults. ' + STUDY,
+  gain: 'Strength of the ring\'s self-excitation, which is its short-term memory. 0 = no memory; higher = more stubborn (holds a hidden target longer but also chases a decoy longer). Typical 0.3–1.5. ' + STUDY,
+  lf: 'Bee-style learning flight: before setting off, the drone memorises the target from many views (5 per second along a zig-zag arc). Off = a single photo. ' + STUDY,
+  lfs: 'Length of the learning flight in seconds. The study uses 10 s. ' + STUDY,
+  ver: 'Which brain flies. v1 = the brain of the published first study, unchanged. v2 = the more robust brain under test (better heading, home snapshot and landing, better recognition). ' + STUDY,
+  hd: 'How the v2 brain keeps track of which way it faces. Heading ring = insect-style ring fed by the gyro and corrected by the sky compass; Kalman and complementary filters are engineering rivals; v1 sun compass = the old direct compass (heading module off). ' + STUDY,
+  mhome: 'v2 home snapshot: the drone memorises how the home pad looks during take-off and steers by sight when it gets back, instead of trusting dead reckoning alone. ' + STUDY,
+  mland: 'v2 landing: a final slow approach and a vertical descent onto the home pad. Off = the run ends when the drone thinks it is home. ' + STUDY,
+  mfront: 'v2 insect front end: colour-opponent and orientation-sensitive pre-processing (like early insect vision) before the memory, instead of plain grey pixels. ' + STUDY,
+  minsp: 'v2 inspection rule: before stopping at an object, look at it from two directions at least 20° apart, to catch look-alikes. ' + STUDY,
+  mgate: 'v2 evidence gate: the hub only listens to objects that are currently visible, so it lets go of a look-alike faster. ' + STUDY,
+  tip: 'The rough vector to the reported spot that the operator gives the drone before take-off. Default = bearing error about 8° and distance error 10 % (1 SD), as in the study; poor = 30° and 30 % (a choice of this app); none = no tip, the drone spirals out from home. ' + STUDY,
+  yaw: 'Adds a small yaw-damping term from a transfer function fitted to the author\'s earlier fly yaw-circuit model. ' + EXPL,
+  'p:eye': 'Eye and memory. Left: the low-resolution 360° picture the drone\'s memory sees (ahead in the middle). Right: the target picture it was shown. Below: familiarity, how strongly the current view matches the memory (0 to 1; the brain treats about 0.6 and above as a match), and commitment to an object. Brain state, recomputed live.',
+  'p:hub': 'Steering hub. The ring of 32 heading neurons (or the rival arbiter) that combines the urges: objects (teal), home (violet), search (grey). The orange arrow is the heading the brain chooses; the light arrow is its current heading. Brain state, in the brain\'s own compass frame.',
+  'p:homev': 'Home-vector memory. The path integrator\'s estimate of the way home (solid) next to the simulator\'s truth (faint). The gap between them is the navigation error, in metres.',
+  'p:att': 'Attitude, motors and wind. Artificial horizon (bank and pitch), the four motor commands (0–1 of maximum thrust) and the wind at the drone. Simulator truth.',
+  'p:now': 'Live values: a table of the current brain and vehicle numbers (phase, commitment, heading command, avoidance, altitude, body rates, object slots).',
+  'p:model': 'Model: every vehicle parameter with its source, and a plain list of the simplifications this simulator makes.',
+  'p:run': 'Recorded run: pick one of the study\'s pre-recorded runs, made by the Python reference. The replay never recomputes anything.',
+  'p:mind': 'Brain readout: a plain-language sentence decoded from the brain\'s own state (top), with the simulator\'s truth beneath it, so you can see when the brain is wrong.',
+  'p:view': 'View controls. Cameras: chase (behind the drone), top (overview, north up), free (drag to orbit). Quality: graphics detail (High, Balanced, Low) for slower computers. Display: the flight overlay with horizon, heading, speed and altitude (key H). Map: the small top-down map (key M). ' + VIEW,
+};
+const tipBox = document.createElement('div'); tipBox.className = 'htip'; tipBox.setAttribute('aria-hidden', 'true'); document.body.appendChild(tipBox);
+let tipN = 0, tipPinned = null;
+function helpBtn(text, label) {
+  if (!text) return '';
+  tipN++; return `<button type="button" class="hq" aria-label="Help: ${esc(label)}" aria-describedby="hlp${tipN}" aria-expanded="false" data-help="hlp${tipN}">?</button><span class="sr" id="hlp${tipN}">${esc(text)}</span>`;
+}
+function showTip(b) {
+  const t = $(b.dataset.help); if (!t) return;
+  const txt = t.textContent, i = txt.search(/(Part of the study|Exploratory|View only)/);
+  tipBox.innerHTML = i > 0 ? `${esc(txt.slice(0, i))}<br><span class="tag">${esc(txt.slice(i))}</span>` : esc(txt);
+  tipBox.classList.add('on');
+  const r = b.getBoundingClientRect(), w = tipBox.offsetWidth, h = tipBox.offsetHeight;
+  tipBox.style.left = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8) + 'px';
+  tipBox.style.top = (r.bottom + h + 10 < innerHeight ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + 'px';
+}
+function hideTip() { tipBox.classList.remove('on'); if (tipPinned) tipPinned.setAttribute('aria-expanded', 'false'); tipPinned = null; }
+document.addEventListener('mouseover', (e) => { const b = e.target.closest && e.target.closest('.hq'); if (b && !tipPinned) showTip(b); });
+document.addEventListener('mouseout', (e) => { const b = e.target.closest && e.target.closest('.hq'); if (b && !tipPinned) tipBox.classList.remove('on'); });
+document.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('hq')) showTip(e.target); });
+document.addEventListener('focusout', (e) => { if (e.target.classList && e.target.classList.contains('hq')) hideTip(); });
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('.hq');
+  if (!b) { if (tipPinned) hideTip(); return; }
+  e.preventDefault(); e.stopPropagation(); // keep <summary> closed/open and labels from activating their control
+  if (tipPinned === b) { hideTip(); return; }
+  hideTip(); tipPinned = b; b.setAttribute('aria-expanded', 'true'); showTip(b);
+}, true);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideTip(); });
+function addPanelHelp() { // dock headers, the recorded-run header, the brain readout and the view toolbar
+  const map = [['Eye and memory', 'p:eye'], ['Steering hub', 'p:hub'], ['Home-vector memory', 'p:homev'], ['Attitude', 'p:att'], ['Live values', 'p:now'], ['Model', 'p:model'], ['Recorded run', 'p:run']];
+  document.querySelectorAll('.dock summary, #runs summary').forEach((sm) => {
+    const m = map.find(([k]) => sm.textContent.trim().startsWith(k)); if (!m) return;
+    const who = sm.querySelector('.who'), html = helpBtn(HELP[m[1]], m[0]);
+    if (who) who.insertAdjacentHTML('beforebegin', html); else sm.insertAdjacentHTML('beforeend', html);
+  });
+  const mk = document.querySelector('#mind .k'); if (mk) mk.insertAdjacentHTML('beforeend', helpBtn(HELP['p:mind'], 'Brain readout'));
+  const tools = document.querySelector('#view .tools'); if (tools) tools.insertAdjacentHTML('afterbegin', `<div class="grp ovbox" style="align-self:center;padding:4px 6px">${helpBtn(HELP['p:view'], 'View controls')}</div>`);
+}
+// v2 fields: read app/sim/scenario.js's schema (re-checked every 30 s while open, as the brain code may update)
+async function pollSupport() {
+  if (!HTTP) return;
+  try {
+    const m = await import(new URL('sim/scenario.js?v=' + Date.now(), location.href).href);
+    const bp = (((m.SCHEMA || {}).properties || {}).brain || {}).properties || {};
+    const was = JSON.stringify(SUPPORT);
+    SUPPORT.version = !!bp.version; SUPPORT.modules = !!bp.modules; SUPPORT.tip = !!bp.tip;
+    if (JSON.stringify(SUPPORT) !== was) { syncKnobs(); writeHash(); }
+  } catch (e) { console.warn('scenario.js schema not readable', e); }
+}
+
 // ---------------------------------------------------------------- theme, camera, resize, loop
 function applyTheme() { readCss(); if (S3) S3.setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark', css, roleColor()); panelDirty = true; if (mode === 'results') drawCharts(); }
 $('theme').onclick = () => { const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'; document.documentElement.dataset.theme = t; try { localStorage.setItem('mbd-theme', t); } catch (e) { /* private */ } applyTheme(); };
@@ -589,6 +769,7 @@ document.addEventListener('keydown', (e) => {
   else if (k === 'r' && mode === 'sim') resetSim();
   else if (k === '1' || k === '2' || k === '3') setCam(['chase', 'top', 'free'][+k - 1]);
   else if (k === 'm') $('mapbtn').click();
+  else if (k === 'h') $('hudbtn').click();
   else if (k === 't') $('theme').click();
 });
 
@@ -598,6 +779,7 @@ function loop(now) {
   if (mode !== 'paper') {
     if (mode === 'results' && results.playing && results.run) { view.T = Math.min(view.dur, view.T + dt * +$('speed').value); if (view.T >= view.dur) { results.playing = false; playIcon(); } showRunFrame(); }
     if (S3) { S3.update(view.frame, view.trail, { present, arrows: true }); S3.render(); placeTags(); }
+    drawHud(now);
     if (panelDirty && now - lastPanel > 33) { panelDirty = false; lastPanel = now; drawPanels(); drawTimeline(); status(); }
     fpsN++; if (now - fpsT > 500) { fps = (fpsN * 1000) / (now - fpsT); fpsN = 0; fpsT = now; status(); }
   }
@@ -612,7 +794,10 @@ function status() {
 }
 
 // ---------------------------------------------------------------- boot
-buildKnobs(); syncKnobs(); buildGallery(); modelPanel();
+buildKnobs(); syncKnobs(); buildGallery(); modelPanel(); addPanelHelp();
+let hud0 = null; try { hud0 = localStorage.getItem('mbd-hud'); } catch (e) { /* private */ }
+setHud(hud0 !== '0', false);
+pollSupport(); setInterval(() => { if (mode === 'sim' && !sim.running) pollSupport(); }, 30000);
 if (!HTTP) noSim('Opened from file://');
 const m0 = hashP().get('m');
 setMode(m0 === 'results' || m0 === 'paper' ? m0 : 'sim');
