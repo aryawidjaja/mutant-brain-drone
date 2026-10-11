@@ -1,0 +1,42 @@
+{
+ "git": "3601ce5-dirty",
+ "sim_version": "0.1.0",
+ "created": "2026-10-12T01:13:17",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "code_sha256": {
+  "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scripts/brain/mb_front.py": "9fe3b65225036fad8bb1c52e138478c025ddff31a9ea42378bd2a5bcf19b4cc4",
+  "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+  "scripts/recog_score.py": "051b33bfdb59a31efda11f346e9ac18e61aa23fd4affbbca2e24744e18f4e571",
+  "scripts/recog_v2_score.py": "394aeaefc7f58e8651ad44d0430fa87c0373dfa5b8dddd9ba9e19ee25728c163"
+ },
+ "seed": [
+  1010,
+  1011,
+  1012,
+  1013,
+  1014,
+  1015,
+  1016,
+  1017,
+  1018,
+  1019
+ ],
+ "param_source": "H8 protocol (pre-registered); recog_v2_scores_test.parquet",
+ "rule": "H8 passes iff MB(front)+multi-scale LF AUROC at 0 deg >= 0.75 AND it beats max(raw pixels, pixel crop) with the same memory by >= 0.05 at 0 deg (point estimates; CIs reported)",
+ "auroc_0deg": 0.6865,
+ "auroc_0deg_ci95": [
+  0.6551,
+  0.7204
+ ],
+ "margin_over_pixels_0deg": 0.1846,
+ "margin_ci95": [
+  0.1502,
+  0.2186
+ ],
+ "part1_auroc_ge_0.75": false,
+ "part2_margin_ge_0.05": true,
+ "H8_recognition": "FAIL",
+ "source": "results/recog_v2_auroc.json"
+}

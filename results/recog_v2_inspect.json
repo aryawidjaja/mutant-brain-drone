@@ -1,0 +1,150 @@
+{
+ "git": "3601ce5-dirty",
+ "sim_version": "0.1.0",
+ "created": "2026-10-12T01:12:23",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "code_sha256": {
+  "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scripts/brain/mb.py": "c94aada7b8b84793e8d14985cc90e6729322553f859172b00649c28c974a5ac9",
+  "scripts/brain/mb_front.py": "9fe3b65225036fad8bb1c52e138478c025ddff31a9ea42378bd2a5bcf19b4cc4",
+  "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+  "scripts/recog_run.py": "ce8043e57b49bd24cb9c16c1060ef6f2f153ebed1f75d7a86827eb36323fc591",
+  "scripts/recog_score.py": "051b33bfdb59a31efda11f346e9ac18e61aa23fd4affbbca2e24744e18f4e571",
+  "scripts/recog_v2_run.py": "4c91f615fd0e91cf0714d74f8dce56f8de31d9a8d22a6b62f090693db569b78d",
+  "scripts/recog_v2_score.py": "394aeaefc7f58e8651ad44d0430fa87c0373dfa5b8dddd9ba9e19ee25728c163",
+  "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001"
+ },
+ "seed": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9
+ ],
+ "param_source": "scripts/recog_v2_run.py inspect; mb_front.inspect_stat; training layouts only",
+ "protocol": "8 approaches per layout: 8 frames straight in from 12 to 6 m at azimuth th0, then 8 frames on a 30-deg arc\n    (random side) while closing 6 -> 3 m (inspection range = the arc). Height 2.5 -> 2.0 m, gaze jitter +-0.2 m.",
+ "definition": "Thresholds set on layouts [0, 1, 2, 3, 4] so that >= 90% of target approaches are accepted; acceptance rates measured on the other training layouts. Sequences: 8 approaches x 4 objects (target + 3 swapped decoys, same camera path) per layout; familiarity = MB(front) with the multi-scale memory.",
+ "summary": {
+  "sep_deg": 20,
+  "single_eval_target_accept": 0.925,
+  "single_eval_decoy_accept": 0.9166666666666666,
+  "inspect_eval_target_accept": 0.975,
+  "inspect_eval_decoy_accept": 0.9333333333333333,
+  "auroc_single": 0.7288020833333333,
+  "auroc_inspect": 0.777578125,
+  "auroc_diff": {
+   "point": 0.048776041666666714,
+   "ci95": [
+    0.0309,
+    0.0696
+   ]
+  }
+ },
+ "by_separation": {
+  "sep_10deg": {
+   "single": {
+    "thr": 0.4793359933008226,
+    "calib_target_accept": 0.925,
+    "eval_target_accept": 0.925,
+    "eval_decoy_accept": 0.9166666666666666,
+    "eval_decoy_accept_per_decoy": {
+     "d1_tex": 0.975,
+     "d2_mesh": 0.875,
+     "d3_twin": 0.9
+    },
+    "auroc_all_layouts": 0.7288020833333333
+   },
+   "inspect": {
+    "thr": 0.6536585365853659,
+    "calib_target_accept": 0.925,
+    "eval_target_accept": 0.925,
+    "eval_decoy_accept": 0.425,
+    "eval_decoy_accept_per_decoy": {
+     "d1_tex": 0.875,
+     "d2_mesh": 0.0,
+     "d3_twin": 0.4
+    },
+    "auroc_all_layouts": 0.8273697916666667
+   },
+   "auroc_diff_inspect_minus_single": {
+    "point": 0.09856770833333339,
+    "ci95": [
+     0.0533,
+     0.1445
+    ]
+   }
+  },
+  "sep_20deg": {
+   "single": {
+    "thr": 0.4793359933008226,
+    "calib_target_accept": 0.925,
+    "eval_target_accept": 0.925,
+    "eval_decoy_accept": 0.9166666666666666,
+    "eval_decoy_accept_per_decoy": {
+     "d1_tex": 0.975,
+     "d2_mesh": 0.875,
+     "d3_twin": 0.9
+    },
+    "auroc_all_layouts": 0.7288020833333333
+   },
+   "inspect": {
+    "thr": 0.5,
+    "calib_target_accept": 0.925,
+    "eval_target_accept": 0.975,
+    "eval_decoy_accept": 0.9333333333333333,
+    "eval_decoy_accept_per_decoy": {
+     "d1_tex": 1.0,
+     "d2_mesh": 0.875,
+     "d3_twin": 0.925
+    },
+    "auroc_all_layouts": 0.777578125
+   },
+   "auroc_diff_inspect_minus_single": {
+    "point": 0.048776041666666714,
+    "ci95": [
+     0.0309,
+     0.0696
+    ]
+   }
+  },
+  "sep_30deg": {
+   "single": {
+    "thr": 0.4793359933008226,
+    "calib_target_accept": 0.925,
+    "eval_target_accept": 0.925,
+    "eval_decoy_accept": 0.9166666666666666,
+    "eval_decoy_accept_per_decoy": {
+     "d1_tex": 0.975,
+     "d2_mesh": 0.875,
+     "d3_twin": 0.9
+    },
+    "auroc_all_layouts": 0.7288020833333333
+   },
+   "inspect": {
+    "thr": 0.46039603960396036,
+    "calib_target_accept": 0.925,
+    "eval_target_accept": 0.875,
+    "eval_decoy_accept": 0.9166666666666666,
+    "eval_decoy_accept_per_decoy": {
+     "d1_tex": 0.975,
+     "d2_mesh": 0.85,
+     "d3_twin": 0.925
+    },
+    "auroc_all_layouts": 0.7103645833333333
+   },
+   "auroc_diff_inspect_minus_single": {
+    "point": -0.018437499999999996,
+    "ci95": [
+     -0.0612,
+     0.0251
+    ]
+   }
+  }
+ }
+}

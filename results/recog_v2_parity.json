@@ -1,0 +1,44 @@
+{
+ "git": "3601ce5-dirty",
+ "sim_version": "0.1.0",
+ "created": "2026-10-12T01:17:08",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "code_sha256": {
+  "scripts/brain/mb.py": "c94aada7b8b84793e8d14985cc90e6729322553f859172b00649c28c974a5ac9",
+  "scripts/brain/mb_front.py": "592f2f2895e965749aaad13283e2f5c07a4ed6f21787e47046d4071749f72aa6",
+  "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+  "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001"
+ },
+ "seed": 0,
+ "param_source": "scripts/brain/mb_front.py self-check; app/sim/brain/mb_front.js",
+ "crops": "synthetic x2 + recorded MuJoCo crops (training layout 0, probes every 157th, 2 memory views)",
+ "n_crops": 8,
+ "configs": [
+  {
+   "grid": 6,
+   "r": 2,
+   "colour_edges": true,
+   "per_channel": true,
+   "half_m": 1.1
+  },
+  {
+   "grid": 4,
+   "r": 4,
+   "colour_edges": false,
+   "per_channel": false,
+   "half_m": 1.1
+  },
+  {
+   "grid": 8,
+   "r": 3,
+   "colour_edges": true,
+   "per_channel": true,
+   "half_m": 1.1
+  }
+ ],
+ "max_abs_diff_features": 1.6542323066914832e-14,
+ "max_abs_diff_x": 0.0,
+ "gate": 1e-09,
+ "pass": true
+}

@@ -1,0 +1,81 @@
+{
+ "git": "3601ce5-dirty",
+ "sim_version": "0.1.0",
+ "created": "2026-10-12T01:13:05",
+ "python": "3.12.12",
+ "numpy": "2.5.4",
+ "code_sha256": {
+  "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scripts/brain/mb.py": "c94aada7b8b84793e8d14985cc90e6729322553f859172b00649c28c974a5ac9",
+  "scripts/brain/mb_front.py": "9fe3b65225036fad8bb1c52e138478c025ddff31a9ea42378bd2a5bcf19b4cc4",
+  "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+  "scripts/recog_run.py": "ce8043e57b49bd24cb9c16c1060ef6f2f153ebed1f75d7a86827eb36323fc591",
+  "scripts/recog_v2_run.py": "4c91f615fd0e91cf0714d74f8dce56f8de31d9a8d22a6b62f090693db569b78d",
+  "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001"
+ },
+ "seed": 1010,
+ "param_source": "scripts/recog_v2_run.py cost",
+ "stored_memory_bytes": {
+  "goal": {
+   "pixels": 1024,
+   "pixels_crop": 576,
+   "colour": 1024,
+   "nn_front": 576,
+   "dino_patch": 768,
+   "mb_v1": 2500,
+   "mb_crop": 2500,
+   "mb_front": 2500
+  },
+  "lf13": {
+   "pixels": 13312,
+   "pixels_crop": 7488,
+   "colour": 13312,
+   "nn_front": 7488,
+   "dino_patch": 9984,
+   "mb_v1": 2500,
+   "mb_crop": 2500,
+   "mb_front": 2500
+  },
+  "ms": {
+   "pixels": 31744,
+   "pixels_crop": 17856,
+   "colour": 31744,
+   "nn_front": 17856,
+   "dino_patch": 23808,
+   "mb_v1": 2500,
+   "mb_crop": 2500,
+   "mb_front": 2500
+  },
+  "ms1": {
+   "pixels": 31744,
+   "pixels_crop": 17856,
+   "colour": 31744,
+   "nn_front": 17856,
+   "dino_patch": 23808,
+   "mb_v1": 2500,
+   "mb_crop": 2500,
+   "mb_front": 2500
+  }
+ },
+ "views_per_memset": {
+  "goal": 1,
+  "lf13": 13,
+  "ms": 31,
+  "ms1": 31
+ },
+ "notes": "MB: 20,000 1-bit KC->MBON weights whatever the number of views (PN->KC wiring regenerated from seed). Front end: fixed filters, 0 learned bytes; n_in 288. nn_front stores uint16 ranks per view. pixels uint8 32x32/view, pixels_crop uint8 24x24/view, colour uint16 512 bins/view, DINO fp16 384-d/view (+ 22.06 M fp32 model weights, 88 MB, not counted here).",
+ "ms_per_query_median": {
+  "front_only": 1.438125007553026,
+  "mb_front": 2.9377919854596257,
+  "nn_front": 0.7383125193882734
+ },
+ "ms_note": "one 48x48 crop vs the 31-view ms memory, M4, numpy CPU, excl. rendering/cropping",
+ "v1_ms_per_query_median_reference": {
+  "pixels": 0.5293124704621732,
+  "colour": 0.2876459911931306,
+  "mb": 1.8549165106378496,
+  "mb_edge": 1.8088125216308981,
+  "dino_cls": 17.81137500074692,
+  "dino_patch": 19.000208500074223
+ }
+}
