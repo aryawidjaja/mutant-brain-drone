@@ -1,4 +1,4 @@
-// Mind-reader: template sentences (no language model), JS twin of scripts/brain/mind.py.
+// Brain readout: template sentences (no language model), JS twin of scripts/brain/mind.py.
 import { wrap } from './eye.js';
 
 export const SECTORS = ['ahead', 'ahead-left', 'left', 'behind-left', 'behind', 'behind-right', 'right', 'ahead-right'];

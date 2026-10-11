@@ -1,4 +1,4 @@
-"""Mind-reader: template sentences from the brain's own state, next to the simulator's truth (no language model).
+"""Brain readout: template sentences from the brain's own state, next to the simulator's truth (no language model).
 Identical templates in app/sim/brain/mind.js. Batch rows are handled one at a time (strings).
 """
 import math

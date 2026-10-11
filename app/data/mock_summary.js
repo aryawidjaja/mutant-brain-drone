@@ -1,5 +1,5 @@
 // MOCK summary for building the Results charts. Synthetic numbers, NOT results.
-// The integrator's scripts/export_app_summary.py writes data/summary.json + data/summary.js (window.APP_SUMMARY)
+// scripts/export_app_summary.py writes data/summary.json + data/summary.js (window.APP_SUMMARY)
 // with the same keys, plus a _source entry per number; the app prefers those and shows a MOCK DATA watermark otherwise.
 // Shapes:
 //   stubbornness_frontier: {arm: [{gain_or_knob, hold_s, hold_ci: [lo, hi], release_s, release_ci: [lo, hi]}]}

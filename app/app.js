@@ -2,7 +2,7 @@
 // and summary charts), Paper (guide.js into #guide). Classic script so Results and Paper open from file://; three.js is
 // loaded with import() through the import map, as in flight-test-the-fly. Drawing helpers: panels.js, scene3d.js.
 //
-// Data the integrator provides (each optional; the app shows a labelled mock or banner without it):
+// Data written by the export scripts (each optional; the app shows a labelled mock or banner without it):
 //   data/parity.js         window.PARITY = {pass: bool, quad: {...}, brain: {...}}      (hides the "not verified" banner)
 //   data/summary.json|.js  window.APP_SUMMARY = {stubbornness_frontier, h1_success_vs_severity, recog_auroc, _source...}
 //   runs/manifest.json     {runs: [{file, label}]}; runs/<file> = {meta: {scenario, arbiter, seed, git, sim_version, label},
@@ -437,7 +437,7 @@ async function modelPanel() {
     });
     t.innerHTML = `<thead><tr><th>Vehicle parameter</th><th>Value</th></tr></thead>` + rows.join('');
   } else t.innerHTML = `<tr><td class="wrap" colspan="2">Vehicle parameters with sources will be listed here. ${esc(why)} Mass and inertia come from the MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> model; motor constants from a separately cited source.</td></tr>`;
-  const yawLi = YAWFIT ? `<li><b>Yaw circuit (optional):</b> the owner's Shiu-model fly yaw circuit is too slow for live use. The "Yaw surrogate" toggle uses a transfer function fitted to its measured frequency response (gain ${YAWFIT.K.toFixed(3)} Hz per °/s, delay ${(YAWFIT.tau_s * 1000).toFixed(1)} ms, corner ${YAWFIT.fc_hz.toFixed(1)} Hz; fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms) as a small yaw-rate damping term. Exploratory, live view only, off by default and in every reported run.</li>` : '<li><b>Yaw circuit:</b> a fitted surrogate of the Shiu-model yaw circuit exists (app/sim/yaw_surrogate.js) but its fit file is not loaded here.</li>';
+  const yawLi = YAWFIT ? `<li><b>Yaw circuit (optional):</b> the author's earlier Shiu-model fly yaw circuit (flight-test-the-fly) is too slow for live use. The "Yaw surrogate" toggle uses a transfer function fitted to its measured frequency response (gain ${YAWFIT.K.toFixed(3)} Hz per °/s, delay ${(YAWFIT.tau_s * 1000).toFixed(1)} ms, corner ${YAWFIT.fc_hz.toFixed(1)} Hz; fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms) as a small yaw-rate damping term. Exploratory, live view only, off by default and in every reported run.</li>` : '<li><b>Yaw circuit:</b> a fitted surrogate of the Shiu-model yaw circuit exists (app/sim/yaw_surrogate.js) but its fit file is not loaded here.</li>';
   const prmLi = `<li><b>Arbiter parameters:</b> ${TUNED ? `tuned values from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (tuned in the 2D kill-test world, used here as a stand-in until the 3D tuning is frozen)' : ''}` : 'code defaults (no tuned file found)'}.</li>`;
   $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + yawLi + prmLi + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js loads.</li>' : '');
 }
