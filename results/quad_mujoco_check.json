@@ -1,0 +1,224 @@
+{
+ "what": "numpy RK4 rigid body vs MuJoCo 3 (Menagerie cf2.xml, RK4) with identical motor model and controller",
+ "duration_s": 3.0,
+ "dt_s": 0.002,
+ "mujoco": "3.15.0",
+ "cases": {
+  "hover": {
+   "max_pos_dev_m": 0.0,
+   "max_quat_dev_1_minus_abs_dot": 0.0,
+   "max_omega_dev_radps": 0.0,
+   "final_pos_numpy": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "final_pos_mujoco": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "final_euler_deg_numpy": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  },
+  "yaw_step_1rad": {
+   "max_pos_dev_m": 1.922257515607484e-06,
+   "max_quat_dev_1_minus_abs_dot": 3.219646771412954e-15,
+   "max_omega_dev_radps": 1.5573496559007083e-06,
+   "final_pos_numpy": [
+    -7.068106118885623e-17,
+    -3.033930420384511e-17,
+    0.9986240282556326
+   ],
+   "final_pos_mujoco": [
+    -1.818623244188567e-17,
+    -9.185433869444369e-17,
+    0.9986239884772227
+   ],
+   "final_euler_deg_numpy": [
+    -7.435697547473627e-16,
+    2.6245768352369623e-15,
+    57.32007389623739
+   ]
+  },
+  "attitude_step_via_vel_x_1mps": {
+   "max_pos_dev_m": 8.023244991461898e-05,
+   "max_quat_dev_1_minus_abs_dot": 1.3157064326918544e-10,
+   "max_omega_dev_radps": 0.00012535709621119828,
+   "final_pos_numpy": [
+    2.092201234459435,
+    -7.981293714250303e-18,
+    0.9999535806453809
+   ],
+   "final_pos_mujoco": [
+    2.0922670371966365,
+    -2.390246823958443e-17,
+    0.9999535901370037
+   ],
+   "final_euler_deg_numpy": [
+    1.8259569624212144e-15,
+    1.4808748329217831,
+    -5.631083567517441e-15
+   ]
+  },
+  "wind_2mps_drag": {
+   "max_pos_dev_m": 1.3730672004802491e-05,
+   "max_quat_dev_1_minus_abs_dot": 6.355804771374096e-12,
+   "max_omega_dev_radps": 2.809437768186429e-05,
+   "final_pos_numpy": [
+    0.4018051854542992,
+    -0.20090384238413675,
+    0.9999059311696257
+   ],
+   "final_pos_mujoco": [
+    0.4018100451377916,
+    -0.20090627227773936,
+    0.9999058850628223
+   ],
+   "final_euler_deg_numpy": [
+    -1.4739065510008102,
+    -2.94976215602503,
+    3.0149747564400867e-05
+   ]
+  },
+  "open_loop_roll_yaw_pulse_0p8s": {
+   "max_pos_dev_m": 4.04856581418811e-05,
+   "max_quat_dev_1_minus_abs_dot": 7.771561172376096e-16,
+   "max_omega_dev_radps": 1.746514174602587e-16,
+   "final_pos_numpy": [
+    0.07161809393922199,
+    -0.16711608598216093,
+    0.9891319418661788
+   ],
+   "final_pos_mujoco": [
+    0.0716354441800519,
+    -0.16715657164030281,
+    0.9891299024714484
+   ],
+   "final_euler_deg_numpy": [
+    12.68442502235966,
+    5.376299607721121,
+    0.5951875664779379
+   ]
+  }
+ },
+ "max_pos_dev_m": 8.023244991461898e-05,
+ "provenance": {
+  "git": "bfb82ea",
+  "sim_version": "0.1.0",
+  "created": "2026-10-11T17:50:46",
+  "python": "3.12.12",
+  "numpy": "2.5.4",
+  "seed": null,
+  "param_source": "results/vehicle_params.json + vendor/mujoco_menagerie@0059d43 cf2.xml"
+ },
+ "drag_off": {
+  "max_pos_dev_m": 3.1088465135553633e-12,
+  "cases": {
+   "hover": {
+    "max_pos_dev_m": 0.0,
+    "max_quat_dev_1_minus_abs_dot": 0.0,
+    "max_omega_dev_radps": 0.0,
+    "final_pos_numpy": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "final_pos_mujoco": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "final_euler_deg_numpy": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "yaw_step_1rad": {
+    "max_pos_dev_m": 4.440892098500626e-16,
+    "max_quat_dev_1_minus_abs_dot": 1.1102230246251565e-15,
+    "max_omega_dev_radps": 2.5930368963145156e-12,
+    "final_pos_numpy": [
+     9.781967300460459e-18,
+     -6.822124228709067e-17,
+     0.9986676523818677
+    ],
+    "final_pos_mujoco": [
+     -7.814760869862517e-17,
+     -4.190530639428994e-17,
+     0.998667652381868
+    ],
+    "final_euler_deg_numpy": [
+     3.300021455699846e-15,
+     -4.566101706194261e-15,
+     57.32007786299569
+    ]
+   },
+   "attitude_step_via_vel_x_1mps": {
+    "max_pos_dev_m": 3.1088465135553633e-12,
+    "max_quat_dev_1_minus_abs_dot": 7.771561172376096e-16,
+    "max_omega_dev_radps": 1.243083413982049e-11,
+    "final_pos_numpy": [
+     2.2501464378519533,
+     -2.7195935722542683e-17,
+     0.9999510341870479
+    ],
+    "final_pos_mujoco": [
+     2.2501464378496516,
+     -2.387447854448691e-17,
+     0.9999510341870389
+    ],
+    "final_euler_deg_numpy": [
+     3.009457931084803e-15,
+     -0.09842211856518077,
+     2.5578367662180856e-15
+    ]
+   },
+   "wind_2mps_drag": {
+    "max_pos_dev_m": 0.0,
+    "max_quat_dev_1_minus_abs_dot": 0.0,
+    "max_omega_dev_radps": 0.0,
+    "final_pos_numpy": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "final_pos_mujoco": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "final_euler_deg_numpy": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "open_loop_roll_yaw_pulse_0p8s": {
+    "max_pos_dev_m": 1.734723475976807e-14,
+    "max_quat_dev_1_minus_abs_dot": 7.771561172376096e-16,
+    "max_omega_dev_radps": 2.220446049250313e-16,
+    "final_pos_numpy": [
+     0.07485046465604943,
+     -0.17465853781590301,
+     0.9888430628319442
+    ],
+    "final_pos_mujoco": [
+     0.07485046465606494,
+     -0.17465853781588567,
+     0.9888430628319432
+    ],
+    "final_euler_deg_numpy": [
+     12.68442502235966,
+     5.376299607721121,
+     0.5951875664779379
+    ]
+   }
+  },
+  "note": "F\u00f6rster drag set to 0 in both: isolates the rigid-body equations. With drag on, the residual comes from MuJoCo's xfrc_applied being held over each RK4 step while our drag is re-evaluated at every RK4 stage."
+ }
+}

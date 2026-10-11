@@ -1,0 +1,640 @@
+{
+ "what": "vehicle parity: scripts/quad.py+dryden.py (batched) vs app/sim/quad.js+dryden.js (Node, batch 1)",
+ "dt_s": 0.002,
+ "duration_s": 10.0,
+ "sample_every_steps": 10,
+ "tolerance_m": 0.01,
+ "n_scenarios": 12,
+ "max_pos_err_m": 2.5219419200973697e-15,
+ "pass": true,
+ "scenarios": [
+  {
+   "name": "hover",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 0.0,
+   "max_att_err_rad": 0.0,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 0.0,
+   "final_pos_py": [
+    0.0,
+    0.0,
+    1.0
+   ]
+  },
+  {
+   "name": "takeoff_from_ground",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 0.0,
+   "max_att_err_rad": 0.0,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 1.9995598486962782,
+   "final_pos_py": [
+    0.0,
+    0.0,
+    1.9997576906641108
+   ]
+  },
+  {
+   "name": "vel_step_x",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 8.969518018724613e-16,
+   "max_att_err_rad": 2.914335439641036e-16,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 12.870983769464658,
+   "final_pos_py": [
+    12.870858131614545,
+    -1.485908857783755e-17,
+    0.9999952074252717
+   ]
+  },
+  {
+   "name": "vel_step_diag_and_stop",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 1.3506446028928519e-15,
+   "max_att_err_rad": 2.7755575615628914e-16,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 5.650390362188516,
+   "final_pos_py": [
+    3.9949629822694015,
+    -3.9953848865642936,
+    0.999972557962883
+   ]
+  },
+  {
+   "name": "yaw_steps_wrap",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 4.586160235380415e-16,
+   "max_att_err_rad": 6.661338147750939e-16,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 0.0543155980559918,
+   "final_pos_py": [
+    -1.4333483698588685e-16,
+    1.6701266844769952e-17,
+    0.9995435479631092
+   ]
+  },
+  {
+   "name": "alt_step",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 0.0,
+   "max_att_err_rad": 0.0,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 3.4920202776028866,
+   "final_pos_py": [
+    0.0,
+    0.0,
+    0.504013168194592
+   ]
+  },
+  {
+   "name": "combined_manoeuvre",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 2.5219419200973697e-15,
+   "max_att_err_rad": 4.440892098500626e-16,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 15.553450827127355,
+   "final_pos_py": [
+    6.5818123617246345,
+    6.056299884548918,
+    1.4982114091945928
+   ]
+  },
+  {
+   "name": "dryden_light",
+   "turbulence": "light",
+   "seed": 1001,
+   "max_pos_err_m": 4.941739743737033e-16,
+   "max_att_err_rad": 2.7929047963226594e-16,
+   "max_wind_err_mps": 1.3322676295501878e-15,
+   "path_len_m": 0.934084283300171,
+   "final_pos_py": [
+    -0.4004099795174942,
+    0.23388851402001115,
+    2.9792082174244063
+   ]
+  },
+  {
+   "name": "dryden_moderate_vel",
+   "turbulence": "moderate",
+   "seed": 1002,
+   "max_pos_err_m": 4.47545209131181e-16,
+   "max_att_err_rad": 2.3245294578089215e-16,
+   "max_wind_err_mps": 1.7763568394002505e-15,
+   "path_len_m": 8.249603000679041,
+   "final_pos_py": [
+    7.830641093969359,
+    -0.8751931826586928,
+    3.0032802133785834
+   ]
+  },
+  {
+   "name": "dryden_severe",
+   "turbulence": "severe",
+   "seed": 1003,
+   "max_pos_err_m": 6.661338147750939e-16,
+   "max_att_err_rad": 2.7755575615628914e-16,
+   "max_wind_err_mps": 2.6645352591003757e-15,
+   "path_len_m": 2.4319702569401564,
+   "final_pos_py": [
+    0.49393311934306067,
+    -1.2383049174797092,
+    3.0656441090613074
+   ]
+  },
+  {
+   "name": "mean_wind_only",
+   "turbulence": "none",
+   "seed": 0,
+   "max_pos_err_m": 6.004449063730082e-16,
+   "max_att_err_rad": 2.0816681711721685e-16,
+   "max_wind_err_mps": 0.0,
+   "path_len_m": 0.8518166826523076,
+   "final_pos_py": [
+    0.761988690929882,
+    -0.3809946354866048,
+    1.9999940654394157
+   ]
+  },
+  {
+   "name": "severe_plus_mean_yawed",
+   "turbulence": "severe",
+   "seed": 7,
+   "max_pos_err_m": 1.8610729195778454e-15,
+   "max_att_err_rad": 8.881784197001252e-16,
+   "max_wind_err_mps": 2.6645352591003757e-15,
+   "path_len_m": 5.8425689848521145,
+   "final_pos_py": [
+    10.131526553779343,
+    -0.7258704996949069,
+    2.960236811633165
+   ]
+  }
+ ],
+ "scenario_defs": [
+  {
+   "name": "hover",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    1.0
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "takeoff_from_ground",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 2.0,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    0
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "vel_step_x",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    },
+    {
+     "t": 1,
+     "vel_xy": [
+      1.5,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    1.0
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "vel_step_diag_and_stop",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    },
+    {
+     "t": 1,
+     "vel_xy": [
+      1,
+      -1
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    },
+    {
+     "t": 5,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    1.0
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "yaw_steps_wrap",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    },
+    {
+     "t": 1,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 1.5
+    },
+    {
+     "t": 5,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": -2.5
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    1.0
+   ],
+   "yaw0": 0.3,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "alt_step",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    },
+    {
+     "t": 1,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 2.5,
+     "yaw": 0.0
+    },
+    {
+     "t": 6,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 0.5,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    1.0
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "combined_manoeuvre",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 1.0,
+     "yaw": 0.0
+    },
+    {
+     "t": 1,
+     "vel_xy": [
+      2,
+      0.5
+     ],
+     "alt": 2,
+     "yaw": 0.8
+    },
+    {
+     "t": 6,
+     "vel_xy": [
+      -1,
+      1
+     ],
+     "alt": 1.5,
+     "yaw": -0.5
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    1.0
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "dryden_light",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 3,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 1001,
+   "turbulence": "light",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    3
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "dryden_moderate_vel",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 3,
+     "yaw": 0.0
+    },
+    {
+     "t": 2,
+     "vel_xy": [
+      1,
+      0
+     ],
+     "alt": 3,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 1002,
+   "turbulence": "moderate",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    3
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "dryden_severe",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 3,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 1003,
+   "turbulence": "severe",
+   "mean_wind": [
+    0,
+    0,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    3
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "mean_wind_only",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 2,
+     "yaw": 0.0
+    }
+   ],
+   "seed": 0,
+   "turbulence": "none",
+   "mean_wind": [
+    2,
+    -1,
+    0
+   ],
+   "pos0": [
+    0,
+    0,
+    2
+   ],
+   "yaw0": 0.0,
+   "dryden_alt_m": 3.0
+  },
+  {
+   "name": "severe_plus_mean_yawed",
+   "schedule": [
+    {
+     "t": 0,
+     "vel_xy": [
+      0,
+      0
+     ],
+     "alt": 3,
+     "yaw": 0.0
+    },
+    {
+     "t": 3,
+     "vel_xy": [
+      0.5,
+      0.5
+     ],
+     "alt": 3,
+     "yaw": 2.0
+    }
+   ],
+   "seed": 7,
+   "turbulence": "severe",
+   "mean_wind": [
+    3,
+    0,
+    0
+   ],
+   "pos0": [
+    5,
+    -3,
+    3
+   ],
+   "yaw0": 0.7,
+   "dryden_alt_m": 3.0
+  }
+ ],
+ "provenance": {
+  "git": "bfb82ea",
+  "sim_version": "0.1.0",
+  "created": "2026-10-11T17:50:34",
+  "python": "3.12.12",
+  "numpy": "2.5.4",
+  "seed": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1001,
+   1002,
+   1003,
+   0,
+   7
+  ],
+  "param_source": "results/vehicle_params.json",
+  "node": "v25.4.0"
+ }
+}

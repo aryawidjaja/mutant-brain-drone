@@ -1,0 +1,65 @@
+{
+ "params_derived": {
+  "motor_tau_s": 0.06465558862740108,
+  "f_max_N": 0.15971474101436375,
+  "hover_thrust_per_motor_N": 0.0662175,
+  "hover_cmd": 0.5545753974152181
+ },
+ "gains": {
+  "kp_alt": 2.0,
+  "vz_max": 1.5,
+  "kp_vz": 6.0,
+  "ki_vz": 3.0,
+  "i_vz_max": 2.0,
+  "kp_vxy": 2.5,
+  "ki_vxy": 0.6,
+  "i_vxy_max": 2.0,
+  "tilt_max": 0.35,
+  "kp_att": 9.0,
+  "kp_yaw": 4.0,
+  "rate_max": 6.0,
+  "yaw_rate_max": 3.0,
+  "kp_rate": 60.0,
+  "ki_rate": 20.0,
+  "kd_rate": 1.5,
+  "i_rate_max": 3.0,
+  "kp_rate_yaw": 25.0,
+  "ki_rate_yaw": 5.0,
+  "kd_rate_yaw": 0.0,
+  "i_rate_yaw_max": 3.0
+ },
+ "hover_10s_max_pos_err_m": 0.0,
+ "kick_recovery_after_10s": {
+  "speed_mps": 0.0050229263054783,
+  "alt_err_m": 6.419421821890481e-07,
+  "tilt_deg": 0.00039854486039034976
+ },
+ "steps": {
+  "vel_x_1mps_settle_s": 0.76,
+  "alt_0p5m_settle_s": 0.8380000000000001,
+  "yaw_1rad_settle_s": 0.6779999999999999,
+  "vel_x_overshoot": -0.001758349302605433,
+  "alt_overshoot_m": -0.0005935718871534768,
+  "yaw_overshoot_rad": 0.00042552113754323884,
+  "max_tilt_deg": 13.667244780588042
+ },
+ "gust": {
+  "severe_mean3_max_horiz_dev_m": 6.13068197454465,
+  "severe_mean3_max_alt_dev_m": 0.11431604284973451,
+  "severe_mean3_max_tilt_deg": 19.000474314540607,
+  "motor_saturation_frac": 0.0,
+  "light_hover_10s_max_horiz_dev_m": 0.9795766445913161,
+  "light_hover_10s_max_alt_dev_m": 0.03671133282987893
+ },
+ "steps_per_s_B1": 1847.1511718034358,
+ "steps_per_s_B300": 1029.1068422057308,
+ "provenance": {
+  "git": "bfb82ea",
+  "sim_version": "0.1.0",
+  "created": "2026-10-11T17:50:21",
+  "python": "3.12.12",
+  "numpy": "2.5.4",
+  "seed": "0-7 (Dryden gust test)",
+  "param_source": "results/vehicle_params.json"
+ }
+}
