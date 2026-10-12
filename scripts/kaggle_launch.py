@@ -74,10 +74,10 @@ def status(stage, n):
         print(i, sh(f"kaggle kernels status {kid(stage, i)}").stdout.strip()[-80:])
 
 
-def pull(runner, stage, n):
+def pull(runner, stage, n, only=None):
     dest = ROOT / OUTDIR.get(runner, "results") / stage
     dest.mkdir(parents=True, exist_ok=True)
-    for i in range(n):
+    for i in (range(n) if only is None else [only]):
         with tempfile.TemporaryDirectory() as d:
             try:
                 r = sh(f"kaggle kernels output {kid(stage, i)} -p {d} -q", timeout=300)
@@ -97,4 +97,4 @@ if __name__ == "__main__":
         assert kid("tune_r1", 3) == f"{USER}/mbd-tune-r1-3"
         print("kaggle_launch self-check OK"); sys.exit(0)
     {"code": lambda: code(), "push": lambda: push(a[1], a[2], int(a[3])), "push-one": lambda: push(a[1], a[2], int(a[3]), int(a[4])), "status": lambda: status(a[1], int(a[2])),
-     "pull": lambda: pull(a[1], a[2], int(a[3]))}[a[0]]()
+     "pull": lambda: pull(a[1], a[2], int(a[3])), "pull-one": lambda: pull(a[1], a[2], int(a[3]), int(a[4]))}[a[0]]()
