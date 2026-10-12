@@ -79,7 +79,10 @@ def pull(runner, stage, n):
     dest.mkdir(parents=True, exist_ok=True)
     for i in range(n):
         with tempfile.TemporaryDirectory() as d:
-            r = sh(f"kaggle kernels output {kid(stage, i)} -p {d} -q")
+            try:
+                r = sh(f"kaggle kernels output {kid(stage, i)} -p {d} -q", timeout=300)
+            except subprocess.TimeoutExpired:
+                print(i, "timeout"); continue
             got = list(Path(d).rglob("*.parquet")) + list(Path(d).rglob("*.json")) + list(Path(d).rglob("*.png"))
             for f in got:
                 if not (dest / f.name).exists():
