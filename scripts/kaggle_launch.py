@@ -27,7 +27,7 @@ subprocess.run("pip install -q {pip}", shell=True, check=True)
 os.chdir("/kaggle/working/repo")
 env = dict(os.environ, OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1", KT_PROCS="4")
 r = subprocess.run([sys.executable] + {cmd!r}, env=env)
-subprocess.run("mkdir -p /kaggle/working/out && cp -r {out}/* /kaggle/working/out/ 2>/dev/null; cp -r results/*.json results/*.png /kaggle/working/out/ 2>/dev/null; true", shell=True)
+subprocess.run("mkdir -p /kaggle/working/out && cp -r {out}/* /kaggle/working/out/ 2>/dev/null; {extra} true", shell=True)
 subprocess.run("rm -rf /kaggle/working/repo", shell=True)
 sys.exit(r.returncode)
 '''
@@ -59,7 +59,8 @@ def push(runner, stage, n, only=None):
         with tempfile.TemporaryDirectory() as d:
             cmd = [f"scripts/{runner}", "run", stage, "--shard", str(i), "--nshards", str(n), "--procs", "4"] \
                 if runner != "kt7_stubbornness_v2.py" else [f"scripts/{runner}", "--test", "--procs", "4"]
-            (Path(d) / "run.py").write_text(RUN_PY.format(pip=PIP, cmd=cmd, out=OUTDIR.get(runner, "results")))
+            extra = "cp -r results/*.json results/*.png /kaggle/working/out/ 2>/dev/null;" if runner == "kt7_stubbornness_v2.py" else ""
+            (Path(d) / "run.py").write_text(RUN_PY.format(pip=PIP, cmd=cmd, out=OUTDIR.get(runner, "results"), extra=extra))
             (Path(d) / "kernel-metadata.json").write_text(json.dumps({
                 "id": kid(stage, i), "title": kid(stage, i).split("/")[1], "code_file": "run.py", "language": "python",
                 "kernel_type": "script", "is_private": True, "enable_gpu": False, "enable_tpu": False, "enable_internet": True,
@@ -89,7 +90,7 @@ def pull(runner, stage, n):
 if __name__ == "__main__":
     a = sys.argv[1:]
     if not a:
-        assert RUN_PY.format(pip=PIP, cmd=["x"], out="results").count("extractall") == 1
+        assert RUN_PY.format(pip=PIP, cmd=["x"], out="results", extra="").count("extractall") == 1
         assert kid("tune_r1", 3) == f"{USER}/mbd-tune-r1-3"
         print("kaggle_launch self-check OK"); sys.exit(0)
     {"code": lambda: code(), "push": lambda: push(a[1], a[2], int(a[3])), "push-one": lambda: push(a[1], a[2], int(a[3]), int(a[4])), "status": lambda: status(a[1], int(a[2])),

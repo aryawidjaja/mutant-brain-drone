@@ -192,6 +192,9 @@ def run(stage, shard, nshards, procs):
 def load_stage(stage):
     fs = sorted((OUT / stage).glob("*.parquet"))
     assert fs, f"no results for {stage}"
+    want = {u for u, _ in units(stage)} if stage != "sanity" else set()
+    missing = want - {f.stem for f in fs}
+    assert not missing, f"{stage}: {len(missing)} of {len(want)} units missing (e.g. {sorted(missing)[:3]}); refusing to reduce"
     df = pd.concat([pd.read_parquet(f) for f in fs], ignore_index=True)
     df.loc[df.fault == "none", "severity"] = np.nan
     df["label"] = df.unit.str.split("__").str[0]
