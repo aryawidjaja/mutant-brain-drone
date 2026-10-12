@@ -1,0 +1,183 @@
+{
+ "stage": "r2 (frozen before any v2 test seed)",
+ "modules": [
+  "heading",
+  "home",
+  "landing",
+  "front",
+  "inspect",
+  "gated_arbiter"
+ ],
+ "budget": "64 configs (default_rng(2026)); rung 1 train seeds 100-104; rung 2 top 4 on train seeds 100-119; 25 conditions; same for every arm",
+ "objective": "mean over 7 faults of mean-over-seeds success_full-vs-severity AUC",
+ "world": {
+  "landscape": "forest",
+  "obstacle_density": 0.3
+ },
+ "arms": {
+  "ring": {
+   "class": "ring_gated",
+   "params": {
+    "kappa": 1.775311160281507,
+    "g_obj": 1.2621541913186338,
+    "g_home": 2.0653042791314435,
+    "g_search": 0.7098419322980047,
+    "tau_s": 0.10932833172459429,
+    "ring_gain": 0.6862567466828404,
+    "lo_frac": 0.4285060656921795,
+    "tau_m_s": 0.2690326888829103,
+    "theta_c": 0.4313072198731145,
+    "tau_hold_s": 1.822138135700264
+   },
+   "config_index": 55,
+   "train_auc": 0.8613095238095237,
+   "rung2": {
+    "33": 0.8538690476190476,
+    "37": 0.8151785714285713,
+    "54": 0.8425595238095237,
+    "55": 0.8613095238095237
+   },
+   "n_params": 10
+  },
+  "ring_static": {
+   "class": "ring_static_vg",
+   "params": {
+    "kappa": 6.419716147147055,
+    "g_obj": 2.399352070413272,
+    "g_home": 2.674183246006293,
+    "g_search": 1.035793150539175,
+    "tau_s": 0.34771900303493364,
+    "tau_hold_s": 3.704821728829544
+   },
+   "config_index": 41,
+   "train_auc": 0.8523809523809524,
+   "rung2": {
+    "2": 0.7931547619047619,
+    "37": 0.8354166666666666,
+    "41": 0.8523809523809524,
+    "44": 0.8196428571428573
+   },
+   "n_params": 6
+  },
+  "vote": {
+   "class": "vote_vg",
+   "params": {
+    "kappa": 5.154906405213625,
+    "g_obj": 1.8763794074087394,
+    "g_home": 0.564694119592622,
+    "g_search": 0.5529441359807521,
+    "tau_hold_s": 1.5551762730611354
+   },
+   "config_index": 20,
+   "train_auc": 0.8583333333333334,
+   "rung2": {
+    "5": 0.8410714285714287,
+    "10": 0.768154761904762,
+    "20": 0.8583333333333334,
+    "48": 0.8324404761904762
+   },
+   "n_params": 5
+  },
+  "sum": {
+   "class": "sum_vg",
+   "params": {
+    "g_obj": 2.9954252708777194,
+    "g_home": 1.4728837190591013,
+    "g_search": 0.21681386211630477,
+    "p_obj": 1.2884862379331274,
+    "tau_hold_s": 0.10557082459739908
+   },
+   "config_index": 17,
+   "train_auc": 0.8497023809523808,
+   "rung2": {
+    "0": 0.83125,
+    "17": 0.8497023809523808,
+    "50": 0.8291666666666668,
+    "58": 0.8398809523809524
+   },
+   "n_params": 5
+  },
+  "accumulator": {
+   "class": "accumulator_vg",
+   "params": {
+    "g_obj": 0.8774990580958402,
+    "g_home": 2.3978131887418237,
+    "g_search": 0.11054218486559084,
+    "tau_leak_s": 1.813118419728964,
+    "tau_hold_s": 7.474767852791669
+   },
+   "config_index": 6,
+   "train_auc": 0.85,
+   "rung2": {
+    "6": 0.85,
+    "15": 0.8491071428571428,
+    "19": 0.8440476190476189,
+    "28": 0.8363095238095237
+   },
+   "n_params": 5
+  },
+  "state_machine": {
+   "class": "state_machine",
+   "params": {
+    "ev_tau_s": 0.8543183654414541,
+    "bearing_tau_s": 0.21468986242240426,
+    "enter_thr": 0.3760804629338338,
+    "exit_ratio": 0.9154328641367713,
+    "debounce_s": 0.24526058686962626,
+    "debounce_frac": 0.716381369809976,
+    "switch_margin": 0.7421333395155061,
+    "drop_frac": 0.5075721725362106,
+    "timeout_s": 3.0444188563965526,
+    "reject_s": 1.8071325632586808
+   },
+   "config_index": 2,
+   "train_auc": 0.8610119047619047,
+   "rung2": {
+    "2": 0.8610119047619047,
+    "14": 0.8008928571428571,
+    "23": 0.8601190476190477,
+    "61": 0.856547619047619
+   },
+   "n_params": 10
+  }
+ },
+ "provenance": {
+  "git": "c5dca05",
+  "sim_version": "0.1.0",
+  "created": "2026-10-12T15:44:28",
+  "python": "3.12.12",
+  "numpy": "2.5.4",
+  "code_sha256": {
+   "scripts/brain/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "scripts/brain/arbiters.py": "aef56df98dfc7faa9489e40ce6e0e0722fe50964133a3bad635209410cbbf383",
+   "scripts/brain/arbiters_v2.py": "be23db3a21bcdb0b6bf18b8247a11f6f5928cdab189ef701b82d23b5cf368732",
+   "scripts/brain/avoid.py": "08c7686a19ac4309a80f3556cdf9ad34a629c583c7536c0f8b12366ba6303fa0",
+   "scripts/brain/eye.py": "00fa65f82b8677565b50e814270f53ada39b17095c0901d7668cbb17a454b933",
+   "scripts/brain/home.py": "36444e5e9ce3b5bc5038ba6deb4f308913be6ba60c56f353cb1286b940de5ef8",
+   "scripts/brain/mb.py": "c94aada7b8b84793e8d14985cc90e6729322553f859172b00649c28c974a5ac9",
+   "scripts/brain/mb_front.py": "592f2f2895e965749aaad13283e2f5c07a4ed6f21787e47046d4071749f72aa6",
+   "scripts/brain/mind.py": "09aba0091ab2f431863e5c629855324bedfc862d40ece98550b124c82f5b968b",
+   "scripts/brain/pi.py": "0c6fcedf8b5f760150cf6f8d6d63db8098c867c11494ddecf687ade895aef445",
+   "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
+   "scripts/dryden.py": "cc577521940146fd791e45606f0773fc0b67a97679209dfd394cac3d75cbe4c8",
+   "scripts/kt2_five_arms.py": "9486aba32bd90d683e259ae2d864a366c9210d9942023daa7d7733289a5620f3",
+   "scripts/kt3_stubbornness.py": "4cbe02bf31e16728a9bdb4285bed636a72f06fa79d2c8cbbd4dc22eb9f6013e5",
+   "scripts/mission.py": "092077b67a7e034c95c9648e46f434605e031593147129d7ba509dfe032e0f33",
+   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
+   "scripts/quad.py": "78dafc0ca45bcb7d82c3e7d9d04b3269cbea7e8d4b82bc5e1e1a2520b22a4703",
+   "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001",
+   "scripts/run_3d.py": "1e685b29e8ef6e35958d30043ca8eff0a50d55cd3640c1b2ea971324ecec5955",
+   "scripts/run_v2.py": "de9ea10f7bb3e9dabeb3d8b5fb94e0f706731a4a72839870d5d2c2766d406c18",
+   "scripts/scenario.py": "20ad1b26c98d9e585926792b7b7bd9976138fea2fb7e6d7f8d75041bcefdd194",
+   "scripts/stats.py": "da79aa65b49fcf6ef6387768552468012464a10f646e4d2784cbfc72ad486f84",
+   "scripts/world.py": "6943d19790bd9c53d7b4b4b1f1edee3ee9f4d181645dde4e4b9020386a270448"
+  },
+  "seed": [
+   100,
+   101,
+   102,
+   "..."
+  ],
+  "param_source": "results/v2/r2"
+ }
+}
