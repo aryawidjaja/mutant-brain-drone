@@ -10,7 +10,7 @@ Discretisation (identical in app/sim/dryden.js): white noise n_k = N(0,1) * sqrt
 which makes each filter's output variance sigma^2), held over the step; each 1/(1+Ts) stage is the exact
 zero-order-hold update x <- a x + (1-a) in, a = exp(-dt/T); the lead (1+sqrt3 T s)/(1+T s) is
 sqrt3*in + (1-sqrt3)*lag(in). Draw order per step: u, v, w (one normal() each). "none" draws nothing.
-ponytail: u, v, w along world x, y, z (not rotated into the mean-wind direction).
+Simplification: u, v, w along world x, y, z (not rotated into the mean-wind direction).
 """
 import numpy as np
 

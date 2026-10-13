@@ -820,7 +820,7 @@ class Mission:
             done[orig[j]] = {k: v[j] for k, v in o.items()}
         return {k: np.array([done[i][k] for i in range(len(done))]) for k in o}
 
-    # ponytail: per-row state is found by probing two tiny missions (B = 2 and 3) and keeping the attribute paths
+    # Implementation note: per-row state is found by probing two tiny missions (B = 2 and 3) and keeping the attribute paths
     # whose leading dimension follows B; Dryden groups are re-indexed explicitly (their per-axis constants have length 3).
     _ROW_PATHS = {}
 

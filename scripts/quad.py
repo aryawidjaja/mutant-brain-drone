@@ -13,7 +13,7 @@ Quad.step(cmd, wind, dt), in this order (same in JS):
      torques: X-layout thrust moments, rotor drag torque thrust2torque*f, gyroscopic omega x I omega
   3. quaternion renormalised
   4. ground: z < 0 -> z = 0, vz = max(vz, 0), horizontal velocity zeroed (crude friction)
-ponytail: no ground effect, blade flapping, battery sag or motor latency beyond the fitted lag.
+Simplifications: no ground effect, blade flapping, battery sag or motor latency beyond the fitted lag.
 """
 import json
 from pathlib import Path

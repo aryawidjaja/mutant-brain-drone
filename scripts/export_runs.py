@@ -1,4 +1,4 @@
-"""Showcase replays for the app's Results mode, recorded with the Python reference (scripts/mission.py).
+"""Selected replays for the app's Results mode, recorded with the Python reference (scripts/mission.py).
 
 Study 2 (v2 brain, the app's default): SHOW_V2, one replay per condition below, all on the FIRST v2 test seed (2000),
 with the v2 ring (RingGated) and its frozen parameters (results/tuned_v2_params.json, heading from

@@ -1,7 +1,7 @@
 """Seeded PRNG shared bit-for-bit with app/sim/rng.js (mulberry32 + Box-Muller), vectorised over a batch.
 
 Every stochastic stream (wind, sensor noise, world layout) takes its own stream id so that
-Python and JS draw identical numbers in identical order. ponytail: mulberry32 is not
+Python and JS draw identical numbers in identical order. Simplification: mulberry32 is not
 cryptographic and has a 2^32 period per stream; plenty for 300 s missions.
 """
 import numpy as np
