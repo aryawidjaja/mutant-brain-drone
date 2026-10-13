@@ -1,4 +1,4 @@
-"""Export every number the app's Results tab and the web paper (app/guide.js) show into one auditable file.
+"""Export every number the app's Results tab and the README show into one auditable file.
 
   uv run python scripts/export_app_summary.py     # -> app/data/summary.json + app/data/summary.js (window.APP_SUMMARY)
 
@@ -39,6 +39,18 @@ RECOG = {'mb': 'mb', 'pixels': 'pixels', 'colour': 'colour', 'dino_patch': 'dino
          'mb_edge': 'mb_edge', 'pixels_crop': 'pixels_crop', 'mb_crop': 'mb_crop'}
 APP_RECOG = {'mb': 'mb', 'pixels': 'pixels', 'colour_hist': 'colour', 'dinov2': 'dino_patch'}   # app key -> file key
 
+
+
+def cm(h):
+    """Map a commit id recorded before the history rewrite to its current id (results/commit_map.tsv)."""
+    h = (h or '').replace('-dirty', '')
+    p = ROOT / 'results/commit_map.tsv'
+    if p.exists():
+        for line in p.read_text().splitlines()[1:]:
+            old, new = line.split('\t')
+            if h[:7] == old:
+                return new
+    return h
 
 def _clean(x):
     """JSON-safe: numpy -> python, nan -> null, inf -> 'inf'."""
@@ -507,7 +519,7 @@ def build():
     for fn in ['mission_h1.json', 'mission_h3.json']:
         mj = load(fn)
         if mj and 'code_sha256' in mj.get('provenance', {}):
-            c, ok = mj['provenance']['git'].replace('-dirty', ''), True
+            c, ok = cm(mj['provenance']['git']), True
             for path, h in mj['provenance']['code_sha256'].items():
                 try:
                     ok &= hashlib.sha256(subprocess.check_output(['git', 'show', f'{c}:{path}'], cwd=ROOT, stderr=subprocess.DEVNULL)).hexdigest() == h
@@ -676,12 +688,12 @@ def v2_blocks(o):
     import datetime as _dt
     first = min(r.created)
     try:
-        fz = subprocess.check_output(['git', 'log', '-1', '--format=%cI', '6c831c7'], cwd=ROOT, text=True).strip()
+        fz = subprocess.check_output(['git', 'log', '-1', '--format=%cI', cm('6c831c7')], cwd=ROOT, text=True).strip()
         pr = subprocess.check_output(['git', 'log', '--diff-filter=A', '--format=%h %cI', '--', 'results/v2_preregistration.sha256'], cwd=ROOT, text=True).split()
     except Exception:
         fz, pr = None, [None, None]
     o.put('v2.chron.first_row_created', first, f'derived: min of {R}:created (cloud runner clock, UTC)')
-    o.put('v2.chron.freeze_commit', '6c831c7', 'derived: commit that froze results/tuned_v2_params.json (git log)')
+    o.put('v2.chron.freeze_commit', cm('6c831c7'), 'derived: commit that froze results/tuned_v2_params.json (git log)')
     o.put('v2.chron.freeze_commit_time_utc', _dt.datetime.fromisoformat(fz).astimezone(_dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S') if fz else None, 'derived: git log -1 --format=%cI 6c831c7, converted to UTC')
     o.put('v2.chron.prereg_commit', pr[0], 'derived: git log --diff-filter=A -- results/v2_preregistration.sha256 (commit hash)')
     if fz:

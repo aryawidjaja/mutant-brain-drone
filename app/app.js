@@ -1,5 +1,5 @@
 // Mutant brain drone: the workbench. Three modes in one page: Simulator (live, app/worker.js), Results (recorded runs
-// and summary charts), Paper (guide.js into #guide). Classic script so Results and Paper open from file://; three.js is
+// and summary charts), Paper (the paper PDF in #guide). Classic script so Results and Paper open from file://; three.js is
 // loaded with import() through the import map, as in the author's flight-test-the-fly app. Drawing helpers: panels.js, scene3d.js.
 //
 // Data written by the export scripts (each optional; the app shows a labelled mock or banner without it):

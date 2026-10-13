@@ -1,16 +1,16 @@
 <div align="center">
 
-**Stubborn by design: testing, then redesigning, an insect-inspired brain for a simulated drone**
+**Insect-model steering for a simulated search-and-return drone: two pre-registered studies against equal-budget rivals**
 
 Mutaqin Aryawijaya · ORCID [0009-0008-5199-2413](https://orcid.org/0009-0008-5199-2413)
 
-[![Paper](https://img.shields.io/badge/paper-read%20in%20the%20app-1c6fd6?style=flat-square)](#run-the-app)
+[![Paper](https://img.shields.io/badge/paper-PDF-1c6fd6?style=flat-square)](paper/main.pdf)
 [![Python](https://img.shields.io/badge/python-3.12-3776ab?style=flat-square)](pyproject.toml)
 [![License](https://img.shields.io/badge/license-MIT-2b2f35?style=flat-square)](LICENSE)
 
 [Key results](#key-results) · [Run the app](#run-the-app) · [Reproduce](#reproduce) · [Limitations](#limitations) · [Credits](#credits-and-licences) · [Citation](#citation)
 
-<img src="paper/figures/fig1.png" alt="The controller's parts and which insect each comes from, and the 2D stubbornness frontier" width="100%">
+<img src="paper/figures/fig1_system.png" alt="The controller: which parts are reimplemented insect models, which are insect-inspired components and which are engineered" width="100%">
 
 </div>
 
@@ -56,11 +56,11 @@ In plain words, Study 1: in this simulator the insect parts did not beat simple 
 
 In plain words, Study 2: the redesigned brain found the target and landed on the pad in almost every fault-free flight and beat the Study 1 brain where faults corrupted its path integrator (compass, false sun, speed error), but not with dead eye columns, gusts or look-alikes; look-alikes on the target's spot still fooled it more often than not, so its pre-registered goal was not fully met. The improvement came from heading, homing and landing; the insect-inspired versions of those modules did not beat engineered ones on their own terms (a Kalman filter tracked heading better in replays, although the insect heading ring did better in the full mission), and the choice of arbiter barely mattered.
 
-<img src="paper/figures/fig4.png" alt="Stubbornness frontier of the ring hub and its rivals" width="100%">
+<img src="paper/figures/fig5_s2_headline.png" alt="Study 2: full-mission success without faults and at each fault's middle severity, for the Study 2 brain, the other arbiters and the Study 1 brain" width="100%">
 
 ## Run the app
 
-The app has three modes: a live simulator (every scenario knob, the drone's eye, the ring hub's activity, the home vector and a plain-language readout of the brain's state), the recorded results, and the web paper.
+The app has three modes: a live simulator (every scenario knob, the drone's eye, the ring hub's activity, the home vector and a plain-language readout of the brain's state), the recorded results, and the paper (PDF).
 
 ```bash
 npx serve app        # then open the printed URL; the Results and Paper modes also open from file://
@@ -103,7 +103,8 @@ uv run python scripts/mission_diagnostics.py                # post hoc diagnosti
 
 # paper and summary
 uv run python scripts/export_app_summary.py
-node scripts/export_paper.mjs                              # needs Chrome, pandoc, tectonic, rsvg-convert, poppler
+uv run python scripts/export_paper.py                       # paper numbers and figures from results/ (self-check)
+(cd paper && tectonic -X compile main.tex)                  # build paper/main.pdf, then rerun export_paper.py to copy it into app/
 ```
 
 The 3D stages take tens of CPU-hours. They were sharded on free GitHub Actions runners with `.github/workflows/sim.yml` (`gh workflow run sim -f stage=test -f nshards=64`; results pulled with `gh run download` into `results/3d/`, which is not tracked) and reduced locally into `results/runs/` and the `results/mission_*.json` summaries. Study 2's tuning and test stages (about 127,500 test missions) ran on Kaggle CPU kernels from committed code with `scripts/kaggle_launch.py` (the Kaggle CLI's own credentials, used in place). Seeds: Study 1 training 0–99 and test 1000–1299; Study 2 training 100–199, mission test 2000–2299, 2D test 1300–1599, recognition test layouts 1010–1019. Tuning used training seeds only.
@@ -114,8 +115,8 @@ The 3D stages take tens of CPU-hours. They were sharded on free GitHub Actions r
 scripts/        every analysis step: vehicle (quad.py, dryden.py), brain (brain/), mission (mission.py, world.py, scenario.py),
                 kill tests (kt*.py), recognition (recog_*.py), 3D runner (run_3d.py), statistics, exports
 results/        every number in the paper traces to a file here (per-unit 3D runs are consolidated in results/runs/)
-app/            the static app: index.html, the JS simulator (app/sim/), the web paper (guide.js), data bundles
-paper/          generated submission files (PDF, LaTeX, Word, BibTeX, arXiv zip)
+app/            the static app: index.html, the JS simulator (app/sim/), the paper PDF, data bundles
+paper/          the paper: main.tex, main.pdf, figures, numbers.tex (generated) and their sources
 schema/         the scenario format shared by Python and JavaScript
 ```
 
@@ -146,9 +147,9 @@ AI coding and writing assistants were used for implementation and drafting; the 
 ## Citation
 
 ```bibtex
-@misc{aryawijaya2026stubborn,
+@misc{aryawijaya2026insectdrone,
   author = {Aryawijaya, Mutaqin},
-  title  = {Stubborn by design: testing, then redesigning, an insect-inspired brain for a simulated drone},
+  title  = {Insect-model steering for a simulated search-and-return drone: two pre-registered studies against equal-budget rivals},
   year   = {2026},
   url    = {https://github.com/aryawidjaja/mutant-brain-drone}
 }

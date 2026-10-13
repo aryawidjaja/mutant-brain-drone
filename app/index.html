@@ -214,7 +214,11 @@ body { background: var(--bg); color: var(--ink); font: 13px/1.4 var(--sans); -we
 .wb.m-sim .only-res, .wb.m-results .only-sim { display: none !important; }
 body.m-paper .wb { display: none; }
 body:not(.m-paper) #guide { display: none; }
-#guide.ph-paper { max-width: 70ch; margin: 0 auto; padding: 48px 16px; color: var(--ink); }
+#guide.paperview { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: var(--bg); }
+#guide .pvbar { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
+#guide .pvbar .grow { flex: 1; } #guide .pvbar .btn { border: 1px solid var(--line2); background: var(--panel2); color: var(--ink); border-radius: 3px; height: 26px; padding: 0 9px; display: inline-flex; align-items: center; font-size: 12px; text-decoration: none; }
+#guide iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+#guide .pvfall { margin: 0; padding: 6px 10px; font-size: 12px; color: var(--muted); } #guide .pvfall a { color: inherit; }
 .papernav { position: sticky; top: 0; z-index: 4; display: none; align-items: center; gap: 10px; padding: 6px 10px; background: var(--panel); border-bottom: 1px solid var(--line); }
 .papernav .btn { color: var(--ink); font: 12px var(--sans); }
 .papernav .ph { font-size: 11px; font-weight: 600; font-variant-caps: all-small-caps; letter-spacing: .06em; color: var(--muted); }
@@ -260,7 +264,7 @@ footer.credits a { color: inherit; }
     <span class="seg2" id="modes" role="group" aria-label="Mode">
       <button type="button" data-mode="sim" aria-pressed="true" title="Live simulator, runs in your browser (exploration only)">Simulator</button>
       <button type="button" data-mode="results" aria-pressed="false" title="The study's recorded runs and summary numbers">Results</button>
-      <button type="button" data-mode="paper" aria-pressed="false" title="The web paper">Paper</button>
+      <button type="button" data-mode="paper" aria-pressed="false" title="The paper (PDF)">Paper</button>
     </span>
     <span class="grow"></span>
     <button id="copy" class="btn only-sim" type="button" title="Copy the current scenario as JSON (the URL also holds it)">Copy scenario</button>
@@ -364,7 +368,7 @@ footer.credits a { color: inherit; }
   </div>
 </div>
 
-<section id="guide" class="ph-paper"><article><h1>Paper</h1><p>The web paper (<code>guide.js</code>) is not included in this copy of the app. The paper is in the repository's <code>paper/</code> folder.</p></article></section>
+<section id="guide" class="paperview"><div class="pvbar"><span class="ph">Paper</span><span class="grow"></span><a class="btn" href="paper.pdf" target="_blank" rel="noopener">Open in a new tab</a><a class="btn" href="paper.pdf" download>Download PDF</a></div><iframe src="paper.pdf#view=FitH" title="Paper (PDF)"></iframe><p class="pvfall">If the paper does not show here, <a href="paper.pdf">open the PDF</a>.</p></section>
 
 <footer class="credits">
   Vehicle: MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> (MIT) via MuJoCo (Apache-2.0). Brain models: Ardin et al. 2016 (mushroom body), Stone et al. 2017 (path integrator, reimplemented), Sun, Yue &amp; Mangan 2020 (ring attractor). 3D: three.js (MIT) with its Sky addon; drone meshes from the same Menagerie model; ground, bark, rock, wall and fabric textures from ambientCG (CC0). Type: IBM Plex (OFL).
@@ -380,6 +384,5 @@ footer.credits a { color: inherit; }
 <script src="scene3d.js"></script>
 <script src="hud.js"></script>
 <script src="app.js"></script>
-<script src="guide.js" defer onerror="this.remove()"></script>
 </body>
 </html>

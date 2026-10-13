@@ -16,3 +16,10 @@ results/recog_renders/grey32.npz
 results/3d/
 results/recog_renders/v2_cache/
 results/v2/
+
+# LaTeX build files
+paper/*.aux
+paper/*.log
+paper/*.blg
+paper/*.bbl
+paper/*.out
