@@ -1,0 +1,867 @@
+{
+ "SoneDstar": {
+  "source": "results/kt1.json:primary/D_star_deg",
+  "value": 62.888843868145926,
+  "text": "62.9"
+ },
+ "SoneDstarFine": {
+  "source": "results/kt1.json:posthoc_fine_grid/bracket_D_star_deg/0",
+  "value": 48.943102024947216,
+  "text": "48.9"
+ },
+ "SoneDstarExclLo": {
+  "source": "results/kt1.json:posthoc_fine_grid/bracket_D_star_excl_ratio1_deg/0",
+  "value": 5.442655896068669,
+  "text": "5.4"
+ },
+ "SoneDstarExclHi": {
+  "source": "results/kt1.json:posthoc_fine_grid/bracket_D_star_excl_ratio1_deg/1",
+  "value": 6.912245949653578,
+  "text": "6.9"
+ },
+ "SoneKTtwoDiff": {
+  "source": "results/kt2.json:ring_minus_best_other/est",
+  "value": -0.004960317460317443,
+  "text": "\\ensuremath{-}0.005"
+ },
+ "SoneKTtwoDiffLo": {
+  "source": "results/kt2.json:ring_minus_best_other/lo",
+  "value": -0.011964781746032004,
+  "text": "\\ensuremath{-}0.012"
+ },
+ "SoneKTtwoDiffHi": {
+  "source": "results/kt2.json:ring_minus_best_other/hi",
+  "value": -0.002619047619047632,
+  "text": "\\ensuremath{-}0.003"
+ },
+ "SoneKTtwoPermP": {
+  "source": "results/kt2.json:posthoc_permutation/p_two_sided",
+  "value": 0.382123575284943,
+  "text": "\\ensuremath{=}\\,0.38"
+ },
+ "SoneKTtwoGain": {
+  "source": "results/kt2.json:tuned_params/ring/ring_gain",
+  "value": 0.021930352898024252,
+  "text": "0.022"
+ },
+ "SoneHoldGzero": {
+  "source": "results/kt3.json:points/ring/0/hold_mean_s",
+  "value": 0.42460000000000014,
+  "text": "0.42"
+ },
+ "SoneRelGzero": {
+  "source": "results/kt3.json:points/ring/0/release_mean_s",
+  "value": 1.215212121212121,
+  "text": "1.22"
+ },
+ "SoneHoldMax": {
+  "source": "derived: max over ring_gain of results/kt3.json:points/ring/*/hold_mean_s",
+  "value": 9.514,
+  "text": "9.51"
+ },
+ "SoneCapGain": {
+  "source": "derived: smallest ring_gain in results/kt3.json:points/ring with release_mean_s at the 20 s cap",
+  "value": 0.7,
+  "text": "0.7"
+ },
+ "SoneDaccGone": {
+  "source": "results/kt3.json:ring_vs_rival/accumulator/1/delta_s",
+  "value": -1.868915164085621,
+  "text": "\\ensuremath{-}1.87"
+ },
+ "SoneDaccGoneLo": {
+  "source": "results/kt3.json:ring_vs_rival/accumulator/1/lo",
+  "value": -1.9071179785189558,
+  "text": "\\ensuremath{-}1.91"
+ },
+ "SoneDaccGoneHi": {
+  "source": "results/kt3.json:ring_vs_rival/accumulator/1/hi",
+  "value": -1.8312691055079298,
+  "text": "\\ensuremath{-}1.83"
+ },
+ "SoneDaccMin": {
+  "source": "derived: min over gains of results/kt3.json:ring_vs_rival/accumulator/*/delta_s",
+  "value": -18.73880667933505,
+  "text": "\\ensuremath{-}18.7"
+ },
+ "SoneSMUnclamped": {
+  "source": "results/kt3.json:posthoc_unclamped/points/state_machine/0/release_signed_mean_s",
+  "value": -0.7215212121212125,
+  "text": "\\ensuremath{-}0.72"
+ },
+ "SoneSMRatio": {
+  "source": "results/kt3.json:posthoc_unclamped/points/state_machine/0/ratio_at_switch_mean",
+  "value": 0.9900230503779365,
+  "text": "0.99"
+ },
+ "SoneEnvHold": {
+  "source": "results/kt3_envelope.json:best_ring_vs_rival/random64/accumulator|pareto_interp/best_ring_hold_s",
+  "value": 9.926400000000001,
+  "text": "9.93"
+ },
+ "SoneEnvRel": {
+  "source": "results/kt3_envelope.json:best_ring_vs_rival/random64/accumulator|pareto_interp/best_ring_release_s",
+  "value": 3.1029454545454542,
+  "text": "3.10"
+ },
+ "SoneEnvDacc": {
+  "source": "results/kt3_envelope.json:best_ring_vs_rival/random64/accumulator|pareto_interp/delta_s",
+  "value": -1.194511721889012,
+  "text": "\\ensuremath{-}1.19"
+ },
+ "SoneEnvDaccLo": {
+  "source": "results/kt3_envelope.json:best_ring_vs_rival/random64/accumulator|pareto_interp/lo",
+  "value": -1.2352577731669,
+  "text": "\\ensuremath{-}1.24"
+ },
+ "SoneEnvDaccHi": {
+  "source": "results/kt3_envelope.json:best_ring_vs_rival/random64/accumulator|pareto_interp/hi",
+  "value": -1.1504076849130498,
+  "text": "\\ensuremath{-}1.15"
+ },
+ "SoneEnvDaccPooled": {
+  "source": "results/kt3_envelope.json:best_ring_vs_rival/random64_plus_kt3_sweep/accumulator|pareto_interp/delta_s",
+  "value": -1.478461939385213,
+  "text": "\\ensuremath{-}1.48"
+ },
+ "SoneEnvHighGain": {
+  "source": "results/kt3_envelope.json:ring_high_gain/n_configs_gain_ge_0.7",
+  "value": 53,
+  "text": "53"
+ },
+ "SoneAUCRing": {
+  "source": "results/mission_h1.json:aggregate_auc/ring/mean",
+  "value": 0.6225198412698414,
+  "text": "0.623"
+ },
+ "SoneAUCSM": {
+  "source": "results/mission_h1.json:aggregate_auc/state_machine/mean",
+  "value": 0.6313293650793651,
+  "text": "0.631"
+ },
+ "SoneAUCAcc": {
+  "source": "results/mission_h1.json:aggregate_auc/accumulator/mean",
+  "value": 0.6296428571428572,
+  "text": "0.630"
+ },
+ "SoneAUCVote": {
+  "source": "results/mission_h1.json:aggregate_auc/vote/mean",
+  "value": 0.6256944444444446,
+  "text": "0.626"
+ },
+ "SoneAUCSum": {
+  "source": "results/mission_h1.json:aggregate_auc/sum/mean",
+  "value": 0.6225793650793652,
+  "text": "0.623"
+ },
+ "SoneAUCStatic": {
+  "source": "results/mission_h1.json:aggregate_auc/ring_static/mean",
+  "value": 0.6241468253968255,
+  "text": "0.624"
+ },
+ "SoneAUCRingLo": {
+  "source": "results/mission_h1.json:aggregate_auc/ring/lo",
+  "value": 0.6123412698412699,
+  "text": "0.612"
+ },
+ "SoneAUCRingHi": {
+  "source": "results/mission_h1.json:aggregate_auc/ring/hi",
+  "value": 0.6323015873015874,
+  "text": "0.632"
+ },
+ "SoneHoneDiff": {
+  "source": "results/mission_h1.json:ring_minus_best_other/est",
+  "value": -0.008809523809523712,
+  "text": "\\ensuremath{-}0.0088"
+ },
+ "SoneHoneDiffLo": {
+  "source": "results/mission_h1.json:ring_minus_best_other/lo",
+  "value": -0.01567460317460312,
+  "text": "\\ensuremath{-}0.0157"
+ },
+ "SoneHoneDiffHi": {
+  "source": "results/mission_h1.json:ring_minus_best_other/hi",
+  "value": -0.002499503968253926,
+  "text": "\\ensuremath{-}0.0025"
+ },
+ "SoneHonePermP": {
+  "source": "results/mission_h1.json:permutation_test/p_two_sided",
+  "value": 0.003199360127974405,
+  "text": "\\ensuremath{=}\\,0.003"
+ },
+ "SoneHoneSumP": {
+  "source": "results/mission_diag.json:h1/each_arm_minus_best_other_permutation/sum/p_two_sided",
+  "value": 0.003199360127974405,
+  "text": "\\ensuremath{=}\\,0.003"
+ },
+ "SoneHoneStaticP": {
+  "source": "results/mission_diag.json:h1/each_arm_minus_best_other_permutation/ring_static/p_two_sided",
+  "value": 0.027194561087782444,
+  "text": "\\ensuremath{=}\\,0.027"
+ },
+ "SoneNoDecoyLo": {
+  "source": "derived: min over arms of results/mission_diag.json:h1/aggregate_auc_without_decoy_fault",
+  "value": 0.6428703703703704,
+  "text": "0.643"
+ },
+ "SoneNoDecoyHi": {
+  "source": "derived: max over arms of results/mission_diag.json:h1/aggregate_auc_without_decoy_fault",
+  "value": 0.6451851851851852,
+  "text": "0.645"
+ },
+ "SoneDecoyRing": {
+  "source": "results/mission_h1.json:per_fault_auc/ring/decoy",
+  "value": 0.49083333333333334,
+  "text": "0.491"
+ },
+ "SoneDecoySM": {
+  "source": "results/mission_h1.json:per_fault_auc/state_machine/decoy",
+  "value": 0.5525,
+  "text": "0.552"
+ },
+ "SoneFalseSun": {
+  "source": "results/mission_h1.json:per_fault_auc/ring/false_sun",
+  "value": 0.12291666666666666,
+  "text": "0.12"
+ },
+ "SoneSpeed": {
+  "source": "results/mission_h1.json:per_fault_auc/ring/speed_scale",
+  "value": 0.35875,
+  "text": "0.36"
+ },
+ "SoneCompass": {
+  "source": "results/mission_h1.json:per_fault_auc/ring/compass_half",
+  "value": 0.49166666666666664,
+  "text": "0.49"
+ },
+ "SoneThreeDGain": {
+  "source": "results/mission_h1.json:tuned_params/ring/ring_gain",
+  "value": 0.021930352898024252,
+  "text": "0.022"
+ },
+ "SoneNoFaultRing": {
+  "source": "results/mission_h1.json:success_by_condition/ring/none:None",
+  "value": 0.9833333333333333,
+  "text": "0.98"
+ },
+ "SoneNmissions": {
+  "source": "derived: rows of results/runs/mission_test.parquet",
+  "value": 45000,
+  "text": "45{,}000"
+ },
+ "SoneHthreePeak": {
+  "source": "derived: max of results/mission_h3.json:points/ring/*/hold_mean_s",
+  "value": 3.253825503355704,
+  "text": "3.25"
+ },
+ "SoneHthreePeakGain": {
+  "source": "derived: ring_gain at the max of results/mission_h3.json:points/ring/*/hold_mean_s",
+  "value": 0.3,
+  "text": "0.3"
+ },
+ "SoneHthreeCeil": {
+  "source": "derived: max over every arm and sweep point of results/mission_h3.json:points/*/*/hold_mean_s",
+  "value": 3.8225000000000002,
+  "text": "3.82"
+ },
+ "SoneUsableTwoD": {
+  "source": "derived: count of results/kt2_tuned_params.json:arms/ring/rung1_auc > 0.5",
+  "value": 13,
+  "text": "13"
+ },
+ "SoneUsableThreeD": {
+  "source": "derived: count of results/tune3d_r1.json:scores/ring/* > 0",
+  "value": 24,
+  "text": "24"
+ },
+ "SoneHthreeAccGzero": {
+  "source": "results/mission_h3.json:ring_vs_rival/accumulator/0/delta_s",
+  "value": 1.0598807212672057,
+  "text": "1.06"
+ },
+ "SoneHthreeAccGzeroLo": {
+  "source": "results/mission_h3.json:ring_vs_rival/accumulator/0/lo",
+  "value": 0.4351995807994021,
+  "text": "0.44"
+ },
+ "SoneHthreeAccGzeroHi": {
+  "source": "results/mission_h3.json:ring_vs_rival/accumulator/0/hi",
+  "value": 1.7065522642940392,
+  "text": "1.71"
+ },
+ "SoneHthreeStopGone": {
+  "source": "results/mission_diag.json:h3/ring/10/occlusion_target_stop_rate",
+  "value": 0.0,
+  "text": "0.00"
+ },
+ "SoneHthreeLimitGone": {
+  "source": "results/mission_diag.json:h3/ring/10/occlusion_time_limit_rate",
+  "value": 0.99,
+  "text": "0.99"
+ },
+ "SoneMB": {
+  "source": "results/recog_auroc.json:recognisers/mb/lf_off/auroc/0",
+  "value": 0.502,
+  "text": "0.502"
+ },
+ "SoneMBLo": {
+  "source": "results/recog_auroc.json:recognisers/mb/lf_off/ci95_lo/0",
+  "value": 0.4943,
+  "text": "0.494"
+ },
+ "SoneMBHi": {
+  "source": "results/recog_auroc.json:recognisers/mb/lf_off/ci95_hi/0",
+  "value": 0.5103,
+  "text": "0.510"
+ },
+ "SonePix": {
+  "source": "results/recog_auroc.json:recognisers/pixels/lf_off/auroc/0",
+  "value": 0.5057,
+  "text": "0.506"
+ },
+ "SoneDinoOff": {
+  "source": "results/recog_auroc.json:recognisers/dino_patch/lf_off/auroc/0",
+  "value": 0.7612,
+  "text": "0.761"
+ },
+ "SoneDinoOn": {
+  "source": "results/recog_auroc.json:recognisers/dino_patch/lf_on/auroc/0",
+  "value": 0.7987,
+  "text": "0.799"
+ },
+ "StwoHeadRing": {
+  "source": "results/kt5.json:aggregate_fault_set/rms_deg/ring/est",
+  "value": 3.638216072208032,
+  "text": "3.64"
+ },
+ "StwoHeadRingLo": {
+  "source": "results/kt5.json:aggregate_fault_set/rms_deg/ring/lo",
+  "value": 3.3814424365074163,
+  "text": "3.38"
+ },
+ "StwoHeadRingHi": {
+  "source": "results/kt5.json:aggregate_fault_set/rms_deg/ring/hi",
+  "value": 3.9105071442432076,
+  "text": "3.91"
+ },
+ "StwoHeadKF": {
+  "source": "results/kt5.json:aggregate_fault_set/rms_deg/kf/est",
+  "value": 0.8799096649219283,
+  "text": "0.88"
+ },
+ "StwoHeadCF": {
+  "source": "results/kt5.json:aggregate_fault_set/rms_deg/cf/est",
+  "value": 4.793999823810584,
+  "text": "4.79"
+ },
+ "StwoHeadVone": {
+  "source": "results/kt5.json:aggregate_fault_set/rms_deg/v1/est",
+  "value": 57.59611156752501,
+  "text": "57.6"
+ },
+ "StwoHeadKFdiff": {
+  "source": "results/kt5.json:aggregate_fault_set/delta_vs_ring_deg/kf/est",
+  "value": -2.758306407286104,
+  "text": "\\ensuremath{-}2.76"
+ },
+ "StwoHeadKFdiffLo": {
+  "source": "results/kt5.json:aggregate_fault_set/delta_vs_ring_deg/kf/lo",
+  "value": -3.0292863208050003,
+  "text": "\\ensuremath{-}3.03"
+ },
+ "StwoHeadKFdiffHi": {
+  "source": "results/kt5.json:aggregate_fault_set/delta_vs_ring_deg/kf/hi",
+  "value": -2.504231084027756,
+  "text": "\\ensuremath{-}2.50"
+ },
+ "StwoCompassRing": {
+  "source": "results/kt5.json:per_condition/compass_half/rms_deg/ring/est",
+  "value": 9.343071940371807,
+  "text": "9.34"
+ },
+ "StwoCompassCF": {
+  "source": "results/kt5.json:per_condition/compass_half/rms_deg/cf/est",
+  "value": 6.274102454571558,
+  "text": "6.27"
+ },
+ "StwoCompassKF": {
+  "source": "results/kt5.json:per_condition/compass_half/rms_deg/kf/est",
+  "value": 1.0471586494271405,
+  "text": "1.05"
+ },
+ "StwoKTsevenGated": {
+  "source": "results/kt7.json:kt2_world/aggregate_auc/ring_gated/mean",
+  "value": 0.8240674603174604,
+  "text": "0.824"
+ },
+ "StwoKTsevenVote": {
+  "source": "results/kt7.json:kt2_world/aggregate_auc/vote_vg/mean",
+  "value": 0.8647619047619046,
+  "text": "0.865"
+ },
+ "StwoKTsevenP": {
+  "source": "results/kt7.json:kt2_world/ring_gated_minus_best_other_permutation/p_two_sided",
+  "value": 0.0001999600079984003,
+  "text": "\\ensuremath{<}\\,0.001"
+ },
+ "StwoSMtimeOff": {
+  "source": "results/kt7.json:premature_switch_noninferiority/rival_tuned_time_off_s/state_machine",
+  "value": 0.015466666666666674,
+  "text": "0.015"
+ },
+ "StwoTimeOffLo": {
+  "source": "derived: min over ring_gain <= 0.7 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est",
+  "value": 1.463333333333334,
+  "text": "1.5"
+ },
+ "StwoTimeOffHi": {
+  "source": "derived: max over ring_gain <= 0.7 of the same",
+  "value": 4.933199999999982,
+  "text": "4.9"
+ },
+ "StwoFront": {
+  "source": "results/recog_v2_gate.json:auroc_0deg",
+  "value": 0.6865,
+  "text": "0.686"
+ },
+ "StwoFrontLo": {
+  "source": "results/recog_v2_gate.json:auroc_0deg_ci95/0",
+  "value": 0.6551,
+  "text": "0.655"
+ },
+ "StwoFrontHi": {
+  "source": "results/recog_v2_gate.json:auroc_0deg_ci95/1",
+  "value": 0.7204,
+  "text": "0.720"
+ },
+ "StwoMargin": {
+  "source": "results/recog_v2_gate.json:margin_over_pixels_0deg",
+  "value": 0.1846,
+  "text": "0.185"
+ },
+ "StwoMarginLo": {
+  "source": "results/recog_v2_gate.json:margin_ci95/0",
+  "value": 0.1502,
+  "text": "0.150"
+ },
+ "StwoMarginHi": {
+  "source": "results/recog_v2_gate.json:margin_ci95/1",
+  "value": 0.2186,
+  "text": "0.219"
+ },
+ "StwoNN": {
+  "source": "results/recog_v2_auroc.json:arms/nn_front/ms/auroc/0",
+  "value": 0.7325,
+  "text": "0.733"
+ },
+ "StwoDino": {
+  "source": "results/recog_v2_auroc.json:arms/dino_patch/ms/auroc/0",
+  "value": 0.797,
+  "text": "0.797"
+ },
+ "StwoMBvone": {
+  "source": "results/recog_v2_auroc.json:arms/mb_v1/lf13/auroc/0",
+  "value": 0.5007,
+  "text": "0.501"
+ },
+ "StwoFrontNinety": {
+  "source": "results/recog_v2_auroc.json:arms/mb_front/ms/auroc/6",
+  "value": 0.3227,
+  "text": "0.32"
+ },
+ "StwoMSvsGoal": {
+  "source": "results/recog_v2_auroc.json:paired_differences/mb_front_ms_minus_mb_front_goal/by_theta/0",
+  "value": -0.0191,
+  "text": "\\ensuremath{-}0.019"
+ },
+ "StwoMSvsGoalLo": {
+  "source": "results/recog_v2_auroc.json:paired_differences/mb_front_ms_minus_mb_front_goal/ci95_lo/0",
+  "value": -0.0593,
+  "text": "\\ensuremath{-}0.059"
+ },
+ "StwoMSvsGoalHi": {
+  "source": "results/recog_v2_auroc.json:paired_differences/mb_front_ms_minus_mb_front_goal/ci95_hi/0",
+  "value": 0.0243,
+  "text": "0.024"
+ },
+ "Nseeds": {
+  "source": "results/mission_v2.json:n_seeds",
+  "value": 300,
+  "text": "300"
+ },
+ "StwoNmissions": {
+  "source": "derived: rows of results/runs/mission_v2_test.parquet",
+  "value": 127500,
+  "text": "127{,}500"
+ },
+ "StwoNarms": {
+  "source": "derived: len(results/mission_v2.json:arms)",
+  "value": 17,
+  "text": "17"
+ },
+ "StwoNoFault": {
+  "source": "results/mission_v2.json:H9_i/success",
+  "value": 0.99,
+  "text": "0.990"
+ },
+ "StwoNoFaultLo": {
+  "source": "results/mission_v2.json:H9_i/wilson95/0",
+  "value": 0.9710159953649371,
+  "text": "0.971"
+ },
+ "StwoNoFaultHi": {
+  "source": "results/mission_v2.json:H9_i/wilson95/1",
+  "value": 0.9965934432372818,
+  "text": "0.997"
+ },
+ "StwoAUC": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring/mean",
+  "value": 0.851984126984127,
+  "text": "0.852"
+ },
+ "StwoAUCLo": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring/lo",
+  "value": 0.8400590277777777,
+  "text": "0.840"
+ },
+ "StwoAUCHi": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring/hi",
+  "value": 0.8629965277777777,
+  "text": "0.863"
+ },
+ "StwoAUCvone": {
+  "source": "results/mission_v2.json:aggregate_auc/v1/mean",
+  "value": 0.008730158730158729,
+  "text": "0.009"
+ },
+ "StwoDiffVone": {
+  "source": "results/mission_v2.json:H9_ii/diff/est",
+  "value": 0.8432539682539681,
+  "text": "0.843"
+ },
+ "StwoDiffVoneLo": {
+  "source": "results/mission_v2.json:H9_ii/diff/lo",
+  "value": 0.8310709325396826,
+  "text": "0.831"
+ },
+ "StwoDiffVoneHi": {
+  "source": "results/mission_v2.json:H9_ii/diff/hi",
+  "value": 0.8547420634920635,
+  "text": "0.855"
+ },
+ "StwoVoneOwn": {
+  "source": "results/mission_v2.json:H9_ii/secondary_v1_own_definition/auc_v1_own",
+  "value": 0.6267857142857143,
+  "text": "0.627"
+ },
+ "StwoDiffOwn": {
+  "source": "results/mission_v2.json:H9_ii/secondary_v1_own_definition/diff/est",
+  "value": 0.22519841269841265,
+  "text": "0.225"
+ },
+ "StwoDiffOwnLo": {
+  "source": "results/mission_v2.json:H9_ii/secondary_v1_own_definition/diff/lo",
+  "value": 0.21170585317460314,
+  "text": "0.212"
+ },
+ "StwoDiffOwnHi": {
+  "source": "results/mission_v2.json:H9_ii/secondary_v1_own_definition/diff/hi",
+  "value": 0.23859176587301584,
+  "text": "0.239"
+ },
+ "StwoMidOcc": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/occlusion/success",
+  "value": 0.9466666666666667,
+  "text": "0.95"
+ },
+ "StwoMidDecoy": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/decoy/success",
+  "value": 0.3933333333333333,
+  "text": "0.39"
+ },
+ "StwoMidCompass": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/compass_half/success",
+  "value": 0.86,
+  "text": "0.86"
+ },
+ "StwoMidEye": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/eye_columns/success",
+  "value": 0.8066666666666666,
+  "text": "0.81"
+ },
+ "StwoMidSun": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/false_sun/success",
+  "value": 0.98,
+  "text": "0.98"
+ },
+ "StwoMidSpeed": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/speed_scale/success",
+  "value": 0.9833333333333333,
+  "text": "0.98"
+ },
+ "StwoMidGust": {
+  "source": "results/mission_v2.json:H9_iii/per_fault/gust/success",
+  "value": 0.7133333333333334,
+  "text": "0.71"
+ },
+ "StwoMidMin": {
+  "source": "derived: min over faults other than decoy of results/mission_v2.json:H9_iii/per_fault/*/success",
+  "value": 0.7133333333333334,
+  "text": "0.71"
+ },
+ "StwoDecoyLo": {
+  "source": "derived: min over decoy levels of results/mission_v2.json:success_by_condition/v2_ring/decoy:*",
+  "value": 0.3433333333333333,
+  "text": "0.34"
+ },
+ "StwoDecoyHi": {
+  "source": "derived: max over decoy levels of the same",
+  "value": 0.4,
+  "text": "0.40"
+ },
+ "StwoAblLanding": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_landing/est",
+  "value": 0.8488888888888888,
+  "text": "0.849"
+ },
+ "StwoAblLandingLo": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_landing/lo",
+  "value": 0.836983630952381,
+  "text": "0.837"
+ },
+ "StwoAblLandingHi": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_landing/hi",
+  "value": 0.8599801587301587,
+  "text": "0.860"
+ },
+ "StwoAblHome": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_home/est",
+  "value": 0.6453373015873016,
+  "text": "0.645"
+ },
+ "StwoAblHomeLo": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_home/lo",
+  "value": 0.621904761904762,
+  "text": "0.622"
+ },
+ "StwoAblHomeHi": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_home/hi",
+  "value": 0.6687301587301586,
+  "text": "0.669"
+ },
+ "StwoAblHeading": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_heading/est",
+  "value": 0.10992063492063492,
+  "text": "0.110"
+ },
+ "StwoAblHeadingLo": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_heading/lo",
+  "value": 0.10049553571428571,
+  "text": "0.100"
+ },
+ "StwoAblHeadingHi": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_heading/hi",
+  "value": 0.11839285714285713,
+  "text": "0.118"
+ },
+ "StwoAblFront": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_front/est",
+  "value": 0.029642857142857134,
+  "text": "0.030"
+ },
+ "StwoAblFrontLo": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_front/lo",
+  "value": 0.01865029761904762,
+  "text": "0.019"
+ },
+ "StwoAblFrontHi": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_front/hi",
+  "value": 0.04012003968253967,
+  "text": "0.040"
+ },
+ "StwoAblGated": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_gated_arbiter/est",
+  "value": 0.02005952380952381,
+  "text": "0.020"
+ },
+ "StwoAblGatedLo": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_gated_arbiter/lo",
+  "value": 0.01,
+  "text": "0.010"
+ },
+ "StwoAblGatedHi": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_gated_arbiter/hi",
+  "value": 0.029543650793650792,
+  "text": "0.030"
+ },
+ "StwoAblInspect": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_inspect/est",
+  "value": -0.004365079365079366,
+  "text": "\\ensuremath{-}0.004"
+ },
+ "StwoAblInspectLo": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_inspect/lo",
+  "value": -0.011527777777777777,
+  "text": "\\ensuremath{-}0.012"
+ },
+ "StwoAblInspectHi": {
+  "source": "results/mission_v2.json:ablations_v2_ring_minus_arm/v2_ring_minus_inspect/hi",
+  "value": 0.0024206349206349178,
+  "text": "0.002"
+ },
+ "StwoMinusHomeAUC": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring_minus_home/mean",
+  "value": 0.20664682539682538,
+  "text": "0.207"
+ },
+ "StwoMinusHeadingAUC": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring_minus_heading/mean",
+  "value": 0.742063492063492,
+  "text": "0.742"
+ },
+ "StwoKF": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring_kf/mean",
+  "value": 0.8053571428571429,
+  "text": "0.805"
+ },
+ "StwoRingMinusKF": {
+  "source": "derived: stats.paired_diff(per-seed AUC v2_ring, v2_ring_kf)[est] from results/runs/mission_v2_test.parquet (10,000, seed 0)",
+  "value": 0.04662698412698412,
+  "text": "0.047"
+ },
+ "StwoRingMinusKFLo": {
+  "source": "derived: stats.paired_diff(per-seed AUC v2_ring, v2_ring_kf)[lo] from results/runs/mission_v2_test.parquet (10,000, seed 0)",
+  "value": 0.032023809523809524,
+  "text": "0.032"
+ },
+ "StwoRingMinusKFHi": {
+  "source": "derived: stats.paired_diff(per-seed AUC v2_ring, v2_ring_kf)[hi] from results/runs/mission_v2_test.parquet (10,000, seed 0)",
+  "value": 0.061785714285714284,
+  "text": "0.062"
+ },
+ "StwoPermP": {
+  "source": "results/mission_v2.json:v2_ring_vs_rivals/permutation_test/p_two_sided",
+  "value": 0.9038192361527695,
+  "text": "\\ensuremath{=}\\,0.90"
+ },
+ "StwoVsVote": {
+  "source": "results/mission_v2.json:v2_ring_vs_rivals/pairwise/v2_vote/est",
+  "value": 0.0208531746031746,
+  "text": "0.021"
+ },
+ "StwoVsVoteP": {
+  "source": "results/mission_v2.json:v2_ring_vs_rivals/pairwise/v2_vote/p_holm",
+  "value": 0.0,
+  "text": "\\ensuremath{<}\\,0.001"
+ },
+ "StwoAUCsm": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_state_machine/mean",
+  "value": 0.8560515873015871,
+  "text": "0.856"
+ },
+ "StwoRivalLo": {
+  "source": "derived: min of results/mission_v2.json:aggregate_auc/v2_{ring_static,vote,sum,accumulator,state_machine}/mean",
+  "value": 0.8311309523809524,
+  "text": "0.831"
+ },
+ "StwoRivalHi": {
+  "source": "derived: max of the same",
+  "value": 0.8560515873015871,
+  "text": "0.856"
+ },
+ "StwoTunedGain": {
+  "source": "results/tuned_v2_params.json:arms/ring/params/ring_gain",
+  "value": 0.6862567466828404,
+  "text": "0.69"
+ },
+ "StwoLFzero": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring_lf0/mean",
+  "value": 0.0,
+  "text": "0.000"
+ },
+ "StwoLFzeroStops": {
+  "source": "derived: target stops in no-fault v2_ring_lf0 rows of results/runs/mission_v2_test.parquet",
+  "value": 0,
+  "text": "0"
+ },
+ "StwoLFzeroColl": {
+  "source": "results/mission_v2.json:collision_rate/v2_ring_lf0",
+  "value": 0.34213333333333334,
+  "text": "0.34"
+ },
+ "StwoNoTip": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring_no_tip/mean",
+  "value": 0.7539087301587302,
+  "text": "0.754"
+ },
+ "StwoNoTipNoFault": {
+  "source": "results/mission_v2.json:success_by_condition/v2_ring_no_tip/none:None",
+  "value": 0.8866666666666667,
+  "text": "0.89"
+ },
+ "StwoPoorTip": {
+  "source": "results/mission_v2.json:aggregate_auc/v2_ring_poor_tip/mean",
+  "value": 0.8337301587301588,
+  "text": "0.834"
+ },
+ "StwoPoorTipNoFault": {
+  "source": "results/mission_v2.json:success_by_condition/v2_ring_poor_tip/none:None",
+  "value": 0.9466666666666667,
+  "text": "0.95"
+ },
+ "StwoLandErr": {
+  "source": "results/mission_v2.json:landing/v2_ring/none/landing_error_median_m",
+  "value": 0.008519700506056492,
+  "text": "0.009"
+ },
+ "StwoTouch": {
+  "source": "results/mission_v2.json:landing/v2_ring/none/touchdown_speed_median_mps",
+  "value": 0.29999340473907654,
+  "text": "0.30"
+ },
+ "StwoGustPad": {
+  "source": "results/mission_v2.json:landing/v2_ring/gust/landed_on_pad",
+  "value": 0.6622222222222223,
+  "text": "0.66"
+ },
+ "StwoGustErr": {
+  "source": "results/mission_v2.json:landing/v2_ring/gust/landing_error_median_m",
+  "value": 0.23088282782903685,
+  "text": "0.23"
+ },
+ "StwoPIPad": {
+  "source": "results/mission_v2.json:landing/v2_ring_minus_home/none/landed_on_pad",
+  "value": 0.41333333333333333,
+  "text": "0.41"
+ },
+ "StwoPIErr": {
+  "source": "results/mission_v2.json:landing/v2_ring_minus_home/none/landing_error_median_m",
+  "value": 0.5394256866717273,
+  "text": "0.54"
+ },
+ "StwoWrongRing": {
+  "source": "results/mission_v2.json:wrong_object_stop_rate/v2_ring",
+  "value": 0.09733333333333333,
+  "text": "0.097"
+ },
+ "StwoWrongSM": {
+  "source": "results/mission_v2.json:wrong_object_stop_rate/v2_state_machine",
+  "value": 0.07813333333333333,
+  "text": "0.078"
+ },
+ "StwoWrongAcc": {
+  "source": "results/mission_v2.json:wrong_object_stop_rate/v2_accumulator",
+  "value": 0.07413333333333333,
+  "text": "0.074"
+ },
+ "StwoCollRing": {
+  "source": "results/mission_v2.json:collision_rate/v2_ring",
+  "value": 0.042133333333333335,
+  "text": "0.042"
+ },
+ "StwoAltSearch": {
+  "source": "results/v2_alt_decision.json:ALT_SEARCH",
+  "value": 3.5,
+  "text": "3.5"
+ }
+}
