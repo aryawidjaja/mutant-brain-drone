@@ -911,11 +911,11 @@
    }
   ]
  },
- "js_seconds": 22.61236882209778,
- "wall_seconds": 152.14278888702393,
- "git": "780fb4f-dirty",
+ "js_seconds": 17.179579973220825,
+ "wall_seconds": 240.37842893600464,
+ "git": "9c7b912",
  "sim_version": "0.1.0",
- "created": "2026-10-12T02:09:23",
+ "created": "2026-10-13T16:45:38",
  "python": "3.12.12",
  "numpy": "2.5.4",
  "code_sha256": {
@@ -932,7 +932,7 @@
   "scripts/brain/pi.py": "0c6fcedf8b5f760150cf6f8d6d63db8098c867c11494ddecf687ade895aef445",
   "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
   "scripts/dryden.py": "cc577521940146fd791e45606f0773fc0b67a97679209dfd394cac3d75cbe4c8",
-  "scripts/mission.py": "a90b8a0068a59ae7f26a7e4ef162882fc49b95d56f94ab6553d8f66f94cd2639",
+  "scripts/mission.py": "092077b67a7e034c95c9648e46f434605e031593147129d7ba509dfe032e0f33",
   "scripts/parity_brain.py": "8e438d6f883bea4300e9827809d5712a62f57fc9ab28a28f737872e9cca250c6",
   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
   "scripts/quad.py": "78dafc0ca45bcb7d82c3e7d9d04b3269cbea7e8d4b82bc5e1e1a2520b22a4703",

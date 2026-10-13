@@ -5,9 +5,9 @@ window.PARITY = {
   "max_pos_err_m": 2.5219419200973697e-15,
   "pass": true,
   "provenance": {
-   "git": "4476594",
+   "git": "9c7b912",
    "sim_version": "0.1.0",
-   "created": "2026-10-12T00:31:25",
+   "created": "2026-10-13T16:41:37",
    "python": "3.12.12",
    "numpy": "2.5.4",
    "code_sha256": {
@@ -38,8 +38,8 @@ window.PARITY = {
  "brain": {
   "pass": true,
   "tolerances": "Module outputs are compared on recorded inputs (exact or <= 1e-9); full closed-loop missions are compared on the\ntrajectory with a stated tolerance (closed loops amplify floating-point order differences between numpy and V8):\n  scenarios, hashes, worlds ............ exact\n  eye panorama pixels .................. <= 0.5 % of pixels differ, by <= 1 level\n  object looks (grey) .................. max |diff| <= 1e-9\n  MB familiarity on Python's looks ..... exact;  on each side's own looks + same noise: max |diff| <= 0.02\n  path integrator (recorded inputs) .... heading <= 1e-9 rad, home vector <= 1e-6 m\n  six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9\n  avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact\n  missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags\n    v1: all six arbiters closed loop; v2 (brain.version 2, all six modules, RingGated and visibility-gated rivals,\n    HeadingRing and KalmanHeading): same rule, run to 90 s so the take-off learning flight, the pad lock and the\n    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too\n  eye RGB crops (v2 front end input) .... max |diff| <= 1e-9\nRun: uv run python scripts/parity_brain.py\n",
-  "git": "780fb4f-dirty",
-  "created": "2026-10-12T02:09:23"
+  "git": "9c7b912",
+  "created": "2026-10-13T16:45:38"
  },
  "_source": [
   "results/parity.json",

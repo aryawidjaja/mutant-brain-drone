@@ -615,9 +615,9 @@
   }
  ],
  "provenance": {
-  "git": "4476594",
+  "git": "9c7b912",
   "sim_version": "0.1.0",
-  "created": "2026-10-12T00:31:25",
+  "created": "2026-10-13T16:41:37",
   "python": "3.12.12",
   "numpy": "2.5.4",
   "code_sha256": {
