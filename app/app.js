@@ -462,7 +462,7 @@ function drawCharts() {
   const el = $('ch1'), W = Math.max(260, el.clientWidth - 16), H = Math.max(220, Math.min(340, el.clientHeight - 12 || 260));
   if (study === '2') {
     const m = S && S.v2 && S.v2.m;
-    $('studynote').textContent = m ? `Study 2 brain vs rivals and the Study 1 brain, ${m.n_seeds} test seeds per condition (forest, density 0.3); full success = target found, landed on the home pad, no collision.` : 'Study 2 results are not in data/summary.json yet.';
+    $('studynote').textContent = m ? `Study 2 brain vs rivals and the Study 1 brain, ${m.n_seeds} test seeds per condition (forest, density 0.3); full success = target found, landed on the home pad, no collision (the Study 1 brain, which cannot land, on its own 2 m success).` : 'Study 2 results are not in data/summary.json yet.';
     put('ch1', P.chartV2Success(S, W, H), 'Study 2 success-by-condition data'); put('ch2', P.chartV2Ablation(S, W, H), 'Study 2 ablation data'); put('ch3', P.chartV2Landing(S, W, H), 'Study 2 landing data');
   } else {
     $('studynote').textContent = 'Study 1 brain: the first study\'s results (3D test seeds 1000–1299; success = target found and home within 2 m).';

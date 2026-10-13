@@ -325,19 +325,25 @@ function chartAuroc(S, W = 420, H = 260) {
 // ---------- Study 2 (v2) charts: summary.v2 (scripts/export_app_summary.py, from results/mission_v2.json)
 const V2NAME = { ring: 'Study 2 brain (ring)', ring_static: 'Ring, no recurrence', vote: 'Static vote', sum: 'Vector sum', accumulator: 'Leaky accumulator', state_machine: 'State machine', v1: 'Study 1 brain' };
 const FNAME = { none: 'none', occlusion: 'occlusion', decoy: 'decoy', compass_half: 'compass ½', eye_columns: 'eye cols', false_sun: 'false sun', speed_scale: 'speed', gust: 'gusts' };
-const v2mk = (a, X, Y, tip) => (a === 'v1' ? `<g><title>${tip}</title><circle class="cn" cx="${f1(X)}" cy="${f1(Y)}" r="3.6" style="fill:var(--panel);stroke-width:1.4"/></g>` : mk(a, X, Y, tip));
-const v2legend = (arms, W) => arms.map((a, i) => { const nc = legCols(W), x = 44 + (i % nc) * ((W - 50) / nc), y = 30 + Math.floor(i / nc) * 13; return v2mk(a, x, y - 3.5, V2NAME[a]) + `<text x="${x + 7}" y="${y}">${V2NAME[a]}</text>`; }).join('');
+// Study 1 brain: hollow circle with a diagonal hatch line (a different success definition, see chartV2Success)
+const v2mk = (a, X, Y, tip) => (a === 'v1' ? `<g><title>${tip}</title><circle class="cn" cx="${f1(X)}" cy="${f1(Y)}" r="3.6" style="fill:var(--panel);stroke-width:1.4"/><line class="cn" x1="${f1(X - 2.5)}" y1="${f1(Y + 2.5)}" x2="${f1(X + 2.5)}" y2="${f1(Y - 2.5)}" style="stroke-width:1.1"/></g>` : mk(a, X, Y, tip));
+const v2legend = (arms, W, name = (a) => V2NAME[a]) => arms.map((a, i) => { const nc = legCols(W), x = 44 + (i % nc) * ((W - 50) / nc), y = 30 + Math.floor(i / nc) * 13; return v2mk(a, x, y - 3.5, name(a)) + `<text x="${x + 7}" y="${y}">${name(a)}</text>`; }).join('');
 const xcats = (A, cats, H, m) => cats.map((c, i) => `<text transform="translate(${f1(A.X(i + 0.5) + 3)},${H - m.b + 9}) rotate(-35)" text-anchor="end">${FNAME[c] || c}</text>`).join('');
 const noXTicks = (s) => s.replace(/<text x="[\d.]+" y="[\d.]+" text-anchor="middle">-?\d+(\.\d+)?<\/text>/g, '');
 /** success per condition at the pre-registered middle severity (H9 iii levels), all six v2 arbiters and the Study 1 brain */
 function chartV2Success(S, W = 420, H = 260) {
   const M = S && S.v2 && S.v2.m, H9 = S && S.v2 && S.v2.h9; if (!M || !M.curves || !H9) return '';
-  const arms = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine', 'v1'].filter((a) => M.curves[a]);
+  const arms = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine', 'v1'].filter((a) => (a === 'v1' ? M.v1own || M.curves.v1 : M.curves[a]));
   const cats = ['none', ...M.faults];
+  const name = (a) => (a === 'v1' ? (M.v1own ? 'Study 1 brain (own 2 m success, no landing)' : V2NAME.v1) : V2NAME[a]);
+  // the Study 1 brain has no landing module: it is plotted on its own success definition (target found, home within
+  // 2 m, no collision; summary v2.m.v1own), as in both papers, not on the 0.5 m pad-landing definition (about 0 everywhere)
+  const own = M.v1own, src = (a) => (a === 'v1' && own ? { none: own.success_none, nci: own.none_ci, curves: own.curves } : { none: M.success_none[a], nci: M.none_ci[a], curves: M.curves[a] });
   const pt = (a, c) => {
-    if (c === 'none') return { v: M.success_none[a], ci: M.none_ci[a], lvl: '' };
+    const d = src(a);
+    if (c === 'none') return { v: d.none, ci: d.nci, lvl: '' };
     const lv = H9.iii[c].level, i = M.levels[c].findIndex((x) => (isNaN(+x) ? x === String(lv) : +x === +lv));
-    const q = M.curves[a][c] && M.curves[a][c][i]; return q ? { v: q.success, ci: q.ci, lvl: M.levels[c][i] } : null;
+    const q = d.curves && d.curves[c] && d.curves[c][i]; return q ? { v: q.success, ci: q.ci, lvl: M.levels[c][i] } : null;
   };
   const m = { l: 40, r: 10, t: legTop(arms.length, W), b: 46 };
   const A = axes(W, H, [0, cats.length], [0, 1], '', 'full success', m);
@@ -346,9 +352,9 @@ function chartV2Success(S, W = 420, H = 260) {
     const p = pt(a, c); if (!p || !Number.isFinite(p.v)) return;
     const X = A.X(i + 0.5 + (k - (arms.length - 1) / 2) * 0.11);
     if (p.ci) s += `<line class="${a === 'v1' ? 'cn' : cls(a)} wh" x1="${f1(X)}" x2="${f1(X)}" y1="${f1(A.Y(p.ci[0]))}" y2="${f1(A.Y(p.ci[1]))}"/>`;
-    s += v2mk(a, X, A.Y(p.v), `${V2NAME[a]}, ${FNAME[c] || c}${p.lvl ? ' ' + p.lvl : ''}: ${(100 * p.v).toFixed(0)}% (95% CI ${(100 * p.ci[0]).toFixed(0)}–${(100 * p.ci[1]).toFixed(0)}%, n = 300)`);
+    s += v2mk(a, X, A.Y(p.v), `${name(a)}, ${FNAME[c] || c}${p.lvl ? ' ' + p.lvl : ''}: ${(100 * p.v).toFixed(0)}% (95% CI ${(100 * p.ci[0]).toFixed(0)}–${(100 * p.ci[1]).toFixed(0)}%, n = 300)`);
   }));
-  return svg(W, H, 'Success by condition, middle severity (Study 2)', s + v2legend(arms, W));
+  return svg(W, H, 'Success by condition, middle severity (Study 2)', s + v2legend(arms, W, name));
 }
 /** paired drop in full-success AUC when one part of the Study 2 brain is removed or changed (v2 ring minus arm) */
 function chartV2Ablation(S, W = 420, H = 260) {
@@ -371,8 +377,8 @@ function chartV2Ablation(S, W = 420, H = 260) {
 function chartV2Landing(S, W = 420, H = 260) {
   const M = S && S.v2 && S.v2.m; if (!M || !M.landing || !M.landing.ring) return '';
   const L = M.landing, cats = ['none', ...(M.faults || Object.keys(L.ring).filter((k) => k !== 'none'))];
-  const arms = [['ring', 'ca', 'Study 2 brain'], ['v2_ring_minus_home', 'cn', 'no home snapshot'], ['v1', 'cn', 'Study 1 brain']].filter(([a]) => L[a]);
-  const m = { l: 40, r: 10, t: 36, b: 46 };
+  const arms = [['ring', 'ca', 'Study 2 brain'], ['v2_ring_minus_home', 'cn', 'no home snapshot'], ['v1', 'cn', 'Study 1 brain: cannot land (no landing module)', 'Study 1: cannot land (no landing module)']].filter(([a]) => L[a]);
+  const m = { l: 40, r: 10, t: 48, b: 46 };
   const A = axes(W, H, [0, cats.length], [0, 1], '', 'landed on the pad (≤ 0.5 m)', m);
   let s = noXTicks(A.s) + xcats(A, cats, H, m);
   const bw = Math.min(10, (A.X(1) - A.X(0)) / (arms.length + 1.5));
@@ -382,7 +388,7 @@ function chartV2Landing(S, W = 420, H = 260) {
     const st = a === 'v1' ? 'fill:var(--panel);stroke-width:1.2' : a === 'ring' ? '' : 'opacity:.55';
     s += `<g><title>${nm}, ${FNAME[c] || c}: ${(100 * v.landed_on_pad).toFixed(0)}% on the pad; median landing error ${Number.isFinite(v.landing_error_median_m) ? (100 * v.landing_error_median_m).toFixed(1) + ' cm' : '–'}; median touchdown ${Number.isFinite(v.touchdown_speed_median_mps) ? v.touchdown_speed_median_mps.toFixed(2) + ' m/s' : '– (no touchdown)'}</title><rect class="${cl}" style="${st}" x="${f1(X - bw / 2)}" y="${f1(y)}" width="${f1(bw)}" height="${f1(Math.max(0.5, A.Y(0) - y))}"/></g>`;
   }));
-  s += arms.map(([a, cl, nm], k) => `<rect class="${cl}" style="${a === 'v1' ? 'fill:var(--panel)' : a === 'ring' ? '' : 'opacity:.55'}" x="${f1(44 + k * (W - 50) / arms.length)}" y="22" width="8" height="8"/><text x="${f1(56 + k * (W - 50) / arms.length)}" y="29.5">${nm}</text>`).join('');
+  s += arms.map(([a, cl, nm, short], k) => `<rect class="${cl}" style="${a === 'v1' ? 'fill:var(--panel)' : a === 'ring' ? '' : 'opacity:.55'}" x="${f1(44 + (k % 2) * (W - 50) / 2)}" y="${22 + 12 * Math.floor(k / 2)}" width="8" height="8"/><text x="${f1(56 + (k % 2) * (W - 50) / 2)}" y="${29.5 + 12 * Math.floor(k / 2)}"${short ? ' style="font-size:9.5px"' : ''}>${short || nm}</text>`).join('');
   return svg(W, H, 'Landing on the home pad (Study 2)', s);
 }
 
