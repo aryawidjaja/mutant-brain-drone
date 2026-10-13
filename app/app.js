@@ -214,14 +214,14 @@ function buildKnobs() {
       d.innerHTML = `<summary class="ph">${g}${helpBtn(HELP['g:' + g], g)}<span class="who" id="kw-${g}"></span></summary><div class="body"><div class="kn"></div></div>`; host.appendChild(d); box = d.querySelector('.kn');
     }
     if (g === 'Faults' && (type === 'chk' || id === 'decoy') && box.children.length) box.insertAdjacentHTML('beforeend', '<span class="sub"></span>');
-    if (type === 'gallery') { box.insertAdjacentHTML('beforeend', `<label title="Show the drone a new target picture">${label}${helpBtn(HELP.gal, label)}</label><div class="gal wide" id="gal"></div>`); continue; }
+    if (type === 'gallery') { box.insertAdjacentHTML('beforeend', `<label title="Show the drone a new target picture">${label}</label><div class="gal wide" id="gal"></div>${helpBtn(HELP.gal, label)}`); continue; }
     const hb = helpBtn(HELP[id] || tip, label), hid = 'hlp' + tipN;
     if (type === 'chk') {
-      box.insertAdjacentHTML('beforeend', `<label class="ck" data-dep="${dep || ''}"><input type="checkbox" id="k-${id}"><span>${label}</span>${hb}</label>`);
+      box.insertAdjacentHTML('beforeend', `<label class="ck" data-dep="${dep || ''}"><input type="checkbox" id="k-${id}"><span>${label}</span></label>${hb}`);
     } else {
       const ctl = type === 'sel' ? `<select id="k-${id}" class="${type === 'sel' ? 'wide' : ''}">${a.map((o) => `<option value="${o}">${(OPTNAME[id] || {})[o] || ARBNAME[o] || o}</option>`).join('')}</select>`
         : type === 'num' ? `<input type="number" id="k-${id}" min="${a}" max="${b}" step="${step}">` : `<input type="range" id="k-${id}" min="${a}" max="${b}" step="${step}">`;
-      box.insertAdjacentHTML('beforeend', `<label for="k-${id}" data-dep="${dep || ''}">${label}${hb}</label>${ctl}${type === 'sel' ? '' : `<output id="o-${id}" data-dep="${dep || ''}"></output>`}`);
+      box.insertAdjacentHTML('beforeend', `<label for="k-${id}" data-dep="${dep || ''}">${label}</label>${ctl}${type === 'sel' ? '' : `<output id="o-${id}" data-dep="${dep || ''}"></output>`}${hb}`);
     }
     const el = $('k-' + id); kEls[id] = { el, type, fmt, dep }; el.setAttribute('aria-describedby', hid);
     if (id === 'tip') box.insertAdjacentHTML('beforeend', '<p class="fine v2note" id="v2note"></p>');

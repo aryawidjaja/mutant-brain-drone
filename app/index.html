@@ -93,11 +93,12 @@ body { background: var(--bg); color: var(--ink); font: 13px/1.4 var(--sans); -we
 .side details[open] > summary::before, .dock details[open] > summary::before { transform: rotate(90deg); }
 .dock summary .who, .side summary .who { margin-left: auto; font-variant-caps: normal; letter-spacing: 0; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 62%; }
 .body { padding: 2px 10px 10px; }
-.kn { display: grid; grid-template-columns: 88px minmax(0, 1fr) 52px; gap: 5px 8px; align-items: center; font-size: 12px; }
+.kn { display: grid; grid-template-columns: 88px minmax(0, 1fr) 52px auto; gap: 5px 8px; align-items: center; font-size: 12px; }
+.kn > .hq { grid-column: 4; justify-self: end; margin: 0; }
 .kn > label { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
 .kn > output { font: 500 11.5px var(--mono); text-align: right; white-space: nowrap; }
 .kn .wide { grid-column: 2 / 4; }
-.kn .ck { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; color: var(--ink); }
+.kn .ck { grid-column: 1 / 4; display: flex; align-items: center; gap: 7px; color: var(--ink); }
 .kn .sub { grid-column: 1 / -1; margin-top: 4px; color: var(--muted); font-size: 10.5px; font-variant-caps: all-small-caps; letter-spacing: .06em; font-weight: 600; border-top: 1px solid var(--line); padding-top: 5px; }
 .kn .off { opacity: .45; }
 .acts { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
@@ -135,8 +136,8 @@ body { background: var(--bg); color: var(--ink); font: 13px/1.4 var(--sans); -we
 .vp > canvas.hud { pointer-events: none; }
 .wb.hud-on #chips { display: none; }
 /* help: "?" buttons with one shared tooltip (text also in a visually hidden span the button and control point to) */
-.hq { display: inline-grid; place-items: center; width: 15px; height: 15px; margin: 0 0 0 5px; padding: 0; border: 1px solid var(--line2); border-radius: 50%;
-  background: transparent; color: var(--muted); font: 600 9.5px/1 var(--sans); cursor: help; vertical-align: 1px; flex: none; font-variant-caps: normal; letter-spacing: 0; }
+.hq { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; margin: 0 0 0 6px; padding: 0 0 0 0.5px; box-sizing: border-box; border: 1px solid var(--line2); border-radius: 50%;
+  background: transparent; color: var(--muted); font: 600 9.5px/1 var(--sans); cursor: help; vertical-align: middle; flex: none; font-variant-caps: normal; letter-spacing: 0; }
 .hq:hover, .hq:focus-visible, .hq[aria-expanded="true"] { color: var(--ink); border-color: var(--muted); }
 .hq:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
