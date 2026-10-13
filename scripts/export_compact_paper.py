@@ -85,6 +85,41 @@ def s2_agg(label, own=False):
     return s2_auc(label, own).mean(axis=1).to_numpy()
 
 
+NON_PI = ["occlusion", "decoy", "eye_columns", "gust"]
+
+
+def own_diff(faults):
+    a, b = s2_auc("v2_ring", own=True), s2_auc("v1", own=True)
+    return paired_diff(a[faults].mean(axis=1).to_numpy(), b[faults].mean(axis=1).to_numpy())
+
+
+def s2_rate(label, fault, sev, own=False):
+    k, n = s2_cond(label, fault, sev, own)
+    return k / n
+
+
+@lru_cache(None)
+def recog_scores():
+    return pd.read_parquet(ROOT / "results/recog_v2_scores_test.parquet")
+
+
+def nn_auroc():
+    from stats import auroc
+    d = recog_scores()
+    d = d[(d.rec == "nn_front") & (d.memset == "ms") & (d.theta == 0)]
+    return auroc(d[d.obj == "target"].score, d[d.obj != "target"].score)
+
+
+def landing_groups():
+    r = s2_arm("v2_ring")
+    return [r.query("fault != 'gust'"), r.query("fault == 'gust'"), s2_arm("v2_ring_minus_home")]
+
+
+def landing_beyond():
+    e = np.concatenate([g[g.success_target].landing_error_m.to_numpy() for g in landing_groups()])
+    return float((e > 30).mean())
+
+
 def s2_cond(label, fault, sev, own=False):
     g = s2_arm(label)
     g = g[(g.fault == fault) & (np.isnan(g.severity) if sev is None else np.isclose(g.severity, sev))]
@@ -106,6 +141,11 @@ def num(v, d):
 
 def pfmt(p):
     return "\\ensuremath{<}\\,0.001" if p < 0.001 else f"\\ensuremath{{=}}\\,{p:.{3 if p < 0.05 else 2}f}"
+
+
+def ppfmt(p):
+    """Monte Carlo permutation p (5,000 permutations): approximate."""
+    return "\\ensuremath{<}\\,0.001" if p < 0.001 else f"\\ensuremath{{\\approx}}\\,{p:.{3 if p < 0.05 else 2}f}"
 
 
 def put(name, fn, d, source, fmt=None):
@@ -136,7 +176,7 @@ def register():
     R("SoneDstarExclLo", "kt1.json", "posthoc_fine_grid/bracket_D_star_excl_ratio1_deg/0", 1)
     R("SoneDstarExclHi", "kt1.json", "posthoc_fine_grid/bracket_D_star_excl_ratio1_deg/1", 1)
     ci("SoneKTtwoDiff", "kt2.json", "ring_minus_best_other")
-    R("SoneKTtwoPermP", "kt2.json", "posthoc_permutation/p_two_sided", fmt=pfmt)
+    R("SoneKTtwoPermP", "kt2.json", "posthoc_permutation/p_two_sided", fmt=ppfmt)
     R("SoneKTtwoGain", "kt2.json", "tuned_params/ring/ring_gain", 3)
     rp = lambda: J("kt3.json")["points"]["ring"]  # noqa: E731
     R("SoneHoldGzero", "kt3.json", "points/ring/0/hold_mean_s", 2)
@@ -162,9 +202,9 @@ def register():
     R("SoneAUCRingLo", "mission_h1.json", "aggregate_auc/ring/lo", 3)
     R("SoneAUCRingHi", "mission_h1.json", "aggregate_auc/ring/hi", 3)
     ci("SoneHoneDiff", "mission_h1.json", "ring_minus_best_other", 4)
-    R("SoneHonePermP", "mission_h1.json", "permutation_test/p_two_sided", fmt=pfmt)
-    R("SoneHoneSumP", "mission_diag.json", "h1/each_arm_minus_best_other_permutation/sum/p_two_sided", fmt=pfmt)
-    R("SoneHoneStaticP", "mission_diag.json", "h1/each_arm_minus_best_other_permutation/ring_static/p_two_sided", fmt=pfmt)
+    R("SoneHonePermP", "mission_h1.json", "permutation_test/p_two_sided", fmt=ppfmt)
+    R("SoneHoneSumP", "mission_diag.json", "h1/each_arm_minus_best_other_permutation/sum/p_two_sided", fmt=ppfmt)
+    R("SoneHoneStaticP", "mission_diag.json", "h1/each_arm_minus_best_other_permutation/ring_static/p_two_sided", fmt=ppfmt)
     nd = lambda: J("mission_diag.json")["h1"]["aggregate_auc_without_decoy_fault"].values()  # noqa: E731
     Dv("SoneNoDecoyLo", lambda: min(nd()), 3, "min over arms of results/mission_diag.json:h1/aggregate_auc_without_decoy_fault")
     Dv("SoneNoDecoyHi", lambda: max(nd()), 3, "max over arms of results/mission_diag.json:h1/aggregate_auc_without_decoy_fault")
@@ -206,18 +246,22 @@ def register():
         R("StwoCompass" + n, "kt5.json", f"per_condition/compass_half/rms_deg/{e}/est", 2)
     R("StwoKTsevenGated", "kt7.json", "kt2_world/aggregate_auc/ring_gated/mean", 3)
     R("StwoKTsevenVote", "kt7.json", "kt2_world/aggregate_auc/vote_vg/mean", 3)
-    R("StwoKTsevenP", "kt7.json", "kt2_world/ring_gated_minus_best_other_permutation/p_two_sided", fmt=pfmt)
+    R("StwoKTsevenP", "kt7.json", "kt2_world/ring_gated_minus_best_other_permutation/p_two_sided", fmt=ppfmt)
     R("StwoSMtimeOff", "kt7.json", "premature_switch_noninferiority/rival_tuned_time_off_s/state_machine", 3)
-    to = lambda: [x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if x["ring_gain"] <= 0.7]  # noqa: E731
-    Dv("StwoTimeOffLo", lambda: min(to()), 1, "min over ring_gain <= 0.7 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est")
-    Dv("StwoTimeOffHi", lambda: max(to()), 1, "max over ring_gain <= 0.7 of the same")
+    to = lambda: [x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if x["ring_gain"] <= 0.5]  # noqa: E731
+    Dv("StwoTimeOffLo", lambda: min(to()), 1, "min over ring_gain <= 0.5 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est")
+    Dv("StwoTimeOffHi", lambda: max(to()), 1, "max over ring_gain <= 0.5 of the same")
+    Dv("StwoTimeOffMid", lambda: max(x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if 0.8 <= x["ring_gain"] <= 2.0), 2,
+       "max over 0.8 <= ring_gain <= 2 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est")
+    Dv("StwoTimeOffHigh", lambda: max(x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if x["ring_gain"] > 2.0), 2,
+       "max over ring_gain > 2 of the same")
     R("StwoFront", "recog_v2_gate.json", "auroc_0deg", 3)
     R("StwoFrontLo", "recog_v2_gate.json", "auroc_0deg_ci95/0", 3)
     R("StwoFrontHi", "recog_v2_gate.json", "auroc_0deg_ci95/1", 3)
     R("StwoMargin", "recog_v2_gate.json", "margin_over_pixels_0deg", 3)
     R("StwoMarginLo", "recog_v2_gate.json", "margin_ci95/0", 3)
     R("StwoMarginHi", "recog_v2_gate.json", "margin_ci95/1", 3)
-    R("StwoNN", "recog_v2_auroc.json", "arms/nn_front/ms/auroc/0", 3)
+    Dv("StwoNN", nn_auroc, 3, "stats.auroc(target vs look-alike scores, rec nn_front, memset ms, theta 0) from results/recog_v2_scores_test.parquet")
     R("StwoDino", "recog_v2_auroc.json", "arms/dino_patch/ms/auroc/0", 3)
     R("StwoMBvone", "recog_v2_auroc.json", "arms/mb_v1/lf13/auroc/0", 3)
     R("StwoFrontNinety", "recog_v2_auroc.json", "arms/mb_front/ms/auroc/6", 2)
@@ -254,7 +298,7 @@ def register():
     kfd = lambda k: (lambda: paired_diff(s2_agg("v2_ring"), s2_agg("v2_ring_kf"))[k])  # noqa: E731
     for suf, k in (("", "est"), ("Lo", "lo"), ("Hi", "hi")):
         Dv("StwoRingMinusKF" + suf, kfd(k), 3, f"stats.paired_diff(per-seed AUC v2_ring, v2_ring_kf)[{k}] from results/runs/mission_v2_test.parquet (10,000, seed 0)")
-    R("StwoPermP", "mission_v2.json", "v2_ring_vs_rivals/permutation_test/p_two_sided", fmt=pfmt)
+    R("StwoPermP", "mission_v2.json", "v2_ring_vs_rivals/permutation_test/p_two_sided", fmt=ppfmt)
     R("StwoVsVote", "mission_v2.json", "v2_ring_vs_rivals/pairwise/v2_vote/est", 3)
     R("StwoVsVoteP", "mission_v2.json", "v2_ring_vs_rivals/pairwise/v2_vote/p_holm", fmt=pfmt)
     R("StwoAUCsm", "mission_v2.json", "aggregate_auc/v2_state_machine/mean", 3)
@@ -280,6 +324,23 @@ def register():
     R("StwoWrongSM", "mission_v2.json", "wrong_object_stop_rate/v2_state_machine", 3)
     R("StwoWrongAcc", "mission_v2.json", "wrong_object_stop_rate/v2_accumulator", 3)
     R("StwoCollRing", "mission_v2.json", "collision_rate/v2_ring", 3)
+    own = {"occlusion": "Occ", "decoy": "Decoy", "compass_half": "Compass", "eye_columns": "Eye", "false_sun": "Sun", "speed_scale": "Speed", "gust": "Gust"}
+    for f, n in own.items():
+        for suf, k in (("", "est"), ("Lo", "lo"), ("Hi", "hi")):
+            Dv("StwoOwnDiff" + n + suf, (lambda f=f, k=k: own_diff([f])[k]), 3,
+               f"post hoc: stats.paired_diff of per-seed {f} AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[{k}]")
+    for suf, k in (("", "est"), ("Lo", "lo"), ("Hi", "hi")):
+        Dv("StwoOwnNonPI" + suf, (lambda k=k: own_diff(NON_PI)[k]), 3,
+           f"post hoc: same, mean over occlusion, decoy, eye_columns, gust[{k}]")
+    Dv("StwoMidDecoyOwn", lambda: s2_rate("v2_ring", "decoy", 2 / 3, True), 2, "v2_ring success (2 m definition) at decoy similarity 0.8, results/runs/mission_v2_test.parquet")
+    Dv("StwoVoneMidDecoyOwn", lambda: s2_rate("v1", "decoy", 2 / 3, True), 2, "v1 success (2 m definition) at decoy similarity 0.8, results/runs/mission_v2_test.parquet")
+    R("StwoWrongVone", "mission_v2.json", "wrong_object_stop_rate/v1", 3)
+    R("StwoDecoyAUC", "mission_v2.json", "per_fault_auc/v2_ring/decoy", 2)
+    R("StwoDecoyAUCNoTip", "mission_v2.json", "per_fault_auc/v2_ring_no_tip/decoy", 2)
+    R("StwoDecoyAUCPoorTip", "mission_v2.json", "per_fault_auc/v2_ring_poor_tip/decoy", 2)
+    Dv("StwoLandBeyond", lambda: 100 * landing_beyond(), 1, "percent of the Fig. 7a missions with landing error > 30 m, results/runs/mission_v2_test.parquet")
+    Dv("StwoFirstRow", lambda: str(runs("mission_v2_test").created.min()), None,
+       "earliest created stamp (cloud server clock, UTC) in results/runs/mission_v2_test.parquet", fmt=lambda v: v.split("T")[1] + " UTC on " + v.split("T")[0])
     R("StwoAltSearch", "v2_alt_decision.json", "ALT_SEARCH", 1)
 
 
@@ -297,7 +358,7 @@ def write_numbers():
 ORANGE = "#E66100"
 BLUES = ["#08519C", "#3182BD", "#6BAED6", "#9ECAE1", "#C6DBEF"]
 GREYS = ["#4D4D4D", "#8C8C8C", "#BDBDBD"]
-S1_ARMS = [("ring", "Ring hub", ORANGE), ("ring_static", "Ring, recurrence off", GREYS[2]), ("vote", "Static vote", GREYS[1]),
+S1_ARMS = [("ring", "Ring hub", ORANGE), ("ring_static", "Ring without recurrence", GREYS[2]), ("vote", "Static vote", GREYS[1]),
            ("sum", "Vector sum", BLUES[2]), ("accumulator", "Leaky accumulator", BLUES[1]), ("state_machine", "State machine", BLUES[0])]
 W1, W2 = 3.4, 7.0
 
@@ -332,56 +393,70 @@ def boot_mean_ci(x, n_boot=10_000):
 
 
 def fig1():
-    """System diagram: which part comes from which model, and what Study 2 added."""
-    fig, ax = plt.subplots(figsize=(W2, 3.2))
-    ax.set_xlim(0, 100); ax.set_ylim(-1, 53); ax.axis("off")
-    INS, ENG = "#FBE3CF", "#ECECEC"
+    """System diagram: which part is a reimplemented published model, which an insect-inspired design, which engineered."""
+    fig, ax = plt.subplots(figsize=(W2, 3.45))
+    ax.set_xlim(0, 100); ax.set_ylim(-9, 52); ax.axis("off")
+    PUB, INSP, ENG = "#F7C9A1", "#FFF4D1", "#ECECEC"
 
-    def box(x, y, w, h, title, sub, fc, dashed=False, ec="#333333", lw=0.8):
+    def box(x, y, w, h, title, sub, fc, dashed=False, ec="#333333", lw=0.8, hatch=None):
         ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.25,rounding_size=0.8", fc=fc, ec=ec, lw=lw,
-                                    ls=(0, (3, 2)) if dashed else "-"))
-        ax.text(x + w / 2, y + h - 1.4, title, ha="center", va="top", fontsize=6.6, fontweight="bold")
-        ax.text(x + w / 2, y + h - 5.0, sub, ha="center", va="top", fontsize=5.6, linespacing=1.2)
+                                    ls=(0, (3, 2)) if dashed else "-", hatch=hatch))
+        ax.text(x + w / 2, y + h - 1.3, title, ha="center", va="top", fontsize=6.5, fontweight="bold")
+        ax.text(x + w / 2, y + h - 4.6, sub, ha="center", va="top", fontsize=5.5, linespacing=1.18)
 
-    def arrow(x0, y0, x1, y1):
-        ax.annotate("", (x1, y1), (x0, y0), arrowprops=dict(arrowstyle="-|>", lw=0.7, color="#333333", shrinkA=0, shrinkB=0, mutation_scale=7))
+    def arrow(x0, y0, x1, y1, ls="-", text=None, tx=0, ty=0):
+        ax.annotate("", (x1, y1), (x0, y0), arrowprops=dict(arrowstyle="-|>", lw=0.7, color="#333333", shrinkA=0, shrinkB=0,
+                                                            mutation_scale=7, ls=ls))
+        if text:
+            ax.text((x0 + x1) / 2 + tx, (y0 + y1) / 2 + ty, text, fontsize=5.2, color="#555555", ha="center", va="center")
 
-    box(0.5, 37, 14, 14, "Eye", "ray-cast panorama,\nlow resolution", ENG)
-    box(0.5, 20, 14, 14, "Compass", "sun compass;\ngyro yaw rate\n(Study 2)", ENG)
-    box(0.5, 3, 14, 14, "Odometry", "body speed", ENG)
-    box(19, 37, 23, 14, "Mushroom body", "one-shot target familiarity\n(after Ardin et al.); Study 2:\ncolour-opponent and edge\nfront end", INS)
-    box(19, 20, 23, 14, "Heading ring", "EPG-style bump moved by the\nyaw rate, corrected by the\nsun through a conflict gate\n(Study 2)", INS, dashed=True)
-    box(19, 3, 23, 14, "Path integrator", "central-complex home vector\n(after Stone et al.,\nreimplemented)", INS)
-    box(47, 3, 22, 14, "Home view and landing", "nest learning flight, view-\nbased final approach,\ndescent onto the pad\n(Study 2)", INS, dashed=True)
-    box(47, 25, 22, 22, "Steering hub", "ring attractor (after Sun et al.)\nor one of five rival arbiters\nwith the same inputs and the\nsame tuning budget;\nStudy 2: evidence-gated ring,\nvisibility channel for all", INS, ec=ORANGE, lw=1.6)
-    box(74, 25, 12, 22, "Avoidance", "optic-flow\nbalance and\nlooming, added\nafter the hub\n(descending\nlevel)", ENG)
-    box(89.5, 25, 10, 22, "Flight\ncontrol", "\ncascade PID,\nmotors,\n6-DOF\nCrazyflie\nmodel", ENG)
-    arrow(14.9, 44, 18.6, 44); arrow(14.9, 27, 18.6, 27); arrow(14.9, 10, 18.6, 10)
-    arrow(14.9, 24, 18.6, 13)
-    arrow(42.4, 44, 46.6, 40)
-    arrow(42.4, 27, 46.6, 31)
-    arrow(42.4, 10, 46.6, 10)
-    arrow(58, 17.4, 58, 24.6)
-    arrow(69.4, 36, 73.6, 36)
-    arrow(86.4, 36, 89.1, 36)
-    leg = [FancyBboxPatch((0, 0), 1, 1, fc=INS, ec="#333333", lw=0.8), FancyBboxPatch((0, 0), 1, 1, fc=ENG, ec="#333333", lw=0.8),
-           FancyBboxPatch((0, 0), 1, 1, fc="white", ec="#333333", lw=0.8, ls=(0, (3, 2))), FancyBboxPatch((0, 0), 1, 1, fc="white", ec=ORANGE, lw=1.6)]
-    ax.legend(leg, ["insect model (reimplemented)", "engineered part", "added in Study 2", "arbiter under test"],
-              loc="lower right", bbox_to_anchor=(1.0, 0.02), ncol=1, fontsize=6.0, handlelength=1.6)
+    H = None
+    box(0.5, 37, 13, 13, "Eye", "ray-cast panorama,\nlow resolution", ENG)
+    box(0.5, 20, 13, 13, "Compass", "sun compass;\ngyro yaw rate\n(Study 2)", ENG)
+    box(0.5, 3, 13, 13, "Odometry", "body speed", ENG)
+    box(18, 37, 19, 13, "Visual front end", "insect-inspired engineered\nfront end: colour-opponent\nand edge channels (Study 2)", INSP, dashed=True, hatch=H)
+    box(18, 20, 19, 13, "Heading ring", "insect-inspired model\n(EPG-style, this study):\nyaw rate moves the bump,\nsun corrects it (Study 2)", INSP, dashed=True, hatch=H)
+    box(41, 37, 19, 13, "Mushroom body", "published model\n(Ardin et al.), one-shot\ntarget familiarity", PUB)
+    box(41, 20, 19, 13, "Path integrator", "published model\n(Stone et al.),\ncentral-complex home vector", PUB)
+    box(41, 3, 19, 13, "Home view memory", "insect-style nest learning\nflight, second mushroom\nbody (Study 2)", INSP, dashed=True, hatch=H)
+    box(64, 22, 18, 28, "Steering hub", "ring attractor (after\nSun et al.) or one of\nfive rival arbiters with\nthe same inputs and\ntuning budget;\nStudy 2: evidence-gated\nring, visibility channel\nfor every arbiter", PUB, ec=ORANGE, lw=1.6)
+    box(64, 3, 18, 13, "Landing controller", "engineered controller\nusing the view memory:\nservo, descent (Study 2)", ENG, dashed=True)
+    box(86, 31, 13.5, 19, "Avoidance", "optic-flow balance\nand looming, added\nafter the hub", ENG)
+    box(86, 3, 13.5, 19, "Flight control", "cascade PID,\nmotors, 6-DOF\nCrazyflie model", ENG)
+    arrow(13.9, 43.5, 17.6, 43.5)
+    arrow(37.4, 43.5, 40.6, 43.5)
+    arrow(60.4, 43.5, 63.6, 43.5)
+    arrow(13.9, 26.5, 17.6, 26.5)
+    arrow(37.4, 26.5, 40.6, 26.5)
+    arrow(13.9, 9.5, 40.6, 9.5 + 11)
+    arrow(60.4, 26.5, 63.6, 26.5)
+    arrow(27.5, 33.4, 63.6, 36, ls=(0, (2, 2)))
+    arrow(50.5, 19.6, 50.5, 16.4)
+    arrow(60.4, 9.5, 63.6, 9.5)
+    arrow(60.4, 13.5, 63.6, 24)
+    arrow(82.4, 40.5, 85.6, 40.5)
+    arrow(92.75, 30.6, 92.75, 22.4)
+    arrow(82.4, 9.5, 85.6, 9.5)
+    leg = [FancyBboxPatch((0, 0), 1, 1, fc=PUB, ec="#333333", lw=0.8), FancyBboxPatch((0, 0), 1, 1, fc=INSP, ec="#333333", lw=0.8, hatch=H),
+           FancyBboxPatch((0, 0), 1, 1, fc=ENG, ec="#333333", lw=0.8), FancyBboxPatch((0, 0), 1, 1, fc="white", ec="#333333", lw=0.8, ls=(0, (3, 2))),
+           FancyBboxPatch((0, 0), 1, 1, fc="white", ec=ORANGE, lw=1.6)]
+    ax.legend(leg, ["published insect model, reimplemented", "insect-inspired component designed here", "engineered part",
+                    "added in Study 2", "arbiter under test"], loc="lower center", bbox_to_anchor=(0.5, -0.02), ncol=5,
+              fontsize=5.8, handlelength=1.6, columnspacing=1.2)
     save(fig, "fig1_system")
 
 
 def fig2():
     """Study 1 KT3 stubbornness frontier (test seeds) and the post hoc 64-configuration envelope (training seeds)."""
     k3, env = J("kt3.json")["points"], J("kt3_envelope.json")["configs"]
-    fig, (a, b) = plt.subplots(1, 2, figsize=(W2, 2.6))
+    fig, (a, b) = plt.subplots(1, 2, figsize=(W2, 3.35))
     for arm, lab, c, mk in (("ring", "Ring hub (gain swept)", ORANGE, "o"), ("accumulator", "Leaky accumulator (leak swept)", BLUES[1], "s"),
                             ("state_machine", "State machine (timeout swept)", BLUES[0], "D")):
         p = k3[arm]
         h = np.array([q["hold_mean_s"] for q in p]); r = np.array([q["release_mean_s"] for q in p])
         a.errorbar(h, r, xerr=1.96 * np.array([q["hold_sem"] for q in p]), yerr=1.96 * np.array([q["release_sem"] for q in p]),
                    color=c, marker=mk, ms=3, lw=1.0, elinewidth=0.6, capsize=0, label=lab)
-    for arm, lab, c, mk in (("vote", "Static vote", GREYS[1], "^"), ("sum", "Vector sum", BLUES[2], "v"), ("ring_static", "Ring, recurrence off", GREYS[2], "P")):
+    for arm, lab, c, mk in (("vote", "Static vote", GREYS[1], "^"), ("sum", "Vector sum", BLUES[2], "v"), ("ring_static", "Ring without recurrence", GREYS[2], "P")):
         q = k3[arm][0]
         a.errorbar(q["hold_mean_s"], q["release_mean_s"], xerr=1.96 * q["hold_sem"], yerr=1.96 * q["release_sem"], color=c,
                    marker=mk, ms=4.5, ls="none", elinewidth=0.6, label=lab, mec="#333333", mew=0.4)
@@ -394,7 +469,7 @@ def fig2():
     a.set_xlabel("hold of a hidden target (s)"); a.set_ylabel("release of a fading look-alike (s)")
     a.set_xlim(-0.3, 10.6); a.set_ylim(-0.8, 22)
     a.set_title("Pre-registered sweep, test seeds", loc="left")
-    a.legend(loc="center left", bbox_to_anchor=(0.0, 0.62), fontsize=6)
+    a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.19), fontsize=6, ncol=2, handletextpad=0.3, columnspacing=0.8)
     panel(a, "a")
     for arm, lab, c, mk in (("ring", "Ring hub", ORANGE, "o"), ("accumulator", "Leaky accumulator", BLUES[1], "s"), ("state_machine", "State machine", BLUES[0], "D")):
         pts = np.array([(q["hold_mean_s"], q["release_mean_s"]) for q in env[arm] if q["source"] == "random_config"])
@@ -413,7 +488,7 @@ def fig2():
     b.set_xlabel("hold of a hidden target (s)"); b.set_ylabel("release of a fading look-alike (s)")
     b.set_xlim(-0.3, 10.6); b.set_ylim(-0.8, 22)
     b.set_title("Post hoc envelope, training seeds", loc="left")
-    b.legend(loc="upper left", fontsize=6)
+    b.legend(loc="upper center", bbox_to_anchor=(0.5, -0.19), fontsize=6, ncol=1, handletextpad=0.2)
     panel(b, "b")
     fig.tight_layout(w_pad=2.0)
     save(fig, "fig2_kt3")
@@ -459,7 +534,7 @@ def fig4():
     save(fig, "fig4_recognition")
 
 
-S2_ARMS = [("v2_ring", "Study 2 brain (gated ring)", ORANGE, None), ("v2_ring_static", "ring, recurrence off", GREYS[2], None),
+S2_ARMS = [("v2_ring", "Study 2 brain (gated ring)", ORANGE, None), ("v2_ring_static", "ring without recurrence", GREYS[2], None),
            ("v2_vote", "static vote", GREYS[1], None), ("v2_sum", "vector sum", BLUES[2], None),
            ("v2_accumulator", "leaky accumulator", BLUES[1], None), ("v2_state_machine", "state machine", BLUES[0], None),
            ("v1", "Study 1 brain (own 2 m success)", GREYS[0], "////")]
@@ -520,9 +595,8 @@ def fig6():
 def fig7():
     """Landing: horizontal error at touchdown (ECDF) and touchdown speed, Study 2 brain vs the path-integrator-only home."""
     fig, (a, b) = plt.subplots(1, 2, figsize=(W1 * 1.55, 2.5), gridspec_kw={"width_ratios": [1.25, 1]})
-    for lab, g, c, ls in (("Study 2 brain, no gust", s2_arm("v2_ring").query("fault != 'gust'"), ORANGE, "-"),
-                          ("Study 2 brain, gust", s2_arm("v2_ring").query("fault == 'gust'"), ORANGE, "--"),
-                          ("home view memory removed", s2_arm("v2_ring_minus_home"), GREYS[1], "-")):
+    for (lab, c, ls), g in zip((("Study 2 brain, no gust", ORANGE, "-"), ("Study 2 brain, gust", ORANGE, "--"),
+                                ("home view memory removed", GREYS[1], "-")), landing_groups()):
         e = np.sort(g[g.success_target].landing_error_m.to_numpy())
         a.plot(np.maximum(e, 1e-3), np.arange(1, len(e) + 1) / len(e), color=c, ls=ls, label=f"{lab} (n = {len(e):,})")
     a.axvline(0.5, color="#222222", lw=0.7, ls=":"); a.text(0.4, 0.55, "pad edge 0.5 m", fontsize=5.6, rotation=90, ha="right")
@@ -585,7 +659,7 @@ def fig8():
 def selfcheck():
     stored = json.loads((OUT / "numbers_sources.json").read_text())
     tex = (OUT / "numbers.tex").read_text()
-    J.cache_clear(); runs.cache_clear(); s1.cache_clear(); s1_auc.cache_clear(); s2.cache_clear(); s2_auc.cache_clear()
+    J.cache_clear(); runs.cache_clear(); recog_scores.cache_clear(); s1.cache_clear(); s1_auc.cache_clear(); s2.cache_clear(); s2_auc.cache_clear()
     for k, v in NUM.items():
         src = stored[k]["source"]
         if src.startswith("results/"):                               # independent re-read of the named key path
@@ -606,6 +680,8 @@ def selfcheck():
         assert np.isclose(s2_agg(l).mean(), m2["aggregate_auc"][l]["mean"], atol=1e-12), l
         for f in FAULTS:
             assert np.isclose(s2_auc(l)[f].mean(), m2["per_fault_auc"][l][f], atol=1e-12), (l, f)
+    assert abs(nn_auroc() - J("recog_v2_auroc.json")["arms"]["nn_front"]["ms"]["auroc"][0]) <= 5e-5
+    assert np.isclose(s2_agg("v1", own=True).mean(), m2["H9_ii"]["secondary_v1_own_definition"]["auc_v1_own"], atol=1e-12)
     # (i) Wilson interval recomputed from the records
     k, n = s2_cond("v2_ring", "none", None)
     assert n == 300 and np.allclose(wilson(k, n), m2["H9_i"]["wilson95"], atol=1e-12) and k / n == m2["H9_i"]["success"]
