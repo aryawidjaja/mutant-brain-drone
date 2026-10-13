@@ -27,6 +27,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'results'
 OUT = ROOT / 'app' / 'data'
@@ -521,6 +523,8 @@ def build():
         o.copy('diag.label', 'mission_diag.json', 'label', md)
         o.copy('diag.git', 'mission_diag.json', 'provenance/git', md)
 
+    v2_blocks(o)
+
     # ---- the Results tab's chart keys
     o.d = listify(o.d)
     h1pre = 'mission.h1' if m1 and 'aggregate_curve' in o.d['mission']['h1'] else 'kt2'
@@ -528,6 +532,230 @@ def build():
     app_keys(o, h1pre, h3pre, 'results/mission_h1.json (3D)' if h1pre != 'kt2' else 'results/kt2.json (2D pilot)',
              'results/mission_h3.json (3D)' if m3 else 'results/kt3.json (2D)')
     return o
+
+
+# ---------------------------------------------------------------- Study 2 (v2)
+V2_ARB = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine']          # v2_<arm> in mission_v2.json
+V2_FAULTS = ['occlusion', 'decoy', 'compass_half', 'eye_columns', 'false_sun', 'speed_scale', 'gust']
+WIL = 'derived: Wilson 95% interval, k = round(success * n), n = 300 seeds per condition'
+
+
+def v2_runs():
+    """The v2 test run records with an arm label (unit prefix) and a level index per fault (rank of its severities)."""
+    r = pd.read_parquet(RES / 'runs' / 'mission_v2_test.parquet')
+    r['arm'] = r.unit.str.split('__').str[0]
+    r['level'] = 0
+    for f in V2_FAULTS:
+        m = r.fault == f
+        sv = sorted(r.loc[m, 'severity'].round(6).unique())
+        r.loc[m, 'level'] = r.loc[m, 'severity'].round(6).map({v: i + 1 for i, v in enumerate(sv)})
+    return r
+
+
+def seed_auc(r, ok):
+    """Per-seed equal-weight AUC over the 7 faults of the boolean column ok (trapezoid over level/n_levels, none at 0)."""
+    base = r[r.fault == 'none'].set_index('seed')[ok].astype(float)
+    per = []
+    for f in V2_FAULTS:
+        g = r[r.fault == f]
+        L = int(g.level.max())
+        tab = g.pivot(index='seed', columns='level', values=ok).astype(float).reindex(columns=range(1, L + 1))
+        tab.insert(0, 0, base.reindex(tab.index))
+        per.append(np.trapezoid(tab.to_numpy(), np.arange(L + 1) / L, axis=1))
+    return pd.Series(np.mean(per, 0), index=tab.index)
+
+
+def v2_blocks(o):
+    from stats import paired_diff
+    mv = load('mission_v2.json')
+    if not mv:
+        o.put('v2', None, 'derived: results/mission_v2.json missing (pending)')
+        return
+    F = 'mission_v2.json'
+    pre = (RES / 'v2_preregistration.sha256').read_text().split()
+    o.put('v2.prereg_sha256', [t for t in pre if len(t) == 64][0], 'derived: the 64-hex token in results/v2_preregistration.sha256')
+    for k in ['n_seeds', 'conds', 'modules_default', 'arms']:
+        o.copy(f'v2.m.{k}', F, k, mv)
+    o.copy('v2.m.git', F, 'provenance/git', mv)
+    nm = lambda a: a[3:] if a[3:] in V2_ARB else a                                          # noqa: E731
+    for a in mv['arms']:
+        for k in ['mean', 'lo', 'hi']:
+            o.copy(f'v2.m.auc.{nm(a)}.{k}', F, f'aggregate_auc/{a}/{k}', mv)
+        for f in V2_FAULTS:
+            o.copy(f'v2.m.fault_auc.{nm(a)}.{f}', F, f'per_fault_auc/{a}/{f}', mv)
+        for k in ['wrong_object_stop_rate', 'collision_rate']:
+            o.copy(f'v2.m.{k}.{nm(a)}', F, f'{k}/{a}', mv)
+    # success by condition as curves (keys with dots cannot be summary paths)
+    cond = conditions(mv['success_by_condition']['v2_ring'])
+    o.put('v2.m.faults', list(cond), f'results/{F}:success_by_condition/v2_ring (keys, file order)')
+    for f, lv in cond.items():
+        o.put(f'v2.m.levels.{f}', [s for s, _ in lv], f'results/{F}:success_by_condition/v2_ring (severity part of the keys)')
+    for a in mv['arms']:
+        sb = mv['success_by_condition'][a]
+        o.copy(f'v2.m.success_none.{nm(a)}', F, f'success_by_condition/{a}/none:None', mv)
+        o.put(f'v2.m.none_ci.{nm(a)}', wilson(sb['none:None'], 300), WIL)
+        for f, lv in cond.items():
+            for i, (_, key) in enumerate(lv):
+                o.copy(f'v2.m.curves.{nm(a)}.{f}.{i}.success', F, f'success_by_condition/{a}/{key}', mv)
+                o.put(f'v2.m.curves.{nm(a)}.{f}.{i}.ci', wilson(sb[key], 300), WIL)
+    for k in ['success', 'wilson95', 'n', 'pass']:
+        o.copy(f'v2.h9.i.{k}', F, f'H9_i/{k}', mv)
+    for k in ['auc_v2_ring', 'auc_v1', 'pass']:
+        o.copy(f'v2.h9.ii.{k}', F, f'H9_ii/{k}', mv)
+    for k in ['est', 'lo', 'hi']:
+        o.copy(f'v2.h9.ii.diff.{k}', F, f'H9_ii/diff/{k}', mv)
+        o.copy(f'v2.h9.ii.own_diff.{k}', F, f'H9_ii/secondary_v1_own_definition/diff/{k}', mv)
+    o.copy('v2.h9.ii.auc_v1_own', F, 'H9_ii/secondary_v1_own_definition/auc_v1_own', mv)
+    for f in V2_FAULTS:
+        for k in ['severity', 'level', 'success', 'n']:
+            o.copy(f'v2.h9.iii.{f}.{k}', F, f'H9_iii/per_fault/{f}/{k}', mv)
+        o.put(f'v2.h9.iii.{f}.ci', wilson(mv['H9_iii']['per_fault'][f]['success'], mv['H9_iii']['per_fault'][f]['n']), WIL)
+    o.copy('v2.h9.iii_pass', F, 'H9_iii/pass', mv)
+    o.copy('v2.h9.all', F, 'H9', mv)
+    for k in ['est', 'null_mean', 'null_lo', 'null_hi', 'percentile', 'p_two_sided']:
+        o.copy(f'v2.m.perm.{k}', F, f'v2_ring_vs_rivals/permutation_test/{k}', mv)
+    for a, v in mv['v2_ring_vs_rivals']['pairwise'].items():
+        for k in ['est', 'lo', 'hi', 'p', 'p_holm']:
+            o.copy(f'v2.m.pair.{nm(a)}.{k}', F, f'v2_ring_vs_rivals/pairwise/{a}/{k}', mv)
+    for a in mv['ablations_v2_ring_minus_arm']:
+        for k in ['est', 'lo', 'hi', 'p']:
+            o.copy(f'v2.m.abl.{a}.{k}', F, f'ablations_v2_ring_minus_arm/{a}/{k}', mv)
+    for k in ['est', 'lo', 'hi']:
+        o.copy(f'v2.m.lf.{k}', F, f'learning_flight_10_vs_0/{k}', mv)
+    for a, byf in mv['landing'].items():
+        for f, v in byf.items():
+            for k in ['landed_on_pad', 'landing_error_median_m', 'touchdown_speed_median_mps']:
+                o.copy(f'v2.m.landing.{nm(a)}.{f}.{k}', F, f'landing/{a}/{f}/{k}', mv)
+    # ---- from the run records
+    r = v2_runs()
+    R = 'results/runs/mission_v2_test.parquet'
+    o.put('v2.m.n_runs', len(r), f'derived: rows of {R}')
+    ring = seed_auc(r[r.arm == 'v2_ring'], 'success_full')
+    for a, lab in [('v2_ring_kf', 'kf'), ('v2_ring_no_tip', 'no_tip'), ('v2_ring_poor_tip', 'poor_tip')]:
+        d = paired_diff(ring.to_numpy(), seed_auc(r[r.arm == a], 'success_full').reindex(ring.index).to_numpy())
+        for k in ['est', 'lo', 'hi', 'p']:
+            o.put(f'v2.m.extra.{lab}.{k}', d[k], f'derived: {R}, paired bootstrap (stats.paired_diff, 10,000, seed 0) of per-seed full-success AUC, v2_ring minus {a}')
+    v1 = r[r.arm == 'v1'].assign(own=lambda x: x.success_target & x.success_home & (x.collisions == 0))
+    own = v1.groupby(['fault', 'level']).own.mean()
+    o.put('v2.m.v1own.success_none', float(own[('none', 0)]), f'derived: {R}, v1 rows, mean of success_target & success_home & no collision (v1 own definition), no fault')
+    o.put('v2.m.v1own.none_ci', wilson(float(own[('none', 0)]), 300), WIL)
+    for f in V2_FAULTS:
+        vals = [float(own[(f, i + 1)]) for i in range(len(cond[f]))]
+        o.put(f'v2.m.v1own.curves.{f}', [dict(success=v, ci=wilson(v, 300)) for v in vals],
+              f'derived: {R}, v1 rows, own-definition success per level with Wilson 95% interval (n = 300)')
+    o.put('v2.m.v1own.auc', float(seed_auc(v1, 'own').mean()), f'derived: {R}, v1 rows, per-seed own-definition AUC, mean')
+    for a, lab in [('v2_ring', 'ring'), ('v2_ring_minus_home', 'ring_minus_home')]:
+        g = r[(r.arm == a) & r.touchdown_speed_mps.notna()]
+        for f, x in g.groupby('fault'):
+            o.put(f'v2.m.land_q.{lab}.{f}', dict(n=len(x), err_q=list(np.percentile(x.landing_error_m, [5, 25, 50, 75, 95])),
+                                                 speed_q=list(np.percentile(x.touchdown_speed_mps, [5, 25, 50, 75, 95]))),
+                  f'derived: {R}, {a} runs with a touchdown, per fault: n and the 5/25/50/75/95th percentiles of landing error (m) and touchdown speed (m/s)')
+    o.put('v2.m.n_touchdown.ring_minus_landing', int(r[(r.arm == 'v2_ring_minus_landing')].touchdown_speed_mps.notna().sum()), f'derived: {R}, touchdowns in the v2_ring_minus_landing arm')
+    # ---- component studies
+    k5 = load('kt5.json')
+    for c in k5['conditions']:
+        for e in ['ring', 'cf', 'kf', 'v1']:
+            for k in ['est', 'lo', 'hi']:
+                o.copy(f'v2.kt5.rms.{c}.{e}.{k}', 'kt5.json', f'per_condition/{c}/rms_deg/{e}/{k}', k5)
+    for e in ['ring', 'cf', 'kf', 'v1']:
+        for k in ['est', 'lo', 'hi']:
+            o.copy(f'v2.kt5.agg.{e}.{k}', 'kt5.json', f'aggregate_fault_set/rms_deg/{e}/{k}', k5)
+    for e in ['cf', 'kf', 'v1']:
+        for k in ['est', 'lo', 'hi']:
+            o.copy(f'v2.kt5.delta.{e}.{k}', 'kt5.json', f'aggregate_fault_set/delta_vs_ring_deg/{e}/{k}', k5)
+    o.copy('v2.kt5.conditions', 'kt5.json', 'conditions', k5)
+    o.copy('v2.kt5.gate', 'kt5.json', 'gate', k5)
+    o.copy('v2.kt5.git', 'kt5.json', 'provenance/git', k5)
+    rv = load('recog_v2_auroc.json')
+    o.copy('v2.rec.thetas', 'recog_v2_auroc.json', 'thetas', rv)
+    for arm, ms in [('mb_front', 'ms'), ('mb_front', 'goal'), ('mb_front', 'lf13'), ('nn_front', 'ms'), ('mb_v1', 'lf13'), ('pixels', 'ms'),
+                    ('pixels_crop', 'ms'), ('pixels', 'lf13'), ('colour', 'ms'), ('dino_patch', 'ms')]:
+        for k, kk in [('auroc', 'auroc'), ('lo', 'ci95_lo'), ('hi', 'ci95_hi'), ('catchment', 'catchment_bins')]:
+            o.copy(f'v2.rec.{arm}_{ms}.{k}', 'recog_v2_auroc.json', f'arms/{arm}/{ms}/{kk}', rv)
+    for dk in ['d1_tex', 'd2_mesh', 'd3_twin']:
+        o.copy(f'v2.rec.per_decoy0.{dk}', 'recog_v2_auroc.json', f'arms/mb_front/ms/per_decoy/{dk}/auroc/0', rv)
+    for pk in rv['paired_differences']:
+        for k, kk in [('d0', 'by_theta/0'), ('lo0', 'ci95_lo/0'), ('hi0', 'ci95_hi/0')]:
+            o.copy(f'v2.rec.diff.{pk}.{k}', 'recog_v2_auroc.json', f'paired_differences/{pk}/{kk}', rv)
+    rg = load('recog_v2_gate.json')
+    for k in ['auroc_0deg', 'auroc_0deg_ci95', 'margin_over_pixels_0deg', 'margin_ci95', 'part1_auroc_ge_0.75', 'part2_margin_ge_0.05', 'H8_recognition', 'git']:
+        o.copy(f'v2.rec.gate.{k.replace(".", "")}', 'recog_v2_gate.json', k, rg)
+    ri = load('recog_v2_inspect.json')
+    for k in ['single_eval_target_accept', 'single_eval_decoy_accept', 'inspect_eval_target_accept', 'inspect_eval_decoy_accept', 'auroc_single', 'auroc_inspect']:
+        o.copy(f'v2.rec.inspect.{k}', 'recog_v2_inspect.json', f'summary/{k}', ri)
+    o.copy('v2.rec.inspect.diff', 'recog_v2_inspect.json', 'summary/auroc_diff/point', ri)
+    o.copy('v2.rec.inspect.diff_ci', 'recog_v2_inspect.json', 'summary/auroc_diff/ci95', ri)
+    k7 = load('kt7.json')
+    K7 = 'kt7.json'
+    for a, pts in k7['points'].items():
+        for i, p in enumerate(pts):
+            for k in ['value', 'hold_mean_s', 'hold_sem', 'release_mean_s', 'release_sem', 'release_signed_mean_s', 'frac_switched_before_crossing',
+                      'time_off_target_mean_s', 'time_off_target_sem', 'wrongful_switch_rate']:
+                o.copy(f'v2.kt7.points.{a}.{i}.{k}', K7, f'points/{a}/{i}/{k}', k7)
+            for k in ['hold', 'release']:
+                m, sd = p[f'{k}_mean_s'], p[f'{k}_sem']
+                o.put(f'v2.kt7.points.{a}.{i}.{k}_ci', [m - Z * sd, m + Z * sd], f'derived: {k}_mean_s ± 1.96 × {k}_sem')
+    for rvl in ['state_machine', 'accumulator_vg']:
+        for i in range(len(k7['ring_vs_rival'][rvl])):
+            for k in ['ring_gain', 'delta_s', 'lo', 'hi']:
+                o.copy(f'v2.kt7.delta.{rvl}.{i}.{k}', K7, f'ring_vs_rival/{rvl}/{i}/{k}', k7)
+                o.copy(f'v2.kt7.delta_dom.{rvl}.{i}.{k}', K7, f'dominance_frontier_sensitivity/delta/{rvl}/{i}/{k}', k7)
+        o.copy(f'v2.kt7.rival_time_off.{rvl}', K7, f'premature_switch_noninferiority/rival_tuned_time_off_s/{rvl}', k7)
+    o.copy('v2.kt7.ok_per_gain', K7, 'premature_switch_noninferiority/ok_per_gain', k7)
+    for k in ['gate', 'dead_because', 't_cross_s']:
+        o.copy(f'v2.kt7.{k}', K7, k, k7)
+    o.copy('v2.kt7.dom_gate', K7, 'dominance_frontier_sensitivity/gate', k7)
+    o.copy('v2.kt7.n_not_dominated', K7, 'secondary_3d_dominance/n_ring_gains_not_dominated_by_either', k7)
+    W = k7['kt2_world']
+    for a in W['aggregate_auc']:
+        for k in ['mean', 'sem']:
+            o.copy(f'v2.kt7.kt2.auc.{a}.{k}', K7, f'kt2_world/aggregate_auc/{a}/{k}', k7)
+    for k in ['est', 'percentile', 'p_two_sided']:
+        o.copy(f'v2.kt7.kt2.perm.{k}', K7, f'kt2_world/ring_gated_minus_best_other_permutation/{k}', k7)
+    for k in ['est', 'lo', 'hi', 'p']:
+        o.copy(f'v2.kt7.kt2.ablation.{k}', K7, f'kt2_world/ablation_ring_gated_minus_ring_vg/{k}', k7)
+    for a, v in W['ring_gated_minus_each'].items():
+        for k in ['est', 'lo', 'hi', 'p_holm']:
+            o.copy(f'v2.kt7.kt2.each.{a}.{k}', K7, f'kt2_world/ring_gated_minus_each/{a}/{k}', k7)
+    o.copy('v2.kt7.time_limit_rate', K7, 'kt2_world/time_limit_rate', k7)
+    o.copy('v2.kt7.git', K7, 'provenance/git', k7)
+    o.copy('v2.kt7.tune_cpu_s', 'kt7_tuned_params.json', 'cpu_s', load('kt7_tuned_params.json'))
+    e7 = load('kt7_envelope.json')
+    for cmp in ['ring_gated|accumulator_vg|pareto_interp', 'ring_gated|state_machine|pareto_interp']:
+        if cmp in e7['best_ring_vs_rival']:
+            for k in ['n_ring_configs_defined', 'n_ring_configs_delta_gt_0', 'delta_s', 'lo', 'hi', 'best_ring_hold_s', 'best_ring_release_s']:
+                o.copy(f'v2.kt7.env.{cmp.split("|")[1]}.{k}', 'kt7_envelope.json', f'best_ring_vs_rival/{cmp}/{k}', e7)
+    # ---- tuning and design decisions
+    tv = load('tuned_v2_params.json')
+    o.copy('v2.tune.budget', 'tuned_v2_params.json', 'budget', tv)
+    for a in V2_ARB:
+        for k in ['config_index', 'train_auc']:
+            o.copy(f'v2.tune.{a}.{k}', 'tuned_v2_params.json', f'arms/{a}/{k}', tv)
+        if 'ring_gain' in tv['arms'][a]['params']:
+            o.copy(f'v2.tune.{a}.ring_gain', 'tuned_v2_params.json', f'arms/{a}/params/ring_gain', tv)
+    t1 = load('tune_v2_r1.json')
+    for a in V2_ARB:
+        sc = list(t1['scores'][a].values())
+        o.put(f'v2.tune.usable.{a}', dict(n=len(sc), n_pos=sum(v > 0 for v in sc), n_half=sum(v > 0.5 for v in sc)),
+              'derived: counts of results/tune_v2_r1.json:scores/<arm> above 0 and above 0.5')
+    sa = load('v2_sanity.json')
+    o.copy('v2.sanity.full_success', 'v2_sanity.json', 'full_success', sa)
+    o.put('v2.sanity.n', len(sa['rows']), 'derived: len(results/v2_sanity.json:rows)')
+    o.put('v2.sanity.max_err', max(x['landing_error_m'] for x in sa['rows']), 'derived: max of results/v2_sanity.json:rows/*/landing_error_m')
+    al = load('v2_alt_decision.json')
+    o.copy('v2.alt', 'v2_alt_decision.json', 'ALT_SEARCH', al)
+    ca = load('v2_calib.json')
+    for fs in ['grey', 'front']:
+        for k in ['F_HOME', 'F_TRACK', 'pad_recognised_frac', 'object_false_lock_frac']:
+            o.copy(f'v2.calib.{fs}.{k}', 'v2_calib.json', f'{fs}/{k}', ca)
+    for k in ['F0', 'F1']:
+        o.copy(f'v2.calib.front.{k}', 'v2_calib.json', f'front/{k}', ca)
+    idc = load('v2_inspect_decision.json')
+    o.copy('v2.inspect_on', 'v2_inspect_decision.json', 'inspect_default_on', idc)
+    for w in ['with', 'without']:
+        for f in ['decoy', 'none']:
+            for k in ['success_full', 'wrong_object_stop']:
+                o.copy(f'v2.inspect_dec.{w}.{f}.{k}', 'v2_inspect_decision.json', f'result/{w}/{f}/{k}', idc)
 
 
 # ---------------------------------------------------------------- README key-results block
@@ -585,6 +813,21 @@ def readme_block(d):
     rows.append(('H4, renders', 'AUROC, target vs look-alikes on the same spot, at the stored azimuth (0°), no flight → with learning flight',
                  f"mushroom body {f(R['mb']['lf_off']['auroc'][0])} → {f(R['mb']['lf_on']['auroc'][0])}; raw pixels {f(R['pixels']['lf_off']['auroc'][0])}; DINOv2 {f(R['dino_patch']['lf_off']['auroc'][0])} → {f(R['dino_patch']['lf_on']['auroc'][0])}",
                  'Learning-flight claim rejected for the mushroom body' if d['h4']['claim'] == 'KILLED' else d['h4']['claim']))
+    V = d.get('v2')
+    if V:
+        h9, m = V['h9'], V['m']
+        rows.append(('H9, Study 2 (3D)', 'Full-mission success incl. landing within 0.5 m of the pad, v2 brain (test seeds 2000–2299)',
+                     f"no fault {f(h9['i']['success'])} [{f(h9['i']['wilson95'][0])}, {f(h9['i']['wilson95'][1])}]; AUC +{f(h9['ii']['own_diff']['est'])} [{f(h9['ii']['own_diff']['lo'])}, {f(h9['ii']['own_diff']['hi'])}] over Study 1 on its own 2 m definition "
+                     f"(+{f(h9['ii']['diff']['est'])} on full success, definitional); look-alikes at similarity 0.8 {f(h9['iii']['decoy']['success'], 2)}; arbiter choice p = {f(m['perm']['p_two_sided'], 2)}",
+                     'Not fully met: (i) and (ii) pass, (iii) fails on look-alikes'))
+        k5 = V['kt5']['agg']
+        rows.append(('H5, Study 2 (2D)', 'RMS heading error under compass faults', f"ring {f(k5['ring']['est'], 2)}°, Kalman {f(k5['kf']['est'], 2)}°, complementary {f(k5['cf']['est'], 2)}°, Study 1 compass {f(k5['v1']['est'], 1)}°; mission AUC ring heading {f(m['auc']['ring']['mean'])} vs Kalman {f(m['auc']['v2_ring_kf']['mean'])}",
+                     'Not supported (Kalman better in replays; ring better in the mission)'))
+        rows.append(('H6, Study 2 (3D)', 'Landing with a home snapshot', f"no fault: landed on the pad {f(m['landing']['ring']['none']['landed_on_pad'], 2)}, median error {f(100 * m['landing']['ring']['none']['landing_error_median_m'], 1)} cm; removing the snapshot costs {f(m['abl']['v2_ring_minus_home']['est'])} AUC", 'No numeric gate'))
+        rows.append(('H7, Study 2 (2D)', 'Evidence-gated ring vs visibility-gated rivals', f"KT2 world ring {f(V['kt7']['kt2']['auc']['ring_gated']['mean'])} vs best rival {f(max(v['mean'] for k, v in V['kt7']['kt2']['auc'].items() if k not in ('ring_gated', 'ring_vg', 'ring')))}",
+                     'Better-trade-off claim rejected' if V['kt7']['gate'] == 'DEAD' else V['kt7']['gate']))
+        g = V['rec']['gate']
+        rows.append(('H8, Study 2 (renders)', 'AUROC at 0°, mushroom body on an insect front end, multi-scale learning flight', f"{f(g['auroc_0deg'])} [{f(g['auroc_0deg_ci95'][0])}, {f(g['auroc_0deg_ci95'][1])}]; +{f(g['margin_over_pixels_0deg'])} over raw pixels", 'Failed (criterion 0.75)'))
     out = [RB, '', '| Hypothesis | Measure | Result | Verdict |', '| --- | --- | --- | --- |']
     out += [f'| {a} | {b} | {c} | {e} |' for a, b, c, e in rows]
     return '\n'.join(out + ['', RE])
@@ -680,6 +923,24 @@ def selfcheck(doc):
     assert d['kt3']['gate'] == 'DEAD' and d['h4']['claim'] == 'KILLED'
     assert d['h4']['gates']['a']['fires'] and d['h4']['gates']['b']['fires'] and d['h4']['gates']['c']['fires'] and not d['h4']['gates']['d']['fires']
     assert d['parity']['quad']['pass'] is True
+    # 4b. Study 2: re-derive the mission numbers from the run records
+    if d.get('v2'):
+        from stats import paired_diff
+        mv, r = load('mission_v2.json'), v2_runs()
+        for a in mv['arms']:
+            g = r[r.arm == a]
+            sa = seed_auc(g, 'success_full')
+            assert abs(sa.mean() - mv['aggregate_auc'][a]['mean']) < 1e-12, a
+            for (f, lv), x in g.groupby(['fault', 'level']):
+                key = 'none:None' if f == 'none' else conditions(mv['success_by_condition'][a])[f][lv - 1][1]
+                assert abs(x.success_full.mean() - mv['success_by_condition'][a][key]) < 1e-12 and len(x) == 300, (a, key)
+        ring = seed_auc(r[r.arm == 'v2_ring'], 'success_full')
+        for a, v in mv['ablations_v2_ring_minus_arm'].items():
+            dd = paired_diff(ring.to_numpy(), seed_auc(r[r.arm == a], 'success_full').reindex(ring.index).to_numpy())
+            assert abs(dd['est'] - v['est']) < 1e-12 and abs(dd['lo'] - v['lo']) < 1e-12 and abs(dd['hi'] - v['hi']) < 1e-12, a
+        v1 = r[r.arm == 'v1'].assign(own=lambda x: x.success_target & x.success_home & (x.collisions == 0))
+        assert abs(seed_auc(v1, 'own').mean() - mv['H9_ii']['secondary_v1_own_definition']['auc_v1_own']) < 1e-12
+        assert d['v2']['h9']['all'] is False and d['v2']['h9']['i']['pass'] and d['v2']['h9']['ii']['pass'] and not d['v2']['h9']['iii_pass']
     # 5. sources point only at results/ files or derived formulas
     assert all(v.startswith('results/') or v.startswith('derived:') for v in src.values())
     # 5. every leaf has a source; the app's chart keys have the shapes panels.js reads

@@ -1,6 +1,6 @@
 <div align="center">
 
-**Stubborn by design: an insect-inspired steering hub against equal-budget rivals in kill tests and a simulated drone mission**
+**Stubborn by design: testing, then redesigning, an insect-inspired brain for a simulated drone**
 
 Mutaqin Aryawijaya · ORCID [0009-0008-5199-2413](https://orcid.org/0009-0008-5199-2413)
 
@@ -26,7 +26,9 @@ A small simulated drone is shown a picture of a target (for example a tent at a 
 
 The question: does the ring hub's recurrent memory earn its place? It should keep steering toward a target that is briefly hidden, but it may also keep chasing a look-alike after the evidence has turned. We measured that trade-off and compared the ring with five arbiters given the same random-search tuning budget: a static vote, the ring with recurrence switched off, a vector sum, a leaky evidence accumulator and a state machine frozen before any fault data. A second question was whether a learning flight lets the few-kilobyte mushroom-body memory re-find the target among look-alikes standing on its exact spot, compared with raw pixels, a colour histogram and DINOv2 features.
 
-Everything is simulation. The results describe these models in this simulator, not insects or real drones. Hypotheses and metrics were drafted before any data; the record is an internal log without independent timestamps, and the public commits start after the 2D kill tests and the recognition study. Every amendment and every post hoc analysis is listed in the paper's "Protocol and amendments" section.
+That was Study 1. Study 2, pre-registered afterwards on fresh seeds, took Study 1's failures as a diagnosis and redesigned the brain to fly the whole mission, including landing on a pad: an insect-style heading integrator corrected by the sun compass, a home snapshot memory with a landing controller, a colour-opponent and oriented-edge visual front end for the mushroom body, an evidence-gated ring (with the same visibility channel given to every rival), variable altitude and an explicit operator tip. Every sensory and motor upgrade was given to all six arbiters.
+
+Everything is simulation. The results describe these models in this simulator, not insects or real drones. Study 1's hypotheses and metrics were drafted before any data; the record is an internal log without independent timestamps, and the public commits start after the 2D kill tests and the recognition study. Study 2's plan was written before any Study 2 data, and its hash is in `results/v2_preregistration.sha256`. Every amendment and every post hoc analysis is listed in the paper's "Protocol and amendments" section.
 
 ## Key results
 
@@ -42,10 +44,17 @@ Every number below is generated from `app/data/summary.json` by `scripts/export_
 | H3, 2D kill test | Hold of a hidden target vs release of a fading look-alike; accumulator − ring release at the ring’s hold | ring gain 0→3: release 1.22 s → 20 s cap (other parameters fixed); Δ −1.87 to −18.7 s; best of 64 ring configurations −1.19 s (post hoc, training seeds) | Better-trade-off claim rejected |
 | H3, 3D mission | Same sweeps in the mission (wrong stops before the crossing count as the 20 s cap) | for gains ≤ 0.8 the ring's hold peaks at 3.25 s (gain 0.3); release 6.59 → 8.52 s; from gain 1.0 the ring never stopped at a hidden target and 99% of its runs reached the time limit (post hoc) | Inconclusive (pre-registered rule; also on common seeds, Amendment 4, and under the post hoc dominance frontier) |
 | H4, renders | AUROC, target vs look-alikes on the same spot, at the stored azimuth (0°), no flight → with learning flight | mushroom body 0.502 → 0.502; raw pixels 0.506; DINOv2 0.761 → 0.799 | Learning-flight claim rejected for the mushroom body |
+| H9, Study 2 (3D) | Full-mission success incl. landing within 0.5 m of the pad, v2 brain (test seeds 2000–2299) | no fault 0.990 [0.971, 0.997]; AUC +0.225 [0.212, 0.239] over Study 1 on its own 2 m definition (+0.843 on full success, definitional); look-alikes at similarity 0.8 0.39; arbiter choice p = 0.90 | Not fully met: (i) and (ii) pass, (iii) fails on look-alikes |
+| H5, Study 2 (2D) | RMS heading error under compass faults | ring 3.64°, Kalman 0.88°, complementary 4.79°, Study 1 compass 57.6°; mission AUC ring heading 0.852 vs Kalman 0.805 | Not supported (Kalman better in replays; ring better in the mission) |
+| H6, Study 2 (3D) | Landing with a home snapshot | no fault: landed on the pad 0.99, median error 0.9 cm; removing the snapshot costs 0.645 AUC | No numeric gate |
+| H7, Study 2 (2D) | Evidence-gated ring vs visibility-gated rivals | KT2 world ring 0.824 vs best rival 0.865 | Better-trade-off claim rejected |
+| H8, Study 2 (renders) | AUROC at 0°, mushroom body on an insect front end, multi-scale learning flight | 0.686 [0.655, 0.720]; +0.185 over raw pixels | Failed (criterion 0.75) |
 
 <!-- RESULTS:END -->
 
-In plain words: in this simulator the insect parts did not beat simple engineered parts. In the full mission, the tuned ring hub (which had almost no recurrence) was fooled by look-alikes on the target's spot slightly more often than the state machine and the accumulator, and so were the vector sum and the ring without recurrence (post hoc); on every other fault all six arms tied. In the full-mission stubbornness test the comparison was inconclusive, and at high gain the ring no longer completed the mission. With its other parameters fixed, turning up its memory made it hold a hidden target longer and also chase a fading look-alike longer, and a leaky accumulator did better on both. The tuner chose a ring with almost no recurrence in both worlds. The mushroom body could not tell the target from look-alikes on the same spot once distance, height or light changed, with or without a learning flight; DINOv2 could.
+In plain words, Study 1: in this simulator the insect parts did not beat simple engineered parts. In the full mission, the tuned ring hub (which had almost no recurrence) was fooled by look-alikes on the target's spot slightly more often than the state machine and the accumulator, and so were the vector sum and the ring without recurrence (post hoc); on every other fault all six arms tied. In the full-mission stubbornness test the comparison was inconclusive, and at high gain the ring no longer completed the mission. With its other parameters fixed, turning up its memory made it hold a hidden target longer and also chase a fading look-alike longer, and a leaky accumulator did better on both. The tuner chose a ring with almost no recurrence in both worlds. The mushroom body could not tell the target from look-alikes on the same spot once distance, height or light changed, with or without a learning flight; DINOv2 could.
+
+In plain words, Study 2: the redesigned brain found the target and landed on the pad in almost every fault-free flight and did much better than the Study 1 brain under faults, but look-alikes on the target's spot still fooled it more often than not, so its pre-registered goal was not fully met. The improvement came from heading, homing and landing; the insect-inspired versions of those modules did not beat engineered ones on their own terms (a Kalman filter tracked heading better in replays, although the insect heading ring did better in the full mission), and the choice of arbiter barely mattered.
 
 <img src="paper/figures/fig4.png" alt="Stubbornness frontier of the ring hub and its rivals" width="100%">
 
@@ -85,12 +94,19 @@ uv run python scripts/recog_run.py && uv run python scripts/recog_score.py
 uv run python scripts/run_3d.py run test --shard 0 --nshards 64
 uv run python scripts/run_3d.py reduce test
 
+# Study 2: component tests (2D and renders) and the integrated mission
+uv run python scripts/kt5_heading.py                       # H5, heading estimators
+uv run python scripts/recog_v2_run.py --selfcheck           # H8, see the script header for render/score stages
+uv run python scripts/kt7_stubbornness_v2.py --smoke        # H7; --tune and --test are tens of CPU-minutes
+uv run python scripts/run_v2.py --selfcheck                 # H9 stages: calib_alt, sanity, r1, r2, test, then reduce
+uv run python scripts/mission_diagnostics.py                # post hoc diagnostics of the Study 1 3D runs
+
 # paper and summary
 uv run python scripts/export_app_summary.py
 node scripts/export_paper.mjs                              # needs Chrome, pandoc, tectonic, rsvg-convert, poppler
 ```
 
-The 3D stages take tens of CPU-hours. They were sharded on free GitHub Actions runners with `.github/workflows/sim.yml` (`gh workflow run sim -f stage=test -f nshards=64`; results pulled with `gh run download` into `results/3d/`, which is not tracked) and reduced locally into `results/runs/` and the `results/mission_*.json` summaries. Seeds 0–99 are training seeds (tuning only); 1000–1299 are test seeds (reporting only).
+The 3D stages take tens of CPU-hours. They were sharded on free GitHub Actions runners with `.github/workflows/sim.yml` (`gh workflow run sim -f stage=test -f nshards=64`; results pulled with `gh run download` into `results/3d/`, which is not tracked) and reduced locally into `results/runs/` and the `results/mission_*.json` summaries. Study 2's tuning and test stages (about 127,500 test missions) ran on Kaggle CPU kernels from committed code with `scripts/kaggle_launch.py` (the Kaggle CLI's own credentials, used in place). Seeds: Study 1 training 0–99 and test 1000–1299; Study 2 training 100–199, mission test 2000–2299, 2D test 1300–1599, recognition test layouts 1010–1019. Tuning used training seeds only.
 
 ## Repository layout
 
@@ -111,6 +127,7 @@ schema/         the scenario format shared by Python and JavaScript
 - The state machine reads a visibility flag that the ring ignores, and the stubbornness trials never penalise switching early.
 - The recognition test pools distance, camera-height jitter and new light at the stored azimuth, which is harsh for a whole-scene memory by design; DINOv2's memory was given the object's location.
 - The pre-registration record is an internal log without independent timestamps; the public commits start after the 2D kill tests and the recognition study.
+- Study 2's gain over Study 1 on full success is mostly definitional (the Study 1 brain has no landing controller); the fair comparison uses Study 1's own 2 m success definition. Several Study 2 modules are engineering rather than insect models, and they were developed on training seeds with changes listed in the paper.
 - The full list is in the paper's Limitations section.
 
 ## Credits and licences
@@ -131,7 +148,7 @@ AI coding and writing assistants were used for implementation and drafting; the 
 ```bibtex
 @misc{aryawijaya2026stubborn,
   author = {Aryawijaya, Mutaqin},
-  title  = {Stubborn by design: an insect-inspired steering hub against equal-budget rivals in kill tests and a simulated drone mission},
+  title  = {Stubborn by design: testing, then redesigning, an insect-inspired brain for a simulated drone},
   year   = {2026},
   url    = {https://github.com/aryawidjaja/mutant-brain-drone}
 }
