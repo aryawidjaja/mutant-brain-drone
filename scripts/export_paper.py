@@ -111,6 +111,21 @@ def nn_auroc():
     return auroc(d[d.obj == "target"].score, d[d.obj != "target"].score)
 
 
+EXPL = ROOT / "results/v2/explore_size"          # raw explore units (gitignored); the self-check uses them when present
+EXPL_CONDS = ("none", "false_sun", "gust", "decoy")
+KIND_DIAG = {"tent": (2.2, 1.8, 1.3), "backpack": (0.6, 0.4, 0.7)}  # w, d, h [m] = scripts/world.py DIMS
+
+
+@lru_cache(None)
+def explore_runs():
+    fs = sorted(EXPL.glob("*.parquet"))
+    if not fs:
+        return None
+    d = pd.concat([pd.read_parquet(f) for f in fs], ignore_index=True)
+    lab = d.unit.str.split("__").str[0].str.split("_")
+    return d.assign(kind=lab.str[0], ad=lab.str[1])
+
+
 def landing_groups():
     r = s2_arm("v2_ring")
     return [r.query("fault != 'gust'"), r.query("fault == 'gust'"), s2_arm("v2_ring_minus_home")]
@@ -342,6 +357,27 @@ def register():
     Dv("StwoLandBeyond", lambda: 100 * landing_beyond(), 1, "percent of the Fig. 7a missions with landing error > 30 m, results/runs/mission_v2_test.parquet")
     Dv("StwoFirstRow", lambda: str(runs("mission_v2_test").created.min()), None,
        "earliest created stamp (cloud server clock, UTC) in results/runs/mission_v2_test.parquet", fmt=lambda v: v.split("T")[1] + " UTC on " + v.split("T")[0])
+    # ---- post-study extension (exploratory, not pre-registered): results/explore_size.json
+    R("ExtNseeds", "explore_size.json", "n_seeds", "int")
+    cn = {"none": "None", "false_sun": "Sun", "gust": "Gust", "decoy": "Decoy"}
+    for kind, kn in (("backpack", "Bp"), ("tent", "Tent")):
+        for ad, an in (("off", "Off"), ("on", "On")):
+            for c, n in cn.items():
+                R(f"Ext{kn}{an}{n}", "explore_size.json", f"cells/{kind}/{ad}/{c}/success_full", 3)
+        for c, n in cn.items():
+            R(f"Ext{kn}On{n}Lo", "explore_size.json", f"cells/{kind}/on/{c}/wilson95/0", 3)
+            R(f"Ext{kn}On{n}Hi", "explore_size.json", f"cells/{kind}/on/{c}/wilson95/1", 3)
+        ci(f"Ext{kn}Pooled", "explore_size.json", f"paired_on_minus_off/{kind}/pooled/success_full")
+        R(f"Ext{kn}Size", "explore_size.json", f"cells/{kind}/on/none/size_est_median_m", 2)
+        R(f"Ext{kn}Alt", "explore_size.json", f"cells/{kind}/on/none/search_alt_median_m", 1)
+        Dv(f"Ext{kn}True", (lambda kind=kind: float(np.sqrt(sum(x * x for x in KIND_DIAG[kind])))), 2,
+           f"diagonal of scripts/world.py DIMS['{kind}'] = sqrt(w^2 + d^2 + h^2)")
+    R("ExtBpOnDecoyWrong", "explore_size.json", "cells/backpack/on/decoy/wrong_object_stop", 3)
+    R("ExtTentOffDecoyWrong", "explore_size.json", "cells/tent/off/decoy/wrong_object_stop", 3)
+    R("ExtTentOnDecoyWrong", "explore_size.json", "cells/tent/on/decoy/wrong_object_stop", 3)
+    bpoff = lambda k: [J("explore_size.json")["cells"]["backpack"]["off"][c][k] for c in EXPL_CONDS]  # noqa: E731
+    Dv("ExtBpOffStopsMax", lambda: max(bpoff("success_target")), 3, "max over conditions of results/explore_size.json:cells/backpack/off/*/success_target")
+    Dv("ExtBpOffTime", lambda: min(bpoff("time_median_s")), 0, "min over conditions of results/explore_size.json:cells/backpack/off/*/time_median_s")
     R("StwoAltSearch", "v2_alt_decision.json", "ALT_SEARCH", 1)
 
 
@@ -655,12 +691,61 @@ def fig8():
     save(fig, "fig8_heading")
 
 
+def fig9():
+    """Exploratory post-study extension: full success per condition, target kind x size-aware search off/on (Wilson CIs)."""
+    cells = J("explore_size.json")["cells"]
+    fig, ax = plt.subplots(figsize=(W1, 2.25))
+    bars = (("backpack", "off", "backpack, module off", GREYS[1], None), ("backpack", "on", "backpack, module on", ORANGE, None),
+            ("tent", "off", "tent, module off", GREYS[1], "////"), ("tent", "on", "tent, module on", ORANGE, "////"))
+    w = 0.2
+    for i, (kind, ad, lab, c, hatch) in enumerate(bars):
+        p = np.array([cells[kind][ad][cd]["success_full"] for cd in EXPL_CONDS])
+        lo, hi = np.array([cells[kind][ad][cd]["wilson95"] for cd in EXPL_CONDS]).T
+        x = np.arange(len(EXPL_CONDS)) + (i - 1.5) * w
+        ax.bar(x, p, w, color="white" if hatch else c, edgecolor=c if hatch else "#333333", hatch=hatch, lw=0.6 if hatch else 0.3, label=lab)
+        ax.errorbar(x, p, yerr=[p - lo, hi - p], fmt="none", ecolor="#222222", elinewidth=0.6)
+        for xx, pp, hh in zip(x, p, hi):
+            if pp == 0:
+                ax.text(xx, hh + 0.015, "0", ha="center", va="bottom", fontsize=6, color=GREYS[0])
+    ax.set_xticks(np.arange(len(EXPL_CONDS)), ["no fault", "false sun\n90 deg", "gust\nmoderate", "look-alike\nsimilarity 0.8"])
+    ax.set_ylabel("mission success"); ax.set_ylim(0, 1.05)
+    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, 1.2), fontsize=6.2)
+    save(fig, "fig9_size_search")
+
+
+def explore_check():
+    """Recompute the explore cells and paired differences from the raw units when they exist (gitignored)."""
+    d = explore_runs()
+    if d is None:
+        return "raw units results/v2/explore_size/*.parquet absent: explore macros checked against results/explore_size.json only"
+    ex = J("explore_size.json")
+    assert len(d) == 2 * 2 * len(EXPL_CONDS) * ex["n_seeds"]
+    for kind in ("tent", "backpack"):
+        for ad in ("off", "on"):
+            for c in EXPL_CONDS:
+                g = d[(d.kind == kind) & (d.ad == ad) & (d.fault == c)]
+                ref = ex["cells"][kind][ad][c]
+                k, n = int(g.success_full.sum()), len(g)
+                assert n == ref["n"] and k / n == ref["success_full"] and np.allclose(wilson(k, n), ref["wilson95"], atol=1e-12)
+                assert np.isclose(g.wrong_object_stop.mean(), ref["wrong_object_stop"], atol=1e-12)
+                if ad == "on":
+                    assert np.isclose(g.size_est_m.median(), ref["size_est_median_m"], atol=1e-12)
+                    assert np.isclose(g.search_alt_m.median(), ref["search_alt_median_m"], atol=1e-12)
+        on = d[(d.kind == kind) & (d.ad == "on")].sort_values(["fault", "seed"])
+        off = d[(d.kind == kind) & (d.ad == "off")].sort_values(["fault", "seed"])
+        assert (on.seed.to_numpy() == off.seed.to_numpy()).all()
+        r = paired_diff(on.success_full.to_numpy(float), off.success_full.to_numpy(float))
+        ref = ex["paired_on_minus_off"][kind]["pooled"]["success_full"]
+        assert all(np.isclose(r[q], ref[q], atol=1e-12) for q in ("est", "lo", "hi")), (kind, r, ref)
+    return "explore cells, Wilson CIs, size and altitude medians and pooled paired bootstraps recomputed from results/v2/explore_size/*.parquet"
+
+
 # ---------------------------------------------------------------- self-check
 
 def selfcheck():
     stored = json.loads((OUT / "numbers_sources.json").read_text())
     tex = (OUT / "numbers.tex").read_text()
-    J.cache_clear(); runs.cache_clear(); recog_scores.cache_clear(); s1.cache_clear(); s1_auc.cache_clear(); s2.cache_clear(); s2_auc.cache_clear()
+    J.cache_clear(); runs.cache_clear(); explore_runs.cache_clear(); recog_scores.cache_clear(); s1.cache_clear(); s1_auc.cache_clear(); s2.cache_clear(); s2_auc.cache_clear()
     for k, v in NUM.items():
         src = stored[k]["source"]
         if src.startswith("results/"):                               # independent re-read of the named key path
@@ -673,7 +758,7 @@ def selfcheck():
         assert x == stored[k]["value"] or np.isclose(x, stored[k]["value"], rtol=0, atol=1e-12), (k, x, stored[k]["value"])
         assert f"\\newcommand{{\\{k}}}{{{stored[k]['text']}}}" in tex, k
     used = set(re.findall(r"\\([A-Za-z]+)\{\}", (OUT / "main.tex").read_text())) if (OUT / "main.tex").exists() else set()
-    missing = {u for u in used if (u.startswith("Sone") or u.startswith("Stwo") or u == "Nseeds") and u not in NUM}
+    missing = {u for u in used if (u.startswith(("Sone", "Stwo", "Ext")) or u == "Nseeds") and u not in NUM}
     assert not missing, f"main.tex uses undefined number macros: {missing}"
     m2 = J("mission_v2.json")
     # Study 2 aggregate and per-fault AUC from the run records equal the summary
@@ -712,7 +797,12 @@ def selfcheck():
     assert all(np.isclose(d[q], h1["ring_minus_best_other"][q], atol=1e-12) for q in ("est", "lo", "hi")), d
     for p in FIG.glob("*.pdf"):
         assert p.with_suffix(".png").exists()
-    assert len(list(FIG.glob("fig*.pdf"))) == 8
+    assert len(list(FIG.glob("fig*.pdf"))) == 9
+    note = explore_check()
+    src = json.loads((OUT / "numbers_sources.json").read_text())
+    src["_explore_selfcheck"] = note
+    (OUT / "numbers_sources.json").write_text(json.dumps(src, indent=1, default=float))
+    print(note)
     print(f"self-check OK: {len(NUM)} macros re-read; Study 2 AUCs, Wilson CI, 8 paired bootstraps, permutation test and the "
           f"Study 1 H1 bootstrap recomputed from the run records")
 
@@ -721,7 +811,7 @@ if __name__ == "__main__":
     register()
     write_numbers()
     style()
-    for f in (fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8):
+    for f in (fig1, fig2, fig3, fig4, fig5, fig6, fig7, fig8, fig9):
         f()
     selfcheck()
     # The built PDF (cd paper && tectonic -X compile main.tex) is also served by the app's Paper tab.

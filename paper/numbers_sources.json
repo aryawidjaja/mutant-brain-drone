@@ -1029,9 +1029,260 @@
   "value": "2026-10-12T08:48:37",
   "text": "08:48:37 UTC on 2026-10-12"
  },
+ "ExtNseeds": {
+  "source": "results/explore_size.json:n_seeds",
+  "value": 200,
+  "text": "200"
+ },
+ "ExtBpOffNone": {
+  "source": "results/explore_size.json:cells/backpack/off/none/success_full",
+  "value": 0.0,
+  "text": "0.000"
+ },
+ "ExtBpOffSun": {
+  "source": "results/explore_size.json:cells/backpack/off/false_sun/success_full",
+  "value": 0.0,
+  "text": "0.000"
+ },
+ "ExtBpOffGust": {
+  "source": "results/explore_size.json:cells/backpack/off/gust/success_full",
+  "value": 0.0,
+  "text": "0.000"
+ },
+ "ExtBpOffDecoy": {
+  "source": "results/explore_size.json:cells/backpack/off/decoy/success_full",
+  "value": 0.0,
+  "text": "0.000"
+ },
+ "ExtBpOnNone": {
+  "source": "results/explore_size.json:cells/backpack/on/none/success_full",
+  "value": 0.98,
+  "text": "0.980"
+ },
+ "ExtBpOnSun": {
+  "source": "results/explore_size.json:cells/backpack/on/false_sun/success_full",
+  "value": 0.985,
+  "text": "0.985"
+ },
+ "ExtBpOnGust": {
+  "source": "results/explore_size.json:cells/backpack/on/gust/success_full",
+  "value": 0.72,
+  "text": "0.720"
+ },
+ "ExtBpOnDecoy": {
+  "source": "results/explore_size.json:cells/backpack/on/decoy/success_full",
+  "value": 0.295,
+  "text": "0.295"
+ },
+ "ExtBpOnNoneLo": {
+  "source": "results/explore_size.json:cells/backpack/on/none/wilson95/0",
+  "value": 0.9497121344948062,
+  "text": "0.950"
+ },
+ "ExtBpOnNoneHi": {
+  "source": "results/explore_size.json:cells/backpack/on/none/wilson95/1",
+  "value": 0.9921956998236058,
+  "text": "0.992"
+ },
+ "ExtBpOnSunLo": {
+  "source": "results/explore_size.json:cells/backpack/on/false_sun/wilson95/0",
+  "value": 0.9568335194437211,
+  "text": "0.957"
+ },
+ "ExtBpOnSunHi": {
+  "source": "results/explore_size.json:cells/backpack/on/false_sun/wilson95/1",
+  "value": 0.9948858548155076,
+  "text": "0.995"
+ },
+ "ExtBpOnGustLo": {
+  "source": "results/explore_size.json:cells/backpack/on/gust/wilson95/0",
+  "value": 0.6540756858222899,
+  "text": "0.654"
+ },
+ "ExtBpOnGustHi": {
+  "source": "results/explore_size.json:cells/backpack/on/gust/wilson95/1",
+  "value": 0.7776320715736488,
+  "text": "0.778"
+ },
+ "ExtBpOnDecoyLo": {
+  "source": "results/explore_size.json:cells/backpack/on/decoy/wilson95/0",
+  "value": 0.23613844271901735,
+  "text": "0.236"
+ },
+ "ExtBpOnDecoyHi": {
+  "source": "results/explore_size.json:cells/backpack/on/decoy/wilson95/1",
+  "value": 0.3615884197074943,
+  "text": "0.362"
+ },
+ "ExtBpPooled": {
+  "source": "results/explore_size.json:paired_on_minus_off/backpack/pooled/success_full/est",
+  "value": 0.745,
+  "text": "0.745"
+ },
+ "ExtBpPooledLo": {
+  "source": "results/explore_size.json:paired_on_minus_off/backpack/pooled/success_full/lo",
+  "value": 0.715,
+  "text": "0.715"
+ },
+ "ExtBpPooledHi": {
+  "source": "results/explore_size.json:paired_on_minus_off/backpack/pooled/success_full/hi",
+  "value": 0.775,
+  "text": "0.775"
+ },
+ "ExtBpSize": {
+  "source": "results/explore_size.json:cells/backpack/on/none/size_est_median_m",
+  "value": 1.0141346383564316,
+  "text": "1.01"
+ },
+ "ExtBpAlt": {
+  "source": "results/explore_size.json:cells/backpack/on/none/search_alt_median_m",
+  "value": 2.4227180132075827,
+  "text": "2.4"
+ },
+ "ExtBpTrue": {
+  "source": "derived: diagonal of scripts/world.py DIMS['backpack'] = sqrt(w^2 + d^2 + h^2)",
+  "value": 1.004987562112089,
+  "text": "1.00"
+ },
+ "ExtTentOffNone": {
+  "source": "results/explore_size.json:cells/tent/off/none/success_full",
+  "value": 0.97,
+  "text": "0.970"
+ },
+ "ExtTentOffSun": {
+  "source": "results/explore_size.json:cells/tent/off/false_sun/success_full",
+  "value": 0.975,
+  "text": "0.975"
+ },
+ "ExtTentOffGust": {
+  "source": "results/explore_size.json:cells/tent/off/gust/success_full",
+  "value": 0.705,
+  "text": "0.705"
+ },
+ "ExtTentOffDecoy": {
+  "source": "results/explore_size.json:cells/tent/off/decoy/success_full",
+  "value": 0.335,
+  "text": "0.335"
+ },
+ "ExtTentOnNone": {
+  "source": "results/explore_size.json:cells/tent/on/none/success_full",
+  "value": 0.975,
+  "text": "0.975"
+ },
+ "ExtTentOnSun": {
+  "source": "results/explore_size.json:cells/tent/on/false_sun/success_full",
+  "value": 0.985,
+  "text": "0.985"
+ },
+ "ExtTentOnGust": {
+  "source": "results/explore_size.json:cells/tent/on/gust/success_full",
+  "value": 0.695,
+  "text": "0.695"
+ },
+ "ExtTentOnDecoy": {
+  "source": "results/explore_size.json:cells/tent/on/decoy/success_full",
+  "value": 0.365,
+  "text": "0.365"
+ },
+ "ExtTentOnNoneLo": {
+  "source": "results/explore_size.json:cells/tent/on/none/wilson95/0",
+  "value": 0.9428208558483829,
+  "text": "0.943"
+ },
+ "ExtTentOnNoneHi": {
+  "source": "results/explore_size.json:cells/tent/on/none/wilson95/1",
+  "value": 0.9892754385292123,
+  "text": "0.989"
+ },
+ "ExtTentOnSunLo": {
+  "source": "results/explore_size.json:cells/tent/on/false_sun/wilson95/0",
+  "value": 0.9568335194437211,
+  "text": "0.957"
+ },
+ "ExtTentOnSunHi": {
+  "source": "results/explore_size.json:cells/tent/on/false_sun/wilson95/1",
+  "value": 0.9948858548155076,
+  "text": "0.995"
+ },
+ "ExtTentOnGustLo": {
+  "source": "results/explore_size.json:cells/tent/on/gust/wilson95/0",
+  "value": 0.6280132012185453,
+  "text": "0.628"
+ },
+ "ExtTentOnGustHi": {
+  "source": "results/explore_size.json:cells/tent/on/gust/wilson95/1",
+  "value": 0.7546368564733095,
+  "text": "0.755"
+ },
+ "ExtTentOnDecoyLo": {
+  "source": "results/explore_size.json:cells/tent/on/decoy/wilson95/0",
+  "value": 0.3014041621876483,
+  "text": "0.301"
+ },
+ "ExtTentOnDecoyHi": {
+  "source": "results/explore_size.json:cells/tent/on/decoy/wilson95/1",
+  "value": 0.4336842594102984,
+  "text": "0.434"
+ },
+ "ExtTentPooled": {
+  "source": "results/explore_size.json:paired_on_minus_off/tent/pooled/success_full/est",
+  "value": 0.00875,
+  "text": "0.009"
+ },
+ "ExtTentPooledLo": {
+  "source": "results/explore_size.json:paired_on_minus_off/tent/pooled/success_full/lo",
+  "value": -0.01375,
+  "text": "\\ensuremath{-}0.014"
+ },
+ "ExtTentPooledHi": {
+  "source": "results/explore_size.json:paired_on_minus_off/tent/pooled/success_full/hi",
+  "value": 0.03125,
+  "text": "0.031"
+ },
+ "ExtTentSize": {
+  "source": "results/explore_size.json:cells/tent/on/none/size_est_median_m",
+  "value": 3.121983840830679,
+  "text": "3.12"
+ },
+ "ExtTentAlt": {
+  "source": "results/explore_size.json:cells/tent/on/none/search_alt_median_m",
+  "value": 2.7285776074696417,
+  "text": "2.7"
+ },
+ "ExtTentTrue": {
+  "source": "derived: diagonal of scripts/world.py DIMS['tent'] = sqrt(w^2 + d^2 + h^2)",
+  "value": 3.125699921617557,
+  "text": "3.13"
+ },
+ "ExtBpOnDecoyWrong": {
+  "source": "results/explore_size.json:cells/backpack/on/decoy/wrong_object_stop",
+  "value": 0.695,
+  "text": "0.695"
+ },
+ "ExtTentOffDecoyWrong": {
+  "source": "results/explore_size.json:cells/tent/off/decoy/wrong_object_stop",
+  "value": 0.625,
+  "text": "0.625"
+ },
+ "ExtTentOnDecoyWrong": {
+  "source": "results/explore_size.json:cells/tent/on/decoy/wrong_object_stop",
+  "value": 0.605,
+  "text": "0.605"
+ },
+ "ExtBpOffStopsMax": {
+  "source": "derived: max over conditions of results/explore_size.json:cells/backpack/off/*/success_target",
+  "value": 0.0,
+  "text": "0.000"
+ },
+ "ExtBpOffTime": {
+  "source": "derived: min over conditions of results/explore_size.json:cells/backpack/off/*/time_median_s",
+  "value": 300.0,
+  "text": "300"
+ },
  "StwoAltSearch": {
   "source": "results/v2_alt_decision.json:ALT_SEARCH",
   "value": 3.5,
   "text": "3.5"
- }
+ },
+ "_explore_selfcheck": "explore cells, Wilson CIs, size and altitude medians and pooled paired bootstraps recomputed from results/v2/explore_size/*.parquet"
 }
