@@ -1,7 +1,7 @@
 // Mutant brain drone: on-screen display (OSD) drawn on a 2D canvas over the 3D view. Classic script; defines
-// window.makeHUD(canvas, host). draw(frame, opt) once per animation frame; fields a frame lacks are simply not drawn.
+// window.makeHUD(canvas, host). draw(frame, opt) once per animation frame; fields a frame lacks are not drawn.
 // Colours: neutral = simulator truth; opt.brain (--a) = the brain's own estimates and commands.
-// Frame fields used (C6): quad {pos, vel, euler_deg, motors}, wind, pi {home_est, home_true, heading_est_deg},
+// Logged-frame fields used: quad {pos, vel, euler_deg, motors}, wind, pi {home_est, home_true, heading_est_deg},
 // ring.heading_cmd_deg, arbiter.commit, familiarity, phase, faults_active, outcome, home (v2 landing state). Newer optional
 // frame.hud (alt, set-point, speeds, headings, home distances, energy, heading confidence, home familiarity, landing
 // stage) is used when present and computed from the fields above otherwise (recorded replays lack it).
@@ -61,7 +61,7 @@ window.makeHUD = function (cv, host) {
     const hdgT = wrap360(90 - (pick(f, ['hud.heading_true_deg']) ?? eu[2]));            // compass, 0 = north, clockwise
     const estRaw = pick(f, ['hud.heading_est_deg', 'pi.heading_est_deg']), hdgE = fin(estRaw) ? wrap360(90 - estRaw) : null;
     const cmdRaw = pick(f, ['hud.heading_cmd_deg', 'ring.heading_cmd_deg']);
-    // the command lives in the brain's compass frame: drawn where the drone will actually point once its estimate reaches it
+    // the command lives in the brain's compass frame: drawn where the drone will point once its estimate reaches it
     const hdgC = fin(cmdRaw) && fin(estRaw) ? wrap360(hdgT - wrap180(cmdRaw - estRaw)) : null;
     const v = q.vel || null, w = f.wind || [0, 0, 0];
     const gs = pick(f, ['hud.ground_speed_mps']) ?? (v ? Math.hypot(v[0], v[1]) : null);

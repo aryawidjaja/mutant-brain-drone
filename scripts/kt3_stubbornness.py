@@ -1,10 +1,10 @@
-"""KT3 (H3): the stubbornness frontier. Hold a hidden target vs release a decoy, as each arm's memory knob is swept.
+"""KT3 (H3): the stubbornness frontier. Hold a hidden target vs release a look-alike, as each arm's memory knob is swept.
 
 Pre-registered (KT3; the paper's Protocol and amendments section). Uses KT2-tuned params for everything but the swept knob.
 Post hoc addition (prompted by an independent review, labelled "posthoc_unclamped" in results/kt3.json): the
 pre-registered release is clamped at >= 0, which hides arms that switch to the target before the evidence crossing t*.
 The unclamped signed release (first time from 5 s, the start of the evidence ramp, that the command is within 20 deg of
-the target, minus t*; negative = switched early) and the noise-free target/decoy evidence ratio at that moment are
+the target, minus t*; negative = switched early) and the noise-free target/look-alike evidence ratio at that moment are
 recorded from the same trials. The pre-registered numbers are unchanged (asserted against the committed file).
 Usage: uv run python scripts/kt3_stubbornness.py [--selfcheck]
 """
@@ -34,7 +34,7 @@ SWEEPS = {"ring": ("ring_gain", [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0, 1.2
 
 
 def ratio_at(t):
-    """Noise-free target/decoy evidence ratio of the decoy trial at time t."""
+    """Noise-free target/look-alike evidence ratio of the decoy trial at time t."""
     f = np.clip((np.asarray(t, float) - T_RAMP0) / (T_RAMP1 - T_RAMP0), 0, 1)
     return (0.3 + 0.6 * f) / (0.9 - 0.7 * f)
 
@@ -51,7 +51,7 @@ def trial(arm, params, seeds, kind, detail=False):
     d1, d2 = np.deg2rad(60 + 90 * r.uniform()), np.deg2rad(60 + 90 * r.uniform())
     h = phi + np.deg2rad(60) * (r.uniform() - 0.5)
     dist = 45.0 if kind == "occ" else 80.0
-    ang = np.stack([phi, phi + sgn * d1], 1)                     # slot 0 target, slot 1 decoy
+    ang = np.stack([phi, phi + sgn * d1], 1)                     # slot 0 target, slot 1 look-alike
     obj = dist * np.stack([np.cos(ang), np.sin(ang)], -1)
     search_b = phi + sgn * d1 if kind == "occ" else phi - sgn * d2
     K = 1 if kind == "occ" else 2

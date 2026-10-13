@@ -1,12 +1,12 @@
 // Mutant brain drone: the workbench. Three modes in one page: Simulator (live, app/worker.js), Results (recorded runs
 // and summary charts), Paper (guide.js into #guide). Classic script so Results and Paper open from file://; three.js is
-// loaded with import() through the import map, as in flight-test-the-fly. Drawing helpers: panels.js, scene3d.js.
+// loaded with import() through the import map, as in the author's flight-test-the-fly app. Drawing helpers: panels.js, scene3d.js.
 //
 // Data written by the export scripts (each optional; the app shows a labelled mock or banner without it):
 //   data/parity.js         window.PARITY = {pass: bool, quad: {...}, brain: {...}}      (hides the "not verified" banner)
 //   data/summary.json|.js  window.APP_SUMMARY = {stubbornness_frontier, h1_success_vs_severity, recog_auroc, _source...}
 //   runs/manifest.json     {runs: [{file, label}]}; runs/<file> = {meta: {scenario, arbiter, seed, git, sim_version, label},
-//                          world: <C5>, frames: [<C6 frame>, ...] at 10 Hz; frame.eye optional, {w, h, b64} or {w, h, rgb}}
+//                          world: <world dict>, frames: [<logged frame>, ...] at 10 Hz; frame.eye optional, {w, h, b64} or {w, h, rgb}}
 //   runs/bundle.js         window.RUN_BUNDLE = {manifest, runs: {file: run}}   (for file://)
 //   data/tuned_params.js   window.TUNED = {_source, <arm>: params} (Study 1 brain); window.TUNED_V2 = {_source, <arm>: params,
 //                          _heading: {ring, kf, cf}} (Study 2 brain); window.YAW_SURROGATE = {K, tau_s, wc_radps, ...}
@@ -36,7 +36,7 @@ try {
   S3 = window.makeScene3D(THREE, OC, $('view'), X);
 } catch (e) { console.warn('three.js failed to load', e); const d = document.createElement('div'); d.className = 'nosim on'; d.textContent = '3D view unavailable (three.js could not load). The map and panels still work.'; $('view').prepend(d); }
 
-// ---------------------------------------------------------------- knobs -> C1 scenario
+// ---------------------------------------------------------------- knobs -> scenario
 const ARBS = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine'];
 const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Mission', 'seed', 'Seed', 'num', 0, 0, 99999, 1, 'World layout, gusts and noise all follow this seed. The paper reports test seeds 1000–1299.'],
@@ -57,10 +57,10 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Wind', 'wsp', 'Mean wind', 'rng', 1, 0, 8, 0.1, 'Mean wind speed', (v) => v.toFixed(1) + ' m/s'],
   ['Wind', 'wdir', 'From', 'rng', 270, 0, 359, 1, 'Direction the wind blows FROM (compass, 0 = north)', (v) => v + '°'],
   ['Wind', 'turb', 'Gusts', 'sel', 'light', ['none', 'light', 'moderate', 'severe'], 0, 0, 'Dryden turbulence intensity (MIL-F-8785C, low altitude)'],
-  ['Faults', 'decoy', 'Decoy', 'sel', 'none', ['none', 'swap', 'beside', 'route'], 0, 0, 'none; swap = the look-alike stands on the reported spot and the real target sits 10 m to the side (the swap control; the study draws 8–14 m in a random direction); beside = 6 m from the target; route = halfway along the way'],
-  ['Faults', 'dkind', 'Decoy kind', 'sel', 'tent', ['tent', 'backpack'], 0, 0, 'Kind of the decoy object', null, 'decoy'],
-  ['Faults', 'dsim', 'Similarity', 'rng', 0.8, 0.5, 0.95, 0.05, 'How much the decoy looks like the target', (v) => v.toFixed(2), 'decoy'],
-  ['Faults', 'dt', 'Decoy at', 'rng', 0, 0, 120, 1, 'Time the decoy appears', (v) => v + ' s', 'decoy'],
+  ['Faults', 'decoy', 'Look-alike', 'sel', 'none', ['none', 'swap', 'beside', 'route'], 0, 0, 'none; swap = the look-alike stands on the reported spot and the real target sits 10 m to the side (the swap control; the study draws 8–14 m in a random direction); beside = 6 m from the target; route = halfway along the way'],
+  ['Faults', 'dkind', 'Kind', 'sel', 'tent', ['tent', 'backpack'], 0, 0, 'Kind of the look-alike object', null, 'decoy'],
+  ['Faults', 'dsim', 'Similarity', 'rng', 0.8, 0.5, 0.95, 0.05, 'How much the look-alike resembles the target', (v) => v.toFixed(2), 'decoy'],
+  ['Faults', 'dt', 'Appears at', 'rng', 0, 0, 120, 1, 'Time the look-alike appears', (v) => v + ' s', 'decoy'],
   ['Faults', 'occ', 'Occlusion', 'chk', false, 0, 0, 0, 'Hide the target for a while'],
   ['Faults', 'occt', 'Starts', 'rng', 0, 0, 20, 1, 'Seconds after the target is first seen within 10 m (the study uses 0)', (v) => '+' + v + ' s', 'occ'],
   ['Faults', 'occd', 'Lasts', 'rng', 5, 1, 10, 0.5, 'Occlusion duration', (v) => v + ' s', 'occ'],
@@ -82,17 +82,17 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Brain', 'lf', 'Learning flight', 'chk', true, 0, 0, 0, 'Bee-style learning flight: the target is memorised from 5 views per second along a zig-zag arc 2–7 m out. Off = one photo from 4 m.'],
   ['Brain', 'lfs', 'Duration', 'rng', 10, 1, 30, 1, 'Learning flight length (the study uses 10 s)', (v) => v + ' s', 'lf'],
   ['Brain', 'ver', 'Brain', 'sel', '2', ['2', '1'], 0, 0, 'Study 2 brain (default) or the Study 1 brain'],
-  ['Brain', 'hd', 'Heading', 'sel', 'hring', ['hring', 'kf', 'cf', 'v1c'], 0, 0, 'How the v2 brain keeps its heading', null, 'ver=2'],
-  ['Brain', 'mhome', 'Home snapshot', 'chk', true, 0, 0, 0, 'v2: remember the home pad by sight', null, 'ver=2'],
-  ['Brain', 'mland', 'Landing', 'chk', true, 0, 0, 0, 'v2: land on the pad', null, 'ver=2'],
-  ['Brain', 'mfront', 'Insect front end', 'chk', true, 0, 0, 0, 'v2: colour-opponent, oriented front end for the memory', null, 'ver=2'],
-  ['Brain', 'minsp', 'Inspection rule', 'chk', true, 0, 0, 0, 'v2: look from two sides before stopping', null, 'ver=2'],
-  ['Brain', 'mgate', 'Evidence-gated ring', 'chk', true, 0, 0, 0, 'v2: arbiters only listen to objects they can see', null, 'ver=2'],
+  ['Brain', 'hd', 'Heading', 'sel', 'hring', ['hring', 'kf', 'cf', 'v1c'], 0, 0, 'How the Study 2 brain keeps its heading', null, 'ver=2'],
+  ['Brain', 'mhome', 'Home view memory', 'chk', true, 0, 0, 0, 'Study 2: remember the home pad by sight', null, 'ver=2'],
+  ['Brain', 'mland', 'Landing', 'chk', true, 0, 0, 0, 'Study 2: land on the pad', null, 'ver=2'],
+  ['Brain', 'mfront', 'Insect front end', 'chk', true, 0, 0, 0, 'Study 2: colour-opponent, oriented-edge front end for the memory', null, 'ver=2'],
+  ['Brain', 'minsp', 'Inspection rule', 'chk', true, 0, 0, 0, 'Study 2: look from two sides before stopping', null, 'ver=2'],
+  ['Brain', 'mgate', 'Evidence-gated ring', 'chk', true, 0, 0, 0, 'Study 2: arbiters only listen to objects they can see', null, 'ver=2'],
   ['Brain', 'madapt', 'Adaptive search (post-study)', 'chk', true, 0, 0, 0, 'Post-study: search height, spacing and recognition matched to the target size measured on the learning flight', null, 'ver=2'],
   ['Brain', 'tip', 'Operator tip', 'sel', 'default', ['default', 'poor', 'none'], 0, 0, 'How good the rough direction given to the drone is', null, 'ver=2'],
   ['Brain', 'yaw', 'Yaw surrogate', 'chk', false, 0, 0, 0, 'Exploratory, live view only: adds a yaw-rate damping term from a transfer function fitted to the Shiu-model fly yaw circuit. Off in every reported run.'],
 ];
-const OPTNAME = { ver: { 1: 'Study 1 brain', 2: 'Study 2 brain (default)' }, hd: { hring: 'Heading ring', kf: 'Kalman filter', cf: 'Complementary filter', v1c: 'v1 sun compass' },
+const OPTNAME = { ver: { 1: 'Study 1 brain', 2: 'Study 2 brain (default)' }, hd: { hring: 'Heading ring', kf: 'Kalman filter', cf: 'Complementary filter', v1c: 'Study 1 sun compass' },
   tip: { default: 'Default', poor: 'Poor', none: 'None (search from scratch)' } };
 const MODK = [['mhome', 'home'], ['mland', 'landing'], ['mfront', 'front'], ['minsp', 'inspect'], ['mgate', 'gated_arbiter'], ['madapt', 'adaptive_search']];
 const POST_STUDY = ['adaptive_search']; // optional modules outside the Study 2 default list (absent modules = Study 2 brain)
@@ -260,8 +260,8 @@ function syncKnobs() {
   for (const id of ['hd', ...MODK.map(([k]) => k)]) if (kEls[id]) { const off = !v2on || !SUPPORT.modules; kEls[id].el.disabled = off; kEls[id].el.closest('label, select').classList.toggle('off', off); }
   if (kEls.tip) { const off = !v2on || !SUPPORT.tip; kEls.tip.el.disabled = off; kEls.tip.el.classList.toggle('off', off); }
   const vn = $('v2note');
-  if (vn) vn.textContent = !SUPPORT.version ? 'Brain v2 controls: coming with v2 (this build of app/sim does not accept brain.version yet).'
-    : !SUPPORT.tip ? 'Operator tip: coming with v2 (app/sim/scenario.js does not define brain.tip yet).' : '';
+  if (vn) vn.textContent = !SUPPORT.version ? 'Study 2 brain controls unavailable: this copy of app/sim does not accept brain.version.'
+    : !SUPPORT.tip ? 'Operator tip unavailable: app/sim/scenario.js does not define brain.tip.' : '';
   document.querySelectorAll('#gal button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.i === 'seed' ? K.pic === null : b.dataset.kind === K.tkind && b.dataset.i === String(K.pic))));
 }
 let pendingReset = false;
@@ -377,7 +377,7 @@ function setRunning(on) {
 function badge() {
   const b = $('badge'), mock = mode === 'sim' ? sim.src === 'mock' : results.mockRun;
   b.classList.toggle('on', mock); b.textContent = 'MOCK physics + brain' + (mode === 'sim' && sim.worldSrc === 'app/sim/world.js' ? ' · real world' : '');
-  b.title = mode === 'sim' ? 'app/sim/mission.js is not available yet, so the live view uses app/data/mock_mission.js: a kinematic point drone and a toy brain, for building the interface only. ' + sim.note : 'This replay is a mock run made by app/data/mock_mission.js, not a result.';
+  b.title = mode === 'sim' ? 'app/sim/mission.js could not be loaded, so the live view uses app/data/mock_mission.js: a kinematic point drone and a toy brain, not a result. ' + sim.note : 'This replay is a mock run made by app/data/mock_mission.js, not a result.';
 }
 // poll for the real modules while on the mock; switch at the next reset (immediately when idle)
 if (HTTP) setInterval(async () => {
@@ -404,7 +404,7 @@ function runBatch() {
     out.innerHTML = `<span class="ph">Exploratory · not part of the paper</span>
       <table><tr><td>Arbiter</td><td>${esc(ARBNAME[sc.brain.arbiter])}${d.source === 'mock' ? ' <span class="flag">mock</span>' : ''}</td></tr>
       <tr><td>Seeds</td><td class="num">${seeds[0]}–${seeds[19]}</td></tr><tr><td>Found target</td><td class="num">${pc('success_target')}</td></tr>
-      <tr><td>Got home</td><td class="num">${pc('success_home')}</td></tr><tr><td>Stopped at decoy</td><td class="num">${pc('wrong_object_stop')}</td></tr>
+      <tr><td>Got home</td><td class="num">${pc('success_home')}</td></tr><tr><td>Stopped at look-alike</td><td class="num">${pc('wrong_object_stop')}</td></tr>
       <tr><td>Collisions (mean)</td><td class="num">${(R.reduce((s, r) => s + (r.collisions || 0), 0) / n).toFixed(1)}</td></tr><tr><td>Median time</td><td class="num">${med} <span class="u">s</span></td></tr></table>
       <p class="fine">20 seeds, no confidence intervals: a quick look only. The paper's numbers come from the Python reference on held-out test seeds.</p>`;
     batchW.terminate(); batchW = null; $('batch').textContent = 'Run 20 seeds';
@@ -492,7 +492,7 @@ function banners() {
   const pass = par && par.pass === true;
   $('parity').classList.toggle('on', mode === 'sim' && !pass);
   if (par && !pass) $('parity').innerHTML = 'Parity check against the Python reference did not pass: the live simulator may differ from the numbers in the paper. Details: <span class="mono">' + esc(JSON.stringify({ quad: par.quad, brain: par.brain }).slice(0, 200)) + '</span>';
-  const mk = mode === 'sim' ? (sim.src === 'mock' ? 'MOCK physics and brain: <span class="mono">app/sim/mission.js</span> is not available yet, so this view uses a kinematic stand-in (<span class="mono">app/data/mock_mission.js</span>) for building the interface. Nothing here is a result.' : '')
+  const mk = mode === 'sim' ? (sim.src === 'mock' ? 'MOCK physics and brain: <span class="mono">app/sim/mission.js</span> could not be loaded, so this view uses a kinematic stand-in (<span class="mono">app/data/mock_mission.js</span>). Nothing here is a result.' : '')
     : mode === 'results' ? [results.mockRun && 'Mock replay: the recorded run is synthetic (made by the mock simulator).', results.mockS && 'Mock summary: the charts show synthetic numbers (<span class="mono">data/mock_summary.js</span>), not results.'].filter(Boolean).join(' ') : '';
   msg('mock', mk);
 }
@@ -516,7 +516,7 @@ async function modelPanel() {
   if (HTTP) {
     try {
       if ((await fetch('sim/vehicle_params.js', { method: 'HEAD', cache: 'no-store' })).ok) { const m = await import(new URL('sim/vehicle_params.js', location.href).href); params = m.SOURCES || m.default || m.PARAMS || m.P || m.params || null; }
-      else why = 'app/sim/vehicle_params.js is not written yet.';
+      else why = 'app/sim/vehicle_params.js was not found.';
     } catch (e) { why = 'Could not load app/sim/vehicle_params.js: ' + e.message; }
   } else why = 'Open over http to load app/sim/vehicle_params.js.';
   const t = $('model');
@@ -547,7 +547,7 @@ function placeTags() {
   for (const o of w.objects) {
     const here = present(o), z = o.kind === 'tent' ? 1.6 : 0.7;
     if (o.role === 'target') { here ? put('tagT', o.x, o.y, z, `target · slot ${o.slot}`) : ($('tagT').hidden = true); }
-    else if (d < 3) { const id = 'tagD' + d++; here ? put(id, o.x, o.y, z, `decoy · slot ${o.slot} · sim ${(o.appearance.similarity ?? 0).toFixed(2)}`) : ($(id).hidden = true); }
+    else if (d < 3) { const id = 'tagD' + d++; here ? put(id, o.x, o.y, z, `look-alike · slot ${o.slot} · sim ${(o.appearance.similarity ?? 0).toFixed(2)}`) : ($(id).hidden = true); }
   }
   put('tagH', w.home[0], w.home[1], 0.3);
 }
@@ -586,7 +586,7 @@ function drawPanels() {
   if (f.pi) { const e = f.pi.home_est, t = f.pi.home_true; $('hverr').textContent = `error ${Math.hypot(e[0] - t[0], e[1] - t[1]).toFixed(1)} m`; }
   $('mindtxt').textContent = f.mind ? f.mind.text : '–'; $('mindtru').textContent = f.mind ? f.mind.truth : '–';
   const chips = (f.faults_active || []).map((k) => `<span class="flag warn">${esc(k.replace(/_/g, ' '))}</span>`);
-  $('chips').innerHTML = `<span class="flag ph-on">${esc(f.phase)}</span>` + chips.join('') + (f.outcome ? `<span class="flag">${f.outcome.success_target ? 'found target' : f.outcome.wrong_object_stop ? 'stopped at decoy' : 'target not found'} · ${f.outcome.success_home ? 'home' : 'not home'}</span>` : '');
+  $('chips').innerHTML = `<span class="flag ph-on">${esc(f.phase)}</span>` + chips.join('') + (f.outcome ? `<span class="flag">${f.outcome.success_target ? 'found target' : f.outcome.wrong_object_stop ? 'stopped at look-alike' : 'target not found'} · ${f.outcome.success_home ? 'home' : 'not home'}</span>` : '');
   const o = f.objects || [];
   const rows = [['Phase', f.phase], ['Commit', f.arbiter && Number.isFinite(f.arbiter.commit) ? f.arbiter.commit.toFixed(2) : '–'], ['Heading cmd', f.ring && Number.isFinite(f.ring.heading_cmd_deg) ? f.ring.heading_cmd_deg.toFixed(0) + '°' : '–'],
     ['Avoid yaw offset', f.avoid ? f.avoid.yaw_offset_deg.toFixed(0) + '°' : '–'], ['Looming', f.avoid ? f.avoid.loom.toFixed(2) : '–'], ['Altitude', f.quad.pos[2].toFixed(2) + ' m'],
@@ -672,7 +672,7 @@ const HELP = {
   'g:Wind': 'Steady wind plus random gusts that push the drone around. ' + STUDY,
   'g:Faults': 'Deliberate problems injected into the drone\'s senses or its world, to test how robust the brain is. ' + STUDY,
   'g:Brain': 'Which brain flies and which of its parts are switched on.',
-  seed: 'Random seed. The same seed gives the same world layout, gusts and sensor noise, so a run can be repeated exactly. Any whole number; the paper\'s test seeds are 1000–1299 (v1) and 2000–2299 (v2). ' + STUDY,
+  seed: 'Random seed. The same seed gives the same world layout, gusts and sensor noise, so a run can be repeated exactly. Any whole number; the paper\'s test seeds are 1000–1299 (Study 1) and 2000–2299 (Study 2). ' + STUDY,
   tkind: 'The object the drone is shown a picture of and must find: a tent or a backpack. ' + STUDY,
   gal: 'The picture shown to the drone before take-off (colours and pattern of the target). "seed" lets the world seed choose. ' + STUDY,
   dist: 'Straight-line distance from home to the target, in metres. The study uses 25–40 m; up to 120 m here. ' + STUDY,
@@ -711,16 +711,16 @@ const HELP = {
   spds: 'Speed scale error: ×1.2 means the drone thinks it flies 20 % faster than it does. ' + STUDY,
   arb: 'The decision hub that turns all urges (go to object, go home, search) into one heading. Ring hub = the insect-style ring attractor under test; the others are fair rivals and a no-memory control. ' + STUDY,
   prm: 'Arbiter settings: the frozen values tuned on training seeds for the selected brain (as in the paper) or the plain code defaults. ' + STUDY,
-  gain: 'Strength of the ring\'s self-excitation, which is its short-term memory. 0 = no memory; higher = more stubborn (holds a hidden target longer but also chases a decoy longer). Typical 0.3–1.5. ' + STUDY,
+  gain: 'Strength of the ring\'s self-excitation, which is its short-term memory. 0 = no memory; higher = more stubborn (holds a hidden target longer but also chases a look-alike longer). Typical 0.3–1.5. ' + STUDY,
   lf: 'Bee-style learning flight: before setting off, the drone memorises the target from many views (5 per second along a zig-zag arc). Off = a single photo. ' + STUDY,
   lfs: 'Length of the learning flight in seconds. The study uses 10 s. ' + STUDY,
-  ver: 'Which brain flies. Study 2 brain (default) = the robust brain of the second study (heading ring, home snapshot and landing, insect front end, inspection rule, evidence-gated ring) with its frozen tuned parameters. Study 1 brain = the brain of the first study, unchanged, with its own frozen parameters. ' + STUDY,
-  hd: 'How the v2 brain keeps track of which way it faces. Heading ring = insect-style ring fed by the gyro and corrected by the sky compass; Kalman and complementary filters are engineering rivals; v1 sun compass = the old direct compass (heading module off). ' + STUDY,
-  mhome: 'v2 home snapshot: the drone memorises how the home pad looks during take-off and steers by sight when it gets back, instead of trusting dead reckoning alone. ' + STUDY,
-  mland: 'v2 landing: a final slow approach and a vertical descent onto the home pad. Off = the run ends when the drone thinks it is home. ' + STUDY,
-  mfront: 'v2 insect front end: colour-opponent and orientation-sensitive pre-processing (like early insect vision) before the memory, instead of plain grey pixels. ' + STUDY,
-  minsp: 'v2 inspection rule: before stopping at an object, look at it from two directions at least 20° apart, to catch look-alikes. ' + STUDY,
-  mgate: 'v2 evidence gate: the hub only listens to objects that are currently visible, so it lets go of a look-alike faster. ' + STUDY,
+  ver: 'Which brain flies. Study 2 brain (default) = the redesigned brain of the second study (heading ring, home view memory and landing, insect front end, inspection rule, evidence-gated ring) with its frozen tuned parameters. Study 1 brain = the brain of the first study, unchanged, with its own frozen parameters. ' + STUDY,
+  hd: 'How the Study 2 brain keeps track of which way it faces. Heading ring = insect-style ring fed by the gyro and corrected by the sky compass; Kalman and complementary filters are engineering rivals; Study 1 sun compass = the original direct compass (heading module off). ' + STUDY,
+  mhome: 'Home view memory: the drone memorises how the home pad looks during take-off and steers by sight when it gets back, instead of trusting dead reckoning alone. ' + STUDY,
+  mland: 'Landing: a final slow approach and a vertical descent onto the home pad. Off = the run ends when the drone thinks it is home. ' + STUDY,
+  mfront: 'Insect front end: colour-opponent and orientation-sensitive pre-processing (like early insect vision) before the memory, instead of plain grey pixels. ' + STUDY,
+  minsp: 'Inspection rule: before stopping at an object, look at it from two directions at least 20° apart, to catch look-alikes. ' + STUDY,
+  mgate: 'Evidence gate: the hub only listens to objects that are currently visible, so it lets go of a look-alike faster. ' + STUDY,
   madapt: 'Adaptive search: on its learning flight the drone measures how big the target is (from its distance and the target\'s size in the eye). It then picks its search height (lower for small objects, 1–3.5 m) and the spacing of its search spiral, sizes the part of the view its memory looks at to the object, and sets its own match threshold from a few look-back views. When it glimpses a possible match it dips down to look closer and climbs back if the match fades. Off = the Study 2 brain exactly. Exploratory: a post-study addition, not part of the paper\'s results.',
   tip: 'The rough vector to the reported spot that the operator gives the drone before take-off. Default = bearing error about 8° and distance error 10 % (1 SD), as in the study; poor = 30° and 30 % (a choice of this app); none = no tip, the drone spirals out from home. ' + STUDY,
   yaw: 'Adds a small yaw-damping term from a transfer function fitted to the author\'s earlier fly yaw-circuit model. ' + EXPL,
@@ -772,7 +772,7 @@ function addPanelHelp() { // dock headers, the recorded-run header, the brain re
   const mk = document.querySelector('#mind .k'); if (mk) mk.insertAdjacentHTML('beforeend', helpBtn(HELP['p:mind'], 'Brain readout'));
   const tools = document.querySelector('#view .tools'); if (tools) tools.insertAdjacentHTML('afterbegin', `<div class="grp ovbox" style="align-self:center;padding:4px 6px">${helpBtn(HELP['p:view'], 'View controls')}</div>`);
 }
-// v2 fields: read app/sim/scenario.js's schema (re-checked every 30 s while open, as the brain code may update)
+// Study 2 fields: read app/sim/scenario.js's schema (re-checked every 30 s while the page is open)
 async function pollSupport() {
   if (!HTTP) return;
   try {

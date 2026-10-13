@@ -26,7 +26,7 @@ function boxDist(px, py, o) {
   return (dx * dx + dy * dy) ** 0.5;
 }
 
-/** scenario (validated, defaults filled) -> C5 world. */
+/** scenario (validated, defaults filled) -> world dict. */
 export function buildWorld(sc) {
   const r = new Rng(sc.seed, 0);
   const U = () => r.uniform();

@@ -1,4 +1,4 @@
-// Home snapshot memory for the final approach (v2 brain), JS twin of scripts/brain/home.py (batch 1).
+// Home view memory for the final approach (v2 brain), JS twin of scripts/brain/home.py.
 // learn(look) stores a pad look one-shot; steer(looks, vis, bearC, rh, hv) scores every visible candidate, locks the
 // most familiar one at >= fHome, and returns the approach vector (visual while the locked candidate is seen).
 export const F_HOME = 0.97, F_TRACK = 0.485;

@@ -1,4 +1,4 @@
-// v2 arbiters, JS port of scripts/brain/arbiters_v2.py (batch 1): the evidence-gated ring (ring_gated) and
+// v2 arbiters, JS port of scripts/brain/arbiters_v2.py: the evidence-gated ring (ring_gated) and
 // visibility-gated versions of the v1 arms (*_vg). Same obs / step(obs, dt) interface as arbiters.js.
 import { Ring, RingStatic, Vote, Sum, Accumulator, make as makeV1, driveInputs, wrap, TH, N_RING, DEFAULTS as DEFAULTS_V1 } from './arbiters.js';
 

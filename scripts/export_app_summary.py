@@ -825,10 +825,10 @@ def readme_block(d):
         if DG:
             nd = [DG['h1']['no_decoy'][a] for a in ARMS]
             extra = (f"; not ring-specific (post hoc): vector sum p = {f(DG['h1']['perm']['sum']['p_two_sided'])}, ring without recurrence p = {f(DG['h1']['perm']['ring_static']['p_two_sided'])}; "
-                     f"without the decoy fault all six arms {f(min(nd))}–{f(max(nd))}")
+                     f"without the look-alike fault all six arms {f(min(nd))}–{f(max(nd))}")
         rows.append(('H1, 3D mission', f"Aggregate AUC, tuned ring (gain {f(M1['tuned']['ring']['ring_gain'])}, {f(M1['aggregate_auc']['ring']['mean'])}) − best other ({f(M1['aggregate_auc'][M1['best_other_point']]['mean'])}), {M1['n_seeds']} test seeds",
-                     f"{f(r1['est'])} [{f(r1['lo'])}, {f(r1['hi'])}]; permutation p = {f(p1['p_two_sided'])}; decoy fault AUC ring {f(M1['per_fault_auc']['ring']['decoy'])} vs state machine {f(M1['per_fault_auc']['state_machine']['decoy'])}" + extra,
-                     ('Holds, against the ring, but the state machine and accumulator lead only on swapped decoys' if p1['p_two_sided'] < 0.05 and p1['est'] < p1['null_mean'] else 'Holds' if p1['p_two_sided'] < 0.05 else 'Null')))
+                     f"{f(r1['est'])} [{f(r1['lo'])}, {f(r1['hi'])}]; permutation p = {f(p1['p_two_sided'])}; look-alike fault AUC ring {f(M1['per_fault_auc']['ring']['decoy'])} vs state machine {f(M1['per_fault_auc']['state_machine']['decoy'])}" + extra,
+                     ('Holds, against the ring, but the state machine and accumulator lead only on swapped look-alikes' if p1['p_two_sided'] < 0.05 and p1['est'] < p1['null_mean'] else 'Holds' if p1['p_two_sided'] < 0.05 else 'Null')))
     acc = [q for q in K3['delta']['accumulator'] if q['delta_s'] is not None]
     ring = K3['points']['ring']
     env = d.get('env')
@@ -862,14 +862,14 @@ def readme_block(d):
     V = d.get('v2')
     if V:
         h9, m = V['h9'], V['m']
-        rows.append(('H9, Study 2 (3D)', 'Full-mission success incl. landing within 0.5 m of the pad, v2 brain (test seeds 2000–2299)',
+        rows.append(('H9, Study 2 (3D)', 'Full-mission success incl. landing within 0.5 m of the pad, Study 2 brain (test seeds 2000–2299)',
                      f"no fault {f(h9['i']['success'])} [{f(h9['i']['wilson95'][0])}, {f(h9['i']['wilson95'][1])}]; AUC +{f(h9['ii']['own_diff']['est'])} [{f(h9['ii']['own_diff']['lo'])}, {f(h9['ii']['own_diff']['hi'])}] over Study 1 (Study 2 on full success vs Study 1 on its own 2 m success; on the same 2 m definition the gap is +{f(V['same']['agg']['est'])}, all from the three path-integrator faults) "
                      f"(+{f(h9['ii']['diff']['est'])} on full success, definitional); look-alikes at similarity 0.8 {f(h9['iii']['decoy']['success'], 2)}; arbiter choice p = {f(m['perm']['p_two_sided'], 2)}",
                      'Not fully met: (i) and (ii) pass, (iii) fails on look-alikes'))
         k5 = V['kt5']['agg']
         rows.append(('H5, Study 2 (2D)', 'RMS heading error under compass faults', f"ring {f(k5['ring']['est'], 2)}°, Kalman {f(k5['kf']['est'], 2)}°, complementary {f(k5['cf']['est'], 2)}°, Study 1 compass {f(k5['v1']['est'], 1)}°; mission AUC ring heading {f(m['auc']['ring']['mean'])} vs Kalman {f(m['auc']['v2_ring_kf']['mean'])}",
                      'Not supported (Kalman better in replays; ring better in the mission)'))
-        rows.append(('H6, Study 2 (3D)', 'Landing with a home snapshot', f"no fault: landed on the pad {f(m['landing']['ring']['none']['landed_on_pad'], 2)}, median error {f(100 * m['landing']['ring']['none']['landing_error_median_m'], 1)} cm; removing the snapshot costs {f(m['abl']['v2_ring_minus_home']['est'])} AUC", 'No numeric gate'))
+        rows.append(('H6, Study 2 (3D)', 'Landing with a home view memory', f"no fault: landed on the pad {f(m['landing']['ring']['none']['landed_on_pad'], 2)}, median error {f(100 * m['landing']['ring']['none']['landing_error_median_m'], 1)} cm; removing the home view memory costs {f(m['abl']['v2_ring_minus_home']['est'])} AUC", 'No numeric gate'))
         rows.append(('H7, Study 2 (2D)', 'Evidence-gated ring vs visibility-gated rivals', f"KT2 world ring {f(V['kt7']['kt2']['auc']['ring_gated']['mean'])} vs best rival {f(max(v['mean'] for k, v in V['kt7']['kt2']['auc'].items() if k not in ('ring_gated', 'ring_vg', 'ring')))}",
                      'Better-trade-off claim rejected' if V['kt7']['gate'] == 'DEAD' else V['kt7']['gate']))
         g = V['rec']['gate']

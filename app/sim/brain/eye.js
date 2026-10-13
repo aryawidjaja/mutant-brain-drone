@@ -1,4 +1,4 @@
-// The drone's eye, JS twin of scripts/brain/eye.py (batch 1, one ray at a time). See that file for the model.
+// The drone's eye, JS twin of scripts/brain/eye.py (one ray at a time). See that file for the model.
 // Panorama 72 x 12 px (5 deg/px, 360 deg x +20..-40 deg); object looks 16 x 12 px (2x2 supersampled) for the MB.
 export const NC = 72, NR = 12, PX_DEG = 5.0, EL_TOP = 20.0;
 export const LW = 16, LH = 12, SS = 2;
@@ -17,7 +17,7 @@ export const rowEl = Array.from({ length: NR }, (_, r) => (EL_TOP - (r + 0.5) * 
 const sign = (x) => (x > 0 ? 1 : x < 0 ? -1 : 0);
 const norm3 = (v) => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 
-/** Scene arrays for one world (C5 dict). */
+/** Scene arrays for one world dict. */
 export class Scene {
   constructor(w) {
     this.cyl = w.obstacles.filter((o) => o.type !== 'building').map((o) => [o.x, o.y, o.r, o.h, ...o.rgb]);

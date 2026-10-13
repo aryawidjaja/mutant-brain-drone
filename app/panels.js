@@ -1,5 +1,5 @@
 // Mutant brain drone: 2D panels (canvas) and Results charts (inline SVG). Classic script; defines window.Panels.
-// Every drawer takes plain data (a C6 frame, a C5 world, a summary object) plus the current CSS tokens, so the same
+// Every drawer takes plain data (a logged frame, a world dict, a summary object) plus the current CSS tokens, so the same
 // code draws the live simulator and the recorded replays. World angles: 0 = east, counter-clockwise positive; on
 // screen north is up and east is right.
 'use strict';
@@ -37,7 +37,7 @@ function eye(c, e) {
   c.getContext('2d').putImageData(img, 0, 0);
 }
 
-// ---------- target picture: drawn from the C5 appearance (or a gallery image when one is given)
+// ---------- target picture: drawn from the world dict's appearance (or a gallery image when one is given)
 function pic(c, obj, img) {
   const x = c.getContext('2d'), W = c.width, H = c.height;
   x.fillStyle = '#6f8a52'; x.fillRect(0, 0, W, H);
@@ -359,7 +359,7 @@ function chartV2Success(S, W = 420, H = 260) {
 /** paired drop in full-success AUC when one part of the Study 2 brain is removed or changed (v2 ring minus arm) */
 function chartV2Ablation(S, W = 420, H = 260) {
   const M = S && S.v2 && S.v2.m; if (!M || !M.abl) return '';
-  const rows = [...Object.entries(M.abl).map(([k, v]) => [{ heading: 'no heading ring', home: 'no home snapshot', landing: 'no landing', front: 'no insect front end', inspect: 'no inspection rule', gated_arbiter: 'no evidence gate' }[k.replace('v2_ring_minus_', '')] || k, v]),
+  const rows = [...Object.entries(M.abl).map(([k, v]) => [{ heading: 'no heading ring', home: 'no home view memory', landing: 'no landing', front: 'no insect front end', inspect: 'no inspection rule', gated_arbiter: 'no evidence gate' }[k.replace('v2_ring_minus_', '')] || k, v]),
     ...(M.extra ? [['Kalman heading', M.extra.kf], ['poor tip', M.extra.poor_tip], ['no tip', M.extra.no_tip]] : []),
     ...(M.lf ? [['no learning flight', M.lf]] : [])].filter(([, v]) => v && Number.isFinite(v.est));
   const m = { l: 118, r: 14, t: 24, b: 30 }, n = rows.length, hi = Math.max(0.1, ...rows.map(([, v]) => v.hi));
@@ -377,7 +377,7 @@ function chartV2Ablation(S, W = 420, H = 260) {
 function chartV2Landing(S, W = 420, H = 260) {
   const M = S && S.v2 && S.v2.m; if (!M || !M.landing || !M.landing.ring) return '';
   const L = M.landing, cats = ['none', ...(M.faults || Object.keys(L.ring).filter((k) => k !== 'none'))];
-  const arms = [['ring', 'ca', 'Study 2 brain'], ['v2_ring_minus_home', 'cn', 'no home snapshot'], ['v1', 'cn', 'Study 1 brain: cannot land (no landing module)', 'Study 1: cannot land (no landing module)']].filter(([a]) => L[a]);
+  const arms = [['ring', 'ca', 'Study 2 brain'], ['v2_ring_minus_home', 'cn', 'no home view memory'], ['v1', 'cn', 'Study 1 brain: cannot land (no landing module)', 'Study 1: cannot land (no landing module)']].filter(([a]) => L[a]);
   const m = { l: 40, r: 10, t: 48, b: 46 };
   const A = axes(W, H, [0, cats.length], [0, 1], '', 'landed on the pad (≤ 0.5 m)', m);
   let s = noXTicks(A.s) + xcats(A, cats, H, m);

@@ -1,5 +1,5 @@
 // The six heading arbiters, JS port of scripts/brain/arbiters.py and scripts/brain/state_machine.py
-// (mirrored line by line, batch 1). obs: {objects: {bearing[K], strength[K], visible[K]},
+// (mirrored line by line). obs: {objects: {bearing[K], strength[K], visible[K]},
 // home: {bearing, strength}, search: {bearing, strength}, heading}. step(obs, dt) -> {heading_cmd, commit, viz}.
 export const ARBITERS = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine'];
 export const N_RING = 32;
@@ -129,7 +129,7 @@ export class Accumulator {
   }
 }
 
-// ---------------------------------------------------------------- state machine (blind-authored, frozen; mirror)
+// ---------------------------------------------------------------- state machine (frozen before any fault data was seen)
 const SEARCH = 0, APPROACH = 1, HOLD = 2, HOME = 3;
 export const SM_STATES = ['SEARCH', 'APPROACH', 'HOLD', 'HOME'];
 export class StateMachine {

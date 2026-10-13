@@ -126,7 +126,7 @@ window.makeScene3D = function (THREE, OrbitControls, host, X = {}) {
     x.fillStyle = g; x.beginPath(); x.arc(64, 64, 64, 0, 7); x.fill();
   });
   let props = [];
-  const MOTORS = [[1, -1], [-1, -1], [-1, 1], [1, 1]]; // motor order follows the C4 mixer (1 front-right, then clockwise)
+  const MOTORS = [[1, -1], [-1, -1], [-1, 1], [1, 1]]; // motor order follows the quad.js mixer (1 front-right, then clockwise)
   const pivot = (sx, sy) => B(sx > 0 ? 0.032 : -0.0333, sy > 0 ? 0.032 : -0.0334, 0); // motor axes measured from cf2_4.obj
   const mkDisc = (parent, y) => {
     const disc = new THREE.Mesh(new THREE.CircleGeometry(0.0245, 32), new THREE.MeshBasicMaterial({ map: blurTex, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }));

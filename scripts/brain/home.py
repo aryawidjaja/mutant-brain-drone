@@ -1,11 +1,12 @@
-"""Home snapshot memory for the final approach (v2 brain, H6). JS twin: app/sim/brain/home.js.
+"""Home view memory for the final approach (Study 2 brain, H6). JS twin: app/sim/brain/home.js.
 
 Insect basis: "Many wasps and bees learn the position of their nest relative to nearby visual features during
 elaborate 'learning' flights that they perform on leaving the nest" and "often both fly towards and face the nest in
 the middle of loops and at the turns of zigzags" (Philippides et al. 2013, J Exp Biol 216:1093); the views recorded
-close to the nest are later used to return to it (Collett & Zeil 2018, Curr Biol 28:R984). Here, during a take-off learning flight the drone backs away from its landing pad in arcs
-while facing it, and every look it takes of the pad is stored one-shot in a mushroom body (same Ardin-style MB and
-input pipeline as the target memory; its own KC->MBON weights). On return, every visible candidate (the pad and any
+close to the nest are later used to return to it (Collett & Zeil 2018, Curr Biol 28:R984).
+Here, during a take-off learning flight the drone backs away from its landing pad in arcs while facing it, and every
+look it takes of the pad is stored one-shot in a mushroom body (same Ardin-style MB and input pipeline as the target
+memory; its own KC->MBON weights). On return, every visible candidate (the pad and any
 object slot) is scored by this home memory; the most familiar candidate above F_HOME "locks" the pad. While a locked
 candidate stays visible and at least F_TRACK familiar, the drone's home vector is replaced by the visual vector to it
 (perceived bearing in the compass frame, horizontal range from the depression angle and the drone's altitude); when

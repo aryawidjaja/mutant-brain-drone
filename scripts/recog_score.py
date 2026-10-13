@@ -14,7 +14,7 @@ from provenance import stamp  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RES = os.path.join(ROOT, "results")
 RECS = ["pixels", "colour", "mb", "dino_cls", "dino_patch", "mb_edge", "pixels_crop", "mb_crop"]
-PREREG = RECS[:5]                     # mb_edge pre-registered as exploratory; *_crop added post hoc (LOG), exploratory
+PREREG = RECS[:5]                     # mb_edge pre-registered as exploratory; *_crop added post hoc, exploratory
 THR, THR_SENS, N_BOOT = 0.75, 0.8, 2000
 
 

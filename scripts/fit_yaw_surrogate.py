@@ -1,4 +1,4 @@
-"""Surrogate of the Shiu-model yaw circuit (owner's FlyWire v783 fly project) for live use in the browser.
+"""Surrogate of the Shiu-model yaw circuit (the author's earlier FlyWire v783 fly project) for live use in the browser.
 
 Input data: ../flight-test-the-fly/results/phase1_bode.json, wirings.real: lock-in transfer H(f) of
 Delta = DNa02_R - DNa02_L (Hz) re yaw rate r (deg/s), 13 frequencies 0.1-20 Hz, 5 seeds, with coherence.
@@ -7,7 +7,7 @@ Model (3 parameters): H(s) = -K exp(-s tau) / (1 + s / wc). Fitted by coherence-
 error (deg) over the 13 points. Discrete form used in Python and app/sim/yaw_surrogate.js (same equations):
 delay line of round(tau/dt) samples, then the exact zero-order-hold lag y <- a y + (1-a)(-K u_delayed), a = exp(-wc dt).
 Labelled everywhere as "surrogate of the Shiu-model yaw circuit"; units are those of the source (Hz per deg/s), only
-phase/bandwidth carry meaning (see the fly project's FINDINGS 'Units').
+phase/bandwidth carry meaning.
 Run: uv run python scripts/fit_yaw_surrogate.py  -> results/yaw_surrogate.json
 """
 import json

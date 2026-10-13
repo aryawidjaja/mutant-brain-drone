@@ -1,9 +1,9 @@
-// Find-and-return mission, JS twin of scripts/mission.py (batch 1). Runs in a Web Worker or in Node; no DOM.
+// Find-and-return mission, JS twin of scripts/mission.py. Runs in a Web Worker or in Node; no DOM.
 //   const m = createMission(scenario);  m.step();  m.frame()
 // Protocol, constants and metric definitions: see scripts/mission.py (V2_DOC for brain.version 2).
 // brain.version 1 (or absent) = the v1 brain bit for bit; 2 = the v2 brain with brain.modules (default all six:
 // heading, home, landing, front, inspect, gated_arbiter). V2_BRAIN_DEFAULTS gives a ready v2 brain block.
-// Frame (C6) extras: frame.home (v2: {stage, pad_visible, familiarity, locked, seen, searching, approach, views, touchdown})
+// Logged-frame extras: frame.home (v2: {stage, pad_visible, familiarity, locked, seen, searching, approach, views, touchdown})
 // and frame.hud (both versions) for a drone-style HUD:
 //   alt_m, alt_sp_m (altitude set-point), vz_mps, ground_speed_mps, air_speed_mps (|velocity - wind|),
 //   heading_true_deg, heading_est_deg, heading_cmd_deg, roll_deg, pitch_deg, home_dist_est_m (|home vector|, v2: the
@@ -412,7 +412,7 @@ export function createMission(scenario, opts = {}) {
     };
     const res = arb.step(obs, DT_B);
     const cmd = res.heading_cmd;
-    // metrics (KT2 definitions)
+    // metrics (definitions of scripts/kt2_five_arms.py)
     const tb = S.obj.map((o) => wrap(Math.atan2(o[1] - pos[1], o[0] - pos[0]) - yaw + st.headingEst));
     const onT = Math.abs(wrap(cmd - tb[tk])) <= HOLD_RAD;
     const occ = t >= st.occOn && t < st.occOn + occDur;
@@ -489,7 +489,7 @@ export function createMission(scenario, opts = {}) {
     if (st.phase < 4 && st.t >= Tmax - 1e-9) { st.tEnd = st.t; st.phase = 4; st.endPos = [quad.pos[0], quad.pos[1]]; }
   }
 
-  /** C6 frame for the most recent brain tick (state at the start of that tick, as scripts/mission.py logs it). */
+  /** Logged frame for the most recent brain tick (state at the start of that tick, as scripts/mission.py logs it). */
   function frame() {
     const z = st.snap;
     if (!z) return null;

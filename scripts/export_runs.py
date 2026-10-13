@@ -6,12 +6,12 @@ results/kt5_tuned_params.json), plus the Study 1 (v1) brain on the same seed for
 (first test seed, fixed condition list, the study's middle severities) was written here before any of these runs was
 recorded, so the replays are not picked by outcome. They illustrate the mechanisms and are not results (the paper's
 numbers come from all 300 test seeds).
-Study 1 (v1 brain): SHOW, two of the first study's replays kept for contrast (the ring and the state machine on the
+Study 1 (v1 brain): SHOW, two Study 1 replays kept for contrast (the ring and the state machine on the
 same swapped-decoy seed; v1 3D test seed 1010, picked to show contrasting behaviour), arbiter parameters from
 results/tuned3d_params.json.
 
 Writes app/runs/<name>.json ({meta, world, frames}), app/runs/manifest.json and app/runs/bundle.js
-(window.RUN_BUNDLE = {manifest, runs}). Frames are the mission's C6 frames thinned to 5 Hz with numbers rounded to
+(window.RUN_BUNDLE = {manifest, runs}). Frames are the mission's logged frames thinned to 5 Hz with numbers rounded to
 3 significant digits (time and outcome exact); the eye panorama is kept every 2 s as base64 bytes. Each frame's pi also carries
 heading_est_deg (the drone's compass heading at that tick) so the app can draw the home vector in the world frame.
 Usage (each recording is one short process; run them one at a time, then bundle):
@@ -97,7 +97,7 @@ def write_run(name, label, arm, seed, sc, world, frames, out, src, st, note):
 
 
 def record_v2(name):
-    """One Study 2 replay (SHOW_V2 entry) on V2_SEED: the v2 ring with frozen params, or the v1 brain."""
+    """One Study 2 replay (SHOW_V2 entry) on V2_SEED: the v2 ring with frozen params, or the Study 1 brain."""
     from run_v2 import scen2, test_arms
     _, ver, fault, sev, tip, label = next(e for e in SHOW_V2 if e[0] == name)
     arms = test_arms()
@@ -170,7 +170,7 @@ def main():
 
 
 def selfcheck(manifest):
-    # files round-trip, every run has frames in time order with the C6 fields the app reads, the eye decodes to
+    # files round-trip, every run has frames in time order with the logged-frame fields the app reads, the eye decodes to
     # w*h*3 bytes, the last frame carries the outcome, v2 runs carry the hud/home fields, and the total stays modest
     total = sum((OUT / r["file"]).stat().st_size for r in manifest["runs"]) + (OUT / "bundle.js").stat().st_size
     assert len(manifest["runs"]) == len(SHOW) + len(SHOW_V2), [r["file"] for r in manifest["runs"]]

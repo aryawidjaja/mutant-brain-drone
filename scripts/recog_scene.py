@@ -1,4 +1,5 @@
-"""H4 recognition scene: a textured MuJoCo forest with a ridge tent (target) and three swap decoys.
+"""H4 recognition scene: a textured MuJoCo forest with a ridge tent (target) and three swapped look-alikes
+(the decoys d1-d3).
 
 All objects are UV-textured procedural meshes (textures are generated PNGs, written once to
 results/recog_renders/textures/). Every object is a mocap body; the one being shown sits at the target's
@@ -25,7 +26,7 @@ TEX = os.path.join(ROOT, "results", "recog_renders", "textures")
 OBJECTS = ["target", "d1_tex", "d2_mesh", "d3_twin"]
 GALLERY = ["pad", "backpack"]
 ORANGE, GREY, YELLOW = (0.93, 0.45, 0.12), (0.33, 0.35, 0.38), (0.95, 0.85, 0.15)
-APPEARANCE = {  # for the app manifest (C5 appearance fields)
+APPEARANCE = {  # for the app manifest (world-dict appearance fields)
     "target": {"kind": "tent", "base": ORANGE, "accent": GREY, "pattern": "stripes"},
     "d1_tex": {"kind": "tent", "base": ORANGE, "accent": GREY, "pattern": "checks"},
     "d2_mesh": {"kind": "tent", "base": ORANGE, "accent": GREY, "pattern": "stripes", "shape": "dome"},

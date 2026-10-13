@@ -1,4 +1,4 @@
-// Seeded PRNG, bit-identical to scripts/rng.py (mulberry32 + Box-Muller). Batch size 1.
+// Seeded PRNG, bit-identical to scripts/rng.py (mulberry32 + Box-Muller), one draw at a time.
 export function streamSeed(seed, stream) {
   return (Number((BigInt(seed) * 0x9E3779B1n + BigInt(stream) * 0x85EBCA77n + 0x6D2B79F5n) & 0xFFFFFFFFn)) >>> 0;
 }

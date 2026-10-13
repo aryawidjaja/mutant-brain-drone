@@ -1,8 +1,8 @@
 {
  "meta": {
-  "generated": "2026-10-13T10:17:23+00:00",
+  "generated": "2026-10-13T15:23:55+00:00",
   "repo_url": "https://github.com/aryawidjaja/mutant-brain-drone",
-  "code_git": "596cdaa",
+  "code_git": "0fc67d9",
   "n_result_files": 1803,
   "n_result_files_tracked": 79,
   "result_git": {
@@ -21,7 +21,7 @@
    "mission_h3.json": "cbfcc02-dirty",
    "mission_v2.json": "20b3af6",
    "parity.json": "9c7b912",
-   "parity_brain.json": "9c7b912",
+   "parity_brain.json": "a6f477b-dirty",
    "quad_mujoco_check.json": "bfb82ea",
    "quad_selfcheck.json": "bfb82ea",
    "recog_auroc.json": "ccef440",
@@ -8184,7 +8184,7 @@
   },
   "brain": {
    "pass": true,
-   "n_missions": 16,
+   "n_missions": 18,
    "max_pos_err_first_20s_m": 4.521956393823497e-11,
    "n_modules": 11,
    "max_pos_err_all_m": 1.246281523556065e-10,
@@ -8197,7 +8197,7 @@
     "vote"
    ],
    "max_mission_s": 90.0,
-   "git": "9c7b912",
+   "git": "a6f477b-dirty",
    "by_version": {
     "v1": {
      "n": 8,
@@ -8212,7 +8212,7 @@
      "max_s": 60.0
     },
     "v2": {
-     "n": 8,
+     "n": 10,
      "arbiters": [
       "accumulator",
       "ring",

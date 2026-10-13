@@ -1,4 +1,4 @@
-// Heading estimators fusing a yaw-rate gyro with the sun compass: JS twin (batch 1) of scripts/brain/heading.py.
+// Heading estimators fusing a yaw-rate gyro with the sun compass: JS twin of scripts/brain/heading.py.
 // See that file for the model. est = new HeadingRing(params); heading = est.step(gyroZ, sunTheta, sunValid, dt); est.conf
 export const N_RING = 32;
 const TWO_PI = 2 * Math.PI, DEG = Math.PI / 180, TAU_CONF = 1.0;

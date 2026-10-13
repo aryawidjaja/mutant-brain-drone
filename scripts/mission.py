@@ -14,7 +14,7 @@ Protocol (fixed before any mission data; the paper's Protocol and amendments sec
     Shared stop rule (all arms): within 2 m horizontal of a visible object whose 1-s mean strength > 0.6.
     Then "home": the home drive (PI home vector, strength 1) replaces the object and search drives; landing when the
     decoded home vector is shorter than 1 m. "done" on landing, crash (collision) or max_time_s.
-  * Rates: physics 500 Hz (C's Quad + Controller + Dryden); brain/arbiter/PI 50 Hz; eye (visibility, MB looks,
+  * Rates: physics 500 Hz (quad.py's Quad + Controller + dryden.py); brain/arbiter/PI 50 Hz; eye (visibility, MB looks,
     depth ring, avoidance reflex) 10 Hz, held in between; frames logged at 10 Hz.
   * Steering: heading = arbiter heading_cmd + avoidance yaw offset (descending-neuron level), rate-limited to
     120 deg/s, in the drone's own compass frame; the velocity set-point is V_CRUISE (2 m/s) times the looming
@@ -23,17 +23,17 @@ Protocol (fixed before any mission data; the paper's Protocol and amendments sec
     strength 0; home strength 0 until the stop, then 1. No visual home beacon: landing relies on the PI alone.
   * Familiarity -> evidence: strength = clip((f - F0) / (F1 - F0), 0, 1) for visible objects, 0 otherwise,
     F0 = 0.2, F1 = 0.6 (set on training seeds 0-39 from distance/angle sweeps, before mission data).
-Metrics (C7; definitions follow scripts/kt2_five_arms.py where they overlap):
-  success_target / wrong_object_stop: the stop was at the target / at a decoy. success_home: landed within 2 m of
+Metrics (definitions follow scripts/kt2_five_arms.py where they overlap):
+  success_target / wrong_object_stop: the stop was at the target / at a look-alike. success_home: landed within 2 m of
   home after a target stop. collisions: 1 if the drone hit an obstacle (the mission ends). time_s: end time.
   path_len_m: horizontal path. home_error_m: horizontal distance to home at the end. max_bank_deg: max tilt.
   energy_proxy: integral of sum_i f_i^1.5 dt (rotor power ~ thrust^1.5, momentum theory; N^1.5 s).
   t_hold_occlusion_s: occlusion starts t_s after the target is first visible within 10 m; time until the steering
   command first leaves +/-20 deg of the hidden target's bearing (capped at the occlusion length); NaN if none.
-  t_release_decoy_s: from the first time the target's 1-s mean evidence exceeds 1.5x the decoy's (after the decoy
-  was seen) until the steering command is within 20 deg of the target's bearing, capped at 20 s; NaN if no decoy
-  or the evidence never turned.
-v2 brain (brain.version = 2; with version 1 or no version every line above holds bit for bit): see V2_DOC below.
+  t_release_decoy_s: from the first time the target's 1-s mean evidence exceeds 1.5x the look-alike's (after the
+  look-alike was seen) until the steering command is within 20 deg of the target's bearing, capped at 20 s; NaN if no
+  look-alike or the evidence never turned.
+Study 2 brain (brain.version = 2; with version 1 or no version every line above holds bit for bit): see V2_DOC below.
 Usage: uv run python scripts/mission.py            (self-check: 10 easy meadow seeds, ring and vote; v2 smoke check)
        uv run python scripts/mission.py --time     (time a batch of 50 seeds x 300 s, print the extrapolation)
 """
@@ -78,7 +78,7 @@ INSTR_BEAR_SD, INSTR_DIST_SD = math.radians(8.0), 0.1
 HOLD_DEG, CROSS_RATIO, REL_CAP = 20.0, 1.5, 20.0
 OCC_NEAR = 10.0
 N_KC, K_IN, KC_FRAC, MB_SEED = 20000, 10, 0.01, 0
-V2_DOC = """v2 brain (fixed before any v2 mission data; the paper's v2 section):
+V2_DOC = """Study 2 brain (fixed before any Study 2 mission data; the paper's Study 2 sections):
   * Home pad: a 1 x 1 m patterned mat at home (world.home_pad), not an object slot.
   * home: take-off learning flight (T_HLF s): climb for HLF_CLIMB s, then an outward loop around the pad referenced to
     the PI (radius 0.5 -> 2.2 m, ~0.3 m lag, inside the 3 m obstacle-free disc, 0.75 turn, climbing 1 -> 3 m; velocity = feed-forward
@@ -87,16 +87,16 @@ V2_DOC = """v2 brain (fixed before any v2 mission data; the paper's v2 section):
     pad is stored in the home memory (brain/home.py; Rng stream 21 pixel noise). On return the home memory scores the
     pad and every visible object once the PI says home is within R_FINAL; a recognised pad (familiarity >= F_HOME) replaces
     the path-integrator home vector by the visual vector.
-    Without the home module the take-off lasts T_TAKEOFF s as in v1.
+    Without the home module the take-off lasts T_TAKEOFF s as in Study 1.
   * landing: final approach when the approach vector (visual if the pad is locked, else path integrator) is shorter
     than R_FINAL m (or the pad is locked). Inside D_SERVO m the drone servoes its velocity onto the pad (gain K_SERVO,
     <= V_FINAL), facing the approach vector until 0.5 m out, then holding its heading. With the home module and no lock when the PI says "here" (< 1 m), it searches the
     pad on an outward spiral (PAD_SPIRAL_B m pitch) for up to PAD_SEARCH_S s, then lands on the PI estimate. Descent
     starts within D_DESC m at horizontal speed < V_HSTILL; the altitude set-point then falls at V_DESC m/s (servo <= V_DESC_H); touchdown
-    = first ground contact; motors are cut (disarm). Without the landing module the mission ends as in v1 when the
+    = first ground contact; motors are cut (disarm). Without the landing module the mission ends as in Study 1 when the
     approach vector is < 1 m (hovering).
   * heading: gyro z (body yaw rate averaged over the last brain tick + per-seed bias N(0, 0.5 deg/s) + N(0, 0.1 deg/s)
-    per tick, Rng stream 20) and the sun compass (the v1 TL->CL1->TB1 decode of true yaw + N(0, 2 deg) + false-sun
+    per tick, Rng stream 20) and the sun compass (the Study 1 TL->CL1->TB1 decode of true yaw + N(0, 2 deg) + false-sun
     offset; compass_half = its CL1 column mask) go to the heading estimator (brain/heading.py; HeadingRing by default,
     module_params.heading_estimator = "kf" | "cf" for the comparison arms; params results/kt5_tuned_params.json); its
     estimate is the path integrator's compass input (scripts/kt5_heading.py wiring).
@@ -529,7 +529,7 @@ class Mission:
         tv = (vis & self.is_t & (rh < OCC_NEAR)).any(1) & ((self.phase == 1) | (self.phase == 2))
         self.t_first_t = np.where(np.isnan(self.t_first_t) & tv, t, self.t_first_t)
         self.occ_on = np.where(np.isnan(self.occ_on) & ~np.isnan(self.occ_delay), self.t_first_t + self.occ_delay, self.occ_on)
-        # decoy evidence crossing (KT2): target evidence > 1.5 x decoy evidence after the decoy was seen
+        # evidence crossing (KT2): target evidence > 1.5 x look-alike evidence after the look-alike was seen
         ev_t, ev_d = (self.ev * self.is_t).sum(1), (self.ev * self.is_d).sum(1)
         self.dec_seen |= ev_d > 0
         newc = np.isnan(self.t_cross) & self.dec_seen & (ev_t > CROSS_RATIO * ev_d) & live & (self.phase < 3)
@@ -539,7 +539,7 @@ class Mission:
         self.depth = eye.depth_ring(S, pos, yaw)
         self.yaw_off, self.speed_fac, self.loom = reflex(self.depth, vmeas, fn, dead)
 
-    # ---------------------------------------------------------------- v2 brain modules
+    # ---------------------------------------------------------------- Study 2 brain modules
     def _init_adapt(self, br):
         """adaptive_search: size estimate from the learning flight (prior without one), search geometry, attention window."""
         B, S = self.B, self.S
@@ -905,8 +905,8 @@ def _jsonable(v, b):
 
 
 def run_batch(scenarios, split=None, log_rows=None):
-    """scenarios: list of C1 dicts (from scenario.sample_scenario or load). Groups rows by arbiter config and runs
-    each group as one batch. -> pandas.DataFrame with the C7 columns (+ fault, severity from _meta when present)."""
+    """scenarios: list of scenario dicts (from scenario.sample_scenario or load). Groups rows by arbiter config and runs
+    each group as one batch. -> pandas.DataFrame with the run-record metric columns (+ fault, severity from _meta when present)."""
     import pandas as pd
     groups = {}
     for i, s in enumerate(scenarios):
@@ -945,7 +945,7 @@ if __name__ == "__main__":
     t0 = time.time()
     res = {}
     for arb in ("ring", "vote"):
-        prm = {"g_home": 3.0} if arb == "ring" else {}     # the default ring never turns home 
+        prm = {"g_home": 3.0} if arb == "ring" else {}     # the default ring never turns home
         scs = [sample_scenario(s, fault="none", arbiter=arb, params=prm, obstacle_density=0.1, max_time_s=150.0) for s in range(10)]
         df = run_batch(scs)
         res[arb] = df

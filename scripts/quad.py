@@ -336,7 +336,7 @@ if __name__ == "__main__":
     out, t0 = {"params_derived": {"motor_tau_s": P["motor_tau"], "f_max_N": P["f_max"], "hover_thrust_per_motor_N": hov,
                                   "hover_cmd": float(cmd_of_thrust(np.array(hov)))}, "gains": GAINS}, time.time()
 
-    # 1. hover, no wind, 10 s (PLAN gate: within 0.05 m)
+    # 1. hover, no wind, 10 s (pre-registered gate: within 0.05 m)
     r = fly(4, lambda t: {"vel_xy": np.zeros((4, 2)), "alt": np.full(4, 1.0), "yaw": np.zeros(4)}, 10.0)
     hover_err = float(np.abs(r["pos"] - np.array([0, 0, 1.0])).max())
     assert hover_err < 0.05, hover_err

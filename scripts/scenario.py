@@ -4,7 +4,7 @@ The validator is a ~40-line walker of the JSON schema itself (type, enum, requir
 minimum/maximum/exclusiveMinimum, minItems/maxItems, items, $ref, default), so it follows the schema file.
 app/sim/scenario.js embeds a copy of the schema; the self-check asserts the copy is identical.
 
-sample_scenario() draws the PLAN neutral fault list with Rng stream 5 (same draws in scenario.js).
+sample_scenario() draws from the pre-registered fault list with Rng stream 5 (same draws in scenario.js).
 Run: uv run python scripts/scenario.py
 """
 import copy, hashlib, json, math, os, re, sys
@@ -14,7 +14,7 @@ from rng import Rng  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA = json.load(open(os.path.join(ROOT, "schema", "scenario.schema.json")))
-FAULTS = ["occlusion", "decoy", "compass_half", "eye_columns", "false_sun", "speed_scale", "gust"]  # PLAN neutral list
+FAULTS = ["occlusion", "decoy", "compass_half", "eye_columns", "false_sun", "speed_scale", "gust"]  # the pre-registered fault list
 ARBITERS = ["ring", "ring_static", "vote", "sum", "accumulator", "state_machine"]
 MODULES = ["heading", "home", "landing", "front", "inspect", "gated_arbiter"]          # v2 brain modules (Study 2 default)
 OPTIONAL_MODULES = ["adaptive_search"]                                                # post-study; on only when listed
@@ -90,7 +90,7 @@ def scenario_hash(s):
 
 
 def fault_params(fault, sev):
-    """PLAN neutral fault list; severity in [0,1] maps linearly onto the pre-registered range."""
+    """The pre-registered fault list; severity in [0,1] maps linearly onto the pre-registered range."""
     return {"occlusion": {"duration_s": 1 + 9 * sev},           # 1-10 s
             "decoy": {"similarity": 0.5 + 0.45 * sev},          # 0.5-0.95 (swapped decoy)
             "compass_half": {},                                 # half the compass columns silenced

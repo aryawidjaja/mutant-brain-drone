@@ -1,4 +1,4 @@
-// MIL-F-8785C low-altitude Dryden turbulence. Line-by-line port of scripts/dryden.py (batch 1); see that file.
+// MIL-F-8785C low-altitude Dryden turbulence. Line-by-line port of scripts/dryden.py; see that file.
 import { Rng } from './rng.js';
 
 const FT = 0.3048, KT = 0.514444, SQ3 = Math.sqrt(3);

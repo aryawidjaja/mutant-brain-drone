@@ -1,4 +1,4 @@
-// Crazyflie 2.0 quadrotor + cascade PID. Line-by-line port of scripts/quad.py (batch 1); equations,
+// Crazyflie 2.0 quadrotor + cascade PID. Line-by-line port of scripts/quad.py; equations,
 // step order and frames are documented there. Parity: scripts/parity_check.py (results/parity.json).
 import { P as P0, GAINS as G0 } from './vehicle_params.js';
 

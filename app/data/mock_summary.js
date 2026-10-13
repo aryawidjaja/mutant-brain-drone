@@ -1,4 +1,4 @@
-// MOCK summary for building the Results charts. Synthetic numbers, NOT results.
+// MOCK summary, stand-in data for the Results charts. Synthetic numbers, NOT results.
 // scripts/export_app_summary.py writes data/summary.json + data/summary.js (window.APP_SUMMARY)
 // with the same keys, plus a _source entry per number; the app prefers those and shows a MOCK DATA watermark otherwise.
 // Shapes:

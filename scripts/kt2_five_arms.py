@@ -5,7 +5,7 @@ Pre-registered (KT2; the paper's Protocol and amendments section). The 2D world 
   path integrator (PI) integrates odometry speed along the compass heading (Stone 2017 in spirit,
   vector form, not the neural model); home drive = PI home vector, or the true home direction once
   home is within 8 m (a visual home landmark); search drive = a noisy prior direction plus a +-45 deg
-  zigzag, out/back legs on PI distance; objects (target, optional look-alike decoy) give
+  zigzag, out/back legs on PI distance; objects (target, optional look-alike) give
   strength = quality * (1 - 0.4 d/20) + N(0, 0.08), clipped to [0, 1], visible within 20 m.
   Shared stop rule: within 2 m of an object whose current strength > 0.6.
   Gust is represented as heading-disturbance noise (deg/sqrt(s)), not wind drift.

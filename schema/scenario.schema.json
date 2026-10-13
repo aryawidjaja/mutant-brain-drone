@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "mutant-brain-drone/scenario.schema.json",
-  "title": "Mutant Brain Drone scenario (contract 1; world and wind compatible with silent-flock)",
+  "title": "Mutant Brain Drone scenario",
   "type": "object",
   "required": ["seed", "world", "home", "target", "wind", "brain", "mission"],
   "additionalProperties": false,

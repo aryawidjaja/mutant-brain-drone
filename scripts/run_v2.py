@@ -1,4 +1,4 @@
-"""v2 mission experiments (H9 design): equal-budget tuning on the v2 sensory stack, test factorial, reduction.
+"""Study 2 mission experiments (H9 design): equal-budget tuning on the v2 sensory stack, test factorial, reduction.
 
 World and conditions as the 3D study (run_3d.py): forest, obstacle density 0.3, 100 x 100 m, target 25-40 m, max 300 s,
 the same 25 conditions (none + 7 faults at the same severities). v2 seeds: train 100-199, test 2000-2299.
@@ -12,7 +12,7 @@ Stages (units are independent, written to results/v2/<stage>/<unit>.parquet; sha
 in this order, each followed by `reduce <stage>`):
   calib_alt  search altitude 2.5 vs 3.5 m: default stack, 3D-tuned vote, train seeds 100-119 x {none, decoy 0.8}
              -> results/v2_alt_decision.json; then set ALT_SEARCH in mission.py and mission.js (selfcheck asserts it)
-  sanity     v2 brain (all default modules, ring, pre-tuning params) on train seeds 100-109, forest, no fault
+  sanity     Study 2 brain (all default modules, ring, pre-tuning params) on train seeds 100-109, forest, no fault
              -> results/v2_sanity.json
   r1    6 arbiters on the v2 stack (ring = RingGated, rivals visibility-gated, state machine frozen) x 64 random configs
         (numpy default_rng(2026), same uniform matrix as KT2/3D, first n_params columns, arbiters_v2.sample_params)
@@ -20,13 +20,13 @@ in this order, each followed by `reduce <stage>`):
   r2    top 4 per arm x train seeds 100-119 x 25 conditions (Amendment 3 successive halving)
                                                                        -> results/tuned_v2_params.json (frozen)
   test  test seeds 2000-2299 x 25 conditions x arms:
-          v2_<arm>            the six arbiters on the v2 stack, frozen v2 params (v2_ring = the v2 brain)
-          v2_ring_kf          v2 brain with KalmanHeading (labelled comparison arm)
-          v1                  the v1 brain (version 1, ring with results/tuned3d_params.json)
-          v2_ring_minus_<m>   ablation: the v2 brain without module m, one per default module (without
+          v2_<arm>            the six arbiters on the v2 stack, frozen v2 params (v2_ring = the Study 2 brain)
+          v2_ring_kf          Study 2 brain with KalmanHeading (labelled comparison arm)
+          v1                  the Study 1 brain (version 1, ring with results/tuned3d_params.json)
+          v2_ring_minus_<m>   ablation: the Study 2 brain without module m, one per default module (without
                               gated_arbiter the ring is the v1 Ring with the tuned ring params it shares)
           v2_ring_plus_inspect  only when inspect is not in the default set
-          v2_ring_lf0         v2 brain with a single target photo (learning flight 0 s; main arms use 10 s)
+          v2_ring_lf0         Study 2 brain with a single target photo (learning flight 0 s; main arms use 10 s)
           v2_ring_no_tip      sensitivity: no operator tip (brain.tip = null; spiral search from home, 12 m pitch)
           v2_ring_poor_tip    sensitivity: poor tip (bearing sd 30 deg, distance sd 0.3)
                                                                        -> results/mission_v2.json
@@ -35,7 +35,7 @@ in this order, each followed by `reduce <stage>`):
         Study 2 default modules with / without adaptive_search, target tent / backpack (the swapped decoy has the target's
         kind), conditions none, gust moderate, decoy 0.8, false sun 90 deg; 64 units of 50 missions
                                                                        -> results/explore_size.json
-H9 criteria (pre-registered, PLAN_V2; operational definitions fixed here before any test data):
+H9 criteria (from the Study 2 pre-registration; operational definitions fixed here before any test data):
   (i)   no-fault full success of v2_ring >= 0.90 (point estimate over 300 seeds; Wilson 95 % CI reported)
   (ii)  aggregate AUC(v2_ring) - AUC(v1) >= 0.15 (point estimate; paired bootstrap 95 % CI reported); secondary: the v1
         brain scored with its own v1 success definition (home within 2 m)
@@ -127,7 +127,7 @@ def test_arms():
     if "inspect" not in dm:
         out["v2_ring_plus_inspect"] = dict(arm="ring", params=ring, modules=dm + ["inspect"])
     out["v2_ring_lf0"] = dict(arm="ring", params=ring, lf=0.0)
-    out["v2_ring_no_tip"] = dict(arm="ring", params=ring, tip=None)                       # sensitivity arms (owner request)
+    out["v2_ring_no_tip"] = dict(arm="ring", params=ring, tip=None)                       # sensitivity arms
     out["v2_ring_poor_tip"] = dict(arm="ring", params=ring, tip={"bearing_sd_deg": 30.0, "dist_sd": 0.3})
     return out
 
@@ -160,7 +160,7 @@ def units(stage):
             for k in range(0, len(ALT_SEEDS), 10):
                 out.append((f"a{a}__s{k:02d}", [scen2("vote", t3["vote"]["params"], s, "train", f, v) for s in list(ALT_SEEDS)[k:k + 10]
                                                 for f, v in (("none", None), ("decoy", 2 / 3))]))
-    elif stage == "sanity":           # task sanity: v2 brain, all default modules, ring (dev params), no fault, train seeds
+    elif stage == "sanity":           # task sanity: Study 2 brain, all default modules, ring (dev params), no fault, train seeds
         out.append(("ring_dev__s100", [scen2("ring", dev_ring_params(), s, "train", "none", None) for s in range(100, 110)]))
     elif stage == "r1":
         for arm in ARMS:

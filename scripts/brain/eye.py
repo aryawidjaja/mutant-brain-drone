@@ -1,4 +1,5 @@
-"""The drone's eye: an analytic ray-cast panorama plus per-object "looks" for the mushroom body (LOG Amendment 1).
+"""The drone's eye: an analytic ray-cast panorama plus per-object "looks" for the mushroom body (Amendment 1; see the paper's
+Protocol and amendments section).
 
 Identical equations in app/sim/brain/eye.js. Angles: world frame, radians, counter-clockwise from +x (east).
 
@@ -65,7 +66,7 @@ def normals(rng, n):
 
 
 class Scene:
-    """Batched world arrays (padded). worlds: list of C5 dicts (one per batch row)."""
+    """Batched world arrays (padded). worlds: list of world dicts (one per batch row)."""
 
     def __init__(self, worlds):
         B = len(worlds)

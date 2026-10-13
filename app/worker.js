@@ -1,7 +1,7 @@
-// Live simulator worker (module worker; needs http, e.g. `npx serve app`). Steps the C6 mission at a fixed brain tick
+// Live simulator worker (module worker; needs http, e.g. `npx serve app`). Steps the mission at a fixed brain tick
 // (0.02 s, 10 physics steps inside the mission) at real time x speed, independent of the frame rate, and posts the
 // latest frame at most 20 times a second (frame() ray-casts the eye panorama, ~6 ms in a dense forest). Uses
-// app/sim/mission.js (+ app/sim/world.js) when present, else the clearly labelled mock in app/data/.
+// app/sim/mission.js (+ app/sim/world.js) when present, else the labelled mock in app/data/.
 //
 // in:  {cmd:'init', scenario, speed, opts}  {cmd:'run'}  {cmd:'pause'}  {cmd:'speed', v}  {cmd:'step'}  {cmd:'batch', scenario, seeds:[...], opts}
 //      opts = {yawSurrogate: {fit, k}} (exploratory, passed to createMission; {} = the reference behaviour)

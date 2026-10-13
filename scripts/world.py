@@ -47,7 +47,7 @@ def _box_dist(px, py, o):
 
 
 def build_world(sc):
-    """scenario (validated, defaults filled) -> C5 world dict. Deterministic from sc['seed'] via Rng stream 0."""
+    """scenario (validated, defaults filled) -> world dict. Deterministic from sc['seed'] via Rng stream 0."""
     r = Rng([sc["seed"]], 0)
     U = lambda: float(r.uniform()[0])  # noqa: E731
     W, H = sc["world"]["size_m"]

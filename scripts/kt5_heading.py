@@ -1,17 +1,18 @@
 """KT5 (H5): does a ring-attractor heading integrator survive sun-compass faults better than a complementary filter,
-a Kalman filter and the v1 direct sun compass? Pre-registered design: the H5 block of the study plan and its log entry.
+a Kalman filter and the Study 1 direct sun compass? Pre-registered (H5; the paper's Study 2 protocol and amendments
+section).
 
-Traces. scripts/mission.py (v1 brain: ring arbiter with results/tuned3d_params.json, forest density 0.3, no wind, no
+Traces. scripts/mission.py (Study 1 brain: ring arbiter with results/tuned3d_params.json, forest density 0.3, no wind, no
 fault) is flown on seeds 100-199 (tuning) and 1300-1599 (test); the true yaw and true horizontal body velocity are
 recorded at 50 Hz until the mission ends (data/raw/kt5_traces.npz, regenerable with --record).
 Sensors (per seed, scripts/rng.py streams): gyro (20) = true yaw rate + bias N(0, 0.5 deg/s) + N(0, 0.1 deg/s) per
-sample; sun compass = the v1 TL->CL1->TB1 compass of brain/pi.py fed with true yaw + N(0, 2 deg) (2) + false-sun
+sample; sun compass = the Study 1 TL->CL1->TB1 compass of brain/pi.py fed with true yaw + N(0, 2 deg) (2) + false-sun
 offset, with the v1 CL1 mask under compass_half; fault onset 5 + 20 u (21); gust yaw disturbance (22); odometry
 noise for the path integrator (3). The vehicle model has no aerodynamic yaw moment, so the gust condition adds a yaw
 disturbance to the recorded trace (yaw-rate Gauss-Markov 30 deg/s, 0.2 s, pulled back by the yaw loop with 1 s;
 an assumption). sun_valid is true throughout.
 Metric: per seed RMS heading error (deg) over the recorded mission. Home vector: each heading source is fed as the
-compass input of the v1 PathIntegrator, the trace is replayed in a loop to 300 m of path, error at 300 m.
+compass input of the Study 1 PathIntegrator, the trace is replayed in a loop to 300 m of path, error at 300 m.
 Tuning: 64 configs per estimator (default_rng(2026)), seeds 100-199, J = mean RMS over the 6 fault conditions + RMS
 with no fault. Frozen to results/kt5_tuned_params.json before the test seeds are touched.
 Usage: uv run python scripts/kt5_heading.py --record | --tune | --test | (no flag: self-check)

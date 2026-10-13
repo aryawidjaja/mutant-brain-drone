@@ -1,5 +1,5 @@
 // Central-complex path integrator (Stone et al. 2017, reimplemented from the paper's text), JS twin of
-// scripts/brain/pi.py (batch 1). See that file for the equations and the three stated deviations.
+// scripts/brain/pi.py. See that file for the equations and the three stated deviations.
 export const N8 = 8;
 export const TH8 = Array.from({ length: N8 }, (_, i) => i * Math.PI / 4);
 export const C_TB1 = 0.33, PHI_TN = Math.PI / 4, V_REF = 4.0, H_CPU4 = 0.025;

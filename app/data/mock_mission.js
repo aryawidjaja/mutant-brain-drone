@@ -1,12 +1,12 @@
-// MOCK physics and brain, for building the UI only. NOT the 6-DOF quadrotor and NOT the insect brain.
-// A kinematic point drone with a toy ring, toy path integrator and toy eye, emitting frames in the C6 shape
-// so the app can be built before app/sim/mission.js exists. The worker labels it "MOCK physics".
+// MOCK physics and brain, a stand-in for the UI only. NOT the 6-DOF quadrotor and NOT the insect brain.
+// A kinematic point drone with a toy ring, toy path integrator and toy eye, emitting frames in the logged-frame shape
+// so the app still runs when app/sim/mission.js is missing. The worker labels it "MOCK physics".
 //
 // Conventions used by the UI (and assumed for the real modules): world ENU (x east, y north, z up), metres;
 // bearings and yaw in the math sense (0 = east, counter-clockwise positive); pi.home_est / home_true are the
 // drone-to-home VECTORS in world metres.
 //
-//   node app/data/mock_mission.js              self-check (asserts the C6 frame shape and a full mission)
+//   node app/data/mock_mission.js              self-check (asserts the logged-frame shape and a full mission)
 //   node app/data/mock_mission.js --write-run  also writes app/runs/mock_run.json, mock_manifest.json, mock_bundle.js
 import { Rng } from '../sim/rng.js';
 
@@ -59,7 +59,7 @@ export function buildWorld(sc) {
     sun: { azimuth_deg: u(0, 360), elevation_deg: u(30, 60) }, light: sc.world.light ?? 1, fog_m: sc.world.fog_m ?? null, mock: true };
 }
 
-export function createMission(sc, worldIn = null) { // worldIn: a C5 world from app/sim/world.js, when it exists
+export function createMission(sc, worldIn = null) { // worldIn: a world dict from app/sim/world.js, when one is given
   const world = worldIn || buildWorld(sc), objs = world.objects.slice().sort((a, b) => a.slot - b.slot), K = objs.length;
   const rw = new Rng(sc.seed, 1), rc = new Rng(sc.seed, 2), rf = new Rng(sc.seed, 5), rs = new Rng(sc.seed, 6), rv = new Rng(sc.seed, 4);
   const L = sc.brain.learning_flight_s ?? 10, arb = sc.brain.arbiter, gain = sc.brain.ring_gain ?? 1, tmax = sc.mission.max_time_s;

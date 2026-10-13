@@ -6,7 +6,7 @@
 <title>Mutant Brain Drone</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg stroke='%23f08a3c' stroke-width='6' fill='none'%3E%3Ccircle cx='14' cy='14' r='9'/%3E%3Ccircle cx='50' cy='14' r='9'/%3E%3Ccircle cx='14' cy='50' r='9'/%3E%3Ccircle cx='50' cy='50' r='9'/%3E%3Cpath d='M20 20L44 44M44 20L20 44'/%3E%3C/g%3E%3C/svg%3E">
 <meta name="theme-color" content="#121417">
-<meta name="description" content="A simulated drone steered by published insect brain models (bee mushroom body, fly reflexes, ant path integrator, ring-attractor hub). Live simulator, recorded results and paper.">
+<meta name="description" content="A simulated drone steered by published insect brain models (bee mushroom body, fly reflexes, ant path integrator, ring hub). Live simulator, recorded results and paper.">
 <script>try { const t = new URLSearchParams(location.search).get('theme') || localStorage.getItem('mbd-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -282,7 +282,7 @@ footer.credits a { color: inherit; }
   <aside class="side only-res" id="runs" aria-label="Recorded runs">
     <details open><summary class="ph">Recorded run</summary>
       <div class="body"><select id="runsel" style="width:100%"></select><table id="runmeta" style="margin-top:6px"></table>
-      <p class="fine">Illustrations, not results. Recorded by the Python reference (scripts/export_runs.py). Study 2 replays: the first Study 2 test seed (2000) for a fixed list of conditions, chosen before recording (3.3 frames per second, eye image every 3.6 s), plus the Study 1 brain on the same seed. Study 1 replays: one swapped-decoy seed picked to contrast two arbiters (5 frames per second). Replays never recompute anything.</p></div></details>
+      <p class="fine">Illustrations, not results. Recorded by the Python reference (scripts/export_runs.py). Study 2 replays: the first Study 2 test seed (2000) for a fixed list of conditions, chosen before recording (3.3 frames per second, eye image every 3.6 s), plus the Study 1 brain on the same seed. Study 1 replays: one seed with a swapped look-alike, picked to contrast two arbiters (5 frames per second). Replays never recompute anything.</p></div></details>
   </aside>
 
   <section class="vp" id="view" aria-label="3D view">
@@ -364,7 +364,7 @@ footer.credits a { color: inherit; }
   </div>
 </div>
 
-<section id="guide" class="ph-paper"><article><h1>Paper</h1><p>The web paper (<code>guide.js</code>) has not been written yet. It will appear here, rendered from <code>data/summary.json</code>, as in the fly project.</p></article></section>
+<section id="guide" class="ph-paper"><article><h1>Paper</h1><p>The web paper (<code>guide.js</code>) is not included in this copy of the app. The paper is in the repository's <code>paper/</code> folder.</p></article></section>
 
 <footer class="credits">
   Vehicle: MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> (MIT) via MuJoCo (Apache-2.0). Brain models: Ardin et al. 2016 (mushroom body), Stone et al. 2017 (path integrator, reimplemented), Sun, Yue &amp; Mangan 2020 (ring attractor). 3D: three.js (MIT) with its Sky addon; drone meshes from the same Menagerie model; ground, bark, rock, wall and fabric textures from ambientCG (CC0). Type: IBM Plex (OFL).

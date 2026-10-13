@@ -1,7 +1,7 @@
-"""v2 arbiters: the evidence-gated ring (RingGated) and visibility-gated versions of the v1 arms.
+"""Study 2 arbiters: the evidence-gated ring (RingGated) and visibility-gated versions of the Study 1 arms.
 
-Same C2 interface as brain/arbiters.py (obs dict with a leading batch axis B; step -> heading_cmd, commit, viz).
-The v1 file and the frozen state machine are imported, never edited.
+Same arbiter interface as brain/arbiters.py (obs dict with a leading batch axis B; step -> heading_cmd, commit, viz).
+The Study 1 file and the frozen state machine are imported, never edited.
 
 Visibility-gated input (every "_vg" arm and RingGated; the frozen state machine already freezes hidden evidence).
 Per object slot k the arm keeps a held strength s_k and a last-seen bearing b_k:
@@ -11,7 +11,7 @@ and the arm sees (b_k, s_k, visible = s_k > 0) in place of the raw slot. Occlusi
 fading evidence (visible, strength falling) therefore travel on different channels: a hidden object's evidence decays
 slowly at the tuned tau_hold_s, a visible object's evidence is used as it is.
 
-RingGated (model hypothesis, not a measured insect circuit). The v1 ring (Sun, Yue & Mangan 2020-style; N = 32,
+RingGated (model hypothesis, not a measured insect circuit). The Study 1 ring (Sun, Yue & Mangan 2020-style; N = 32,
 Gaussian excitation sigma 30 deg, folded uniform inhibition, clip [0, 1], population-vector readout) with its
 recurrent gain set every tick by a fast conflict signal instead of a constant:
     I            = object + home + search drive on the ring (shared von Mises input stage, held object strengths)
@@ -28,7 +28,7 @@ recurrent gain set every tick by a fast conflict signal instead of a constant:
 Bounded gain: g never exceeds g_hi, and under sustained conflict it falls to g_lo < G_CRIT. Below G_CRIT the loop
 gain of every active subset of neurons is < 1 (Cauchy interlacing on the symmetric W_RING), so the ring holds no
 self-sustained bump and its state is set by the input: the bump cannot latch against contrary evidence.
-ring_gain = 0 gives g = 0 at all times, i.e. exactly ring_static_vg (C2 rule; asserted below).
+ring_gain = 0 gives g = 0 at all times, i.e. exactly ring_static_vg (as for the Study 1 ring; asserted below).
 
 Biological motivation (cited in the paper as motivation only): the fly heading bump persists without input and shows
 "both abrupt jumps and gradual transitions ... when triggered by strong visual input" (Seelig & Jayaraman 2015,
