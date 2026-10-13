@@ -55,19 +55,19 @@ def analyse(df, n_boot=N_BOOT, seed=0):
         for dc in decoys:
             Ud = np.stack([u_matrix([g[(r, m, t, l, True)] for l in layouts], [sub[(r, m, t, l, dc)] for l in layouts])[0] for t in thetas])
             ad = auroc_boot(Ud, p, p.copy(), C)
-            pdec[dc] = {"auroc": ad[0].round(4).tolist(), "ci95_lo": np.percentile(ad[1:], 2.5, 0).round(4).tolist(),
-                        "ci95_hi": np.percentile(ad[1:], 97.5, 0).round(4).tolist()}
+            pdec[dc] = {"auroc": ad[0].round(6).tolist(), "ci95_lo": np.percentile(ad[1:], 2.5, 0).round(6).tolist(),
+                        "ci95_hi": np.percentile(ad[1:], 97.5, 0).round(6).tolist()}
         out["arms"].setdefault(r, {})[m] = {
-            "auroc": a[0].round(4).tolist(), "ci95_lo": np.percentile(a[1:], 2.5, 0).round(4).tolist(),
-            "ci95_hi": np.percentile(a[1:], 97.5, 0).round(4).tolist(), "n_pos_per_angle": int(p.sum()), "n_neg_per_angle": int(n.sum()),
+            "auroc": a[0].round(6).tolist(), "ci95_lo": np.percentile(a[1:], 2.5, 0).round(6).tolist(),
+            "ci95_hi": np.percentile(a[1:], 97.5, 0).round(6).tolist(), "n_pos_per_angle": int(p.sum()), "n_neg_per_angle": int(n.sum()),
             "catchment_bins": int(catchment(a[0], THR)), "mean_auroc_out_of_arc": float(a[0][np.array(thetas) > 45].mean()),
             "mean_auroc_all": float(a[0].mean()), "per_decoy": pdec}
     comp = {}
     for name, (x, ys) in COMPARISONS.items():
         if x in A and all(y in A for y in ys):
             d = A[x] - np.max(np.stack([A[y] for y in ys]), 0)
-            comp[name] = {"a": "@".join(x), "b": " max ".join("@".join(y) for y in ys), "by_theta": d[0].round(4).tolist(),
-                          "ci95_lo": np.percentile(d[1:], 2.5, 0).round(4).tolist(), "ci95_hi": np.percentile(d[1:], 97.5, 0).round(4).tolist()}
+            comp[name] = {"a": "@".join(x), "b": " max ".join("@".join(y) for y in ys), "by_theta": d[0].round(6).tolist(),
+                          "ci95_lo": np.percentile(d[1:], 2.5, 0).round(6).tolist(), "ci95_hi": np.percentile(d[1:], 97.5, 0).round(6).tolist()}
     out["paired_differences"] = comp
     return out, A
 
@@ -115,7 +115,7 @@ def inspection_analysis(df, target_rate=0.9, calib=(0, 1, 2, 3, 4), n_boot=N_BOO
             b = pd.concat([st[st.layout == l] for l in rs.choice(layouts, len(layouts))])
             diffs.append(pooled_auroc(b.assign(score=b.inspect)) - pooled_auroc(b.assign(score=b.single)))
         r["auroc_diff_inspect_minus_single"] = {"point": r["inspect"]["auroc_all_layouts"] - r["single"]["auroc_all_layouts"],
-                                               "ci95": np.percentile(diffs, [2.5, 97.5]).round(4).tolist()}
+                                               "ci95": np.percentile(diffs, [2.5, 97.5]).round(6).tolist()}
         res[f"sep_{sep:g}deg"] = r
     s20 = res["sep_20deg"]
     return {"definition": f"Thresholds set on layouts {list(calib)} so that >= {target_rate:.0%} of target approaches are accepted; "
