@@ -410,12 +410,12 @@
   "text": "0.015"
  },
  "StwoTimeOffLo": {
-  "source": "derived: min over ring_gain <= 0.5 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est",
+  "source": "derived: min over ring_gain <= 0.7 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est",
   "value": 1.463333333333334,
   "text": "1.5"
  },
  "StwoTimeOffHi": {
-  "source": "derived: max over ring_gain <= 0.5 of the same",
+  "source": "derived: max over ring_gain <= 0.7 of the same",
   "value": 4.933199999999982,
   "text": "4.9"
  },
@@ -872,107 +872,107 @@
  "StwoOwnDiffOcc": {
   "source": "derived: post hoc: stats.paired_diff of per-seed occlusion AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": -0.012916666666666667,
-  "text": "\\ensuremath{-}0.013"
+  "text": "\\ensuremath{-}0.01"
  },
  "StwoOwnDiffOccLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed occlusion AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": -0.029166666666666667,
-  "text": "\\ensuremath{-}0.029"
+  "text": "\\ensuremath{-}0.03"
  },
  "StwoOwnDiffOccHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed occlusion AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": 0.002916666666666667,
-  "text": "0.003"
+  "text": "0.00"
  },
  "StwoOwnDiffDecoy": {
   "source": "derived: post hoc: stats.paired_diff of per-seed decoy AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": -0.024166666666666666,
-  "text": "\\ensuremath{-}0.024"
+  "text": "\\ensuremath{-}0.02"
  },
  "StwoOwnDiffDecoyLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed decoy AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": -0.07708333333333334,
-  "text": "\\ensuremath{-}0.077"
+  "text": "\\ensuremath{-}0.08"
  },
  "StwoOwnDiffDecoyHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed decoy AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": 0.027916666666666666,
-  "text": "0.028"
+  "text": "0.03"
  },
  "StwoOwnDiffCompass": {
   "source": "derived: post hoc: stats.paired_diff of per-seed compass_half AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": 0.42833333333333334,
-  "text": "0.428"
+  "text": "0.43"
  },
  "StwoOwnDiffCompassLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed compass_half AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": 0.405,
-  "text": "0.405"
+  "text": "0.41"
  },
  "StwoOwnDiffCompassHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed compass_half AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": 0.45,
-  "text": "0.450"
+  "text": "0.45"
  },
  "StwoOwnDiffEye": {
   "source": "derived: post hoc: stats.paired_diff of per-seed eye_columns AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": -0.0625,
-  "text": "\\ensuremath{-}0.062"
+  "text": "\\ensuremath{-}0.06"
  },
  "StwoOwnDiffEyeLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed eye_columns AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": -0.08541666666666667,
-  "text": "\\ensuremath{-}0.085"
+  "text": "\\ensuremath{-}0.09"
  },
  "StwoOwnDiffEyeHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed eye_columns AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": -0.04083333333333333,
-  "text": "\\ensuremath{-}0.041"
+  "text": "\\ensuremath{-}0.04"
  },
  "StwoOwnDiffSun": {
   "source": "derived: post hoc: stats.paired_diff of per-seed false_sun AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": 0.8591666666666666,
-  "text": "0.859"
+  "text": "0.86"
  },
  "StwoOwnDiffSunLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed false_sun AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": 0.84625,
-  "text": "0.846"
+  "text": "0.85"
  },
  "StwoOwnDiffSunHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed false_sun AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": 0.8695833333333334,
-  "text": "0.870"
+  "text": "0.87"
  },
  "StwoOwnDiffSpeed": {
   "source": "derived: post hoc: stats.paired_diff of per-seed speed_scale AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": 0.6033333333333334,
-  "text": "0.603"
+  "text": "0.60"
  },
  "StwoOwnDiffSpeedLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed speed_scale AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": 0.5704166666666667,
-  "text": "0.570"
+  "text": "0.57"
  },
  "StwoOwnDiffSpeedHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed speed_scale AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": 0.635,
-  "text": "0.635"
+  "text": "0.64"
  },
  "StwoOwnDiffGust": {
   "source": "derived: post hoc: stats.paired_diff of per-seed gust AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[est]",
   "value": -0.03555555555555556,
-  "text": "\\ensuremath{-}0.036"
+  "text": "\\ensuremath{-}0.04"
  },
  "StwoOwnDiffGustLo": {
   "source": "derived: post hoc: stats.paired_diff of per-seed gust AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[lo]",
   "value": -0.05055555555555557,
-  "text": "\\ensuremath{-}0.051"
+  "text": "\\ensuremath{-}0.05"
  },
  "StwoOwnDiffGustHi": {
   "source": "derived: post hoc: stats.paired_diff of per-seed gust AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[hi]",
   "value": -0.02166666666666667,
-  "text": "\\ensuremath{-}0.022"
+  "text": "\\ensuremath{-}0.02"
  },
  "StwoOwnNonPI": {
   "source": "derived: post hoc: same, mean over occlusion, decoy, eye_columns, gust[est]",

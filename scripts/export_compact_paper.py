@@ -248,9 +248,9 @@ def register():
     R("StwoKTsevenVote", "kt7.json", "kt2_world/aggregate_auc/vote_vg/mean", 3)
     R("StwoKTsevenP", "kt7.json", "kt2_world/ring_gated_minus_best_other_permutation/p_two_sided", fmt=ppfmt)
     R("StwoSMtimeOff", "kt7.json", "premature_switch_noninferiority/rival_tuned_time_off_s/state_machine", 3)
-    to = lambda: [x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if x["ring_gain"] <= 0.5]  # noqa: E731
-    Dv("StwoTimeOffLo", lambda: min(to()), 1, "min over ring_gain <= 0.5 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est")
-    Dv("StwoTimeOffHi", lambda: max(to()), 1, "max over ring_gain <= 0.5 of the same")
+    to = lambda: [x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if x["ring_gain"] <= 0.7]  # noqa: E731
+    Dv("StwoTimeOffLo", lambda: min(to()), 1, "min over ring_gain <= 0.7 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est")
+    Dv("StwoTimeOffHi", lambda: max(to()), 1, "max over ring_gain <= 0.7 of the same")
     Dv("StwoTimeOffMid", lambda: max(x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if 0.8 <= x["ring_gain"] <= 2.0), 2,
        "max over 0.8 <= ring_gain <= 2 of results/kt7.json:premature_switch_noninferiority/ring_minus_rival/state_machine/*/est")
     Dv("StwoTimeOffHigh", lambda: max(x["est"] for x in J("kt7.json")["premature_switch_noninferiority"]["ring_minus_rival"]["state_machine"] if x["ring_gain"] > 2.0), 2,
@@ -327,7 +327,7 @@ def register():
     own = {"occlusion": "Occ", "decoy": "Decoy", "compass_half": "Compass", "eye_columns": "Eye", "false_sun": "Sun", "speed_scale": "Speed", "gust": "Gust"}
     for f, n in own.items():
         for suf, k in (("", "est"), ("Lo", "lo"), ("Hi", "hi")):
-            Dv("StwoOwnDiff" + n + suf, (lambda f=f, k=k: own_diff([f])[k]), 3,
+            Dv("StwoOwnDiff" + n + suf, (lambda f=f, k=k: own_diff([f])[k]), 2,
                f"post hoc: stats.paired_diff of per-seed {f} AUC, v2_ring minus v1, both scored success_target & success_home (2 m) & no collision, results/runs/mission_v2_test.parquet (10,000, seed 0)[{k}]")
     for suf, k in (("", "est"), ("Lo", "lo"), ("Hi", "hi")):
         Dv("StwoOwnNonPI" + suf, (lambda k=k: own_diff(NON_PI)[k]), 3,

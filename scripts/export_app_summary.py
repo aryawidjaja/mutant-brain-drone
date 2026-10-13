@@ -863,7 +863,7 @@ def readme_block(d):
     if V:
         h9, m = V['h9'], V['m']
         rows.append(('H9, Study 2 (3D)', 'Full-mission success incl. landing within 0.5 m of the pad, v2 brain (test seeds 2000–2299)',
-                     f"no fault {f(h9['i']['success'])} [{f(h9['i']['wilson95'][0])}, {f(h9['i']['wilson95'][1])}]; AUC +{f(h9['ii']['own_diff']['est'])} [{f(h9['ii']['own_diff']['lo'])}, {f(h9['ii']['own_diff']['hi'])}] over Study 1 on its own 2 m definition "
+                     f"no fault {f(h9['i']['success'])} [{f(h9['i']['wilson95'][0])}, {f(h9['i']['wilson95'][1])}]; AUC +{f(h9['ii']['own_diff']['est'])} [{f(h9['ii']['own_diff']['lo'])}, {f(h9['ii']['own_diff']['hi'])}] over Study 1 (Study 2 on full success vs Study 1 on its own 2 m success; on the same 2 m definition the gap is +{f(V['same']['agg']['est'])}, all from the three path-integrator faults) "
                      f"(+{f(h9['ii']['diff']['est'])} on full success, definitional); look-alikes at similarity 0.8 {f(h9['iii']['decoy']['success'], 2)}; arbiter choice p = {f(m['perm']['p_two_sided'], 2)}",
                      'Not fully met: (i) and (ii) pass, (iii) fails on look-alikes'))
         k5 = V['kt5']['agg']
