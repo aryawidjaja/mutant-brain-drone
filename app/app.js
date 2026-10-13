@@ -560,6 +560,82 @@ function vizRows(f) { // the arbiter's own state, readable
   if (a.name === 'sum' && v.vectors) return Object.entries(v.vectors).map(([k, u]) => [k, `${Math.hypot(u[0], u[1]).toFixed(2)} at ${(Math.atan2(u[1], u[0]) / D2R).toFixed(0)}°`]);
   return Object.entries(v).map(([k, x]) => [k, Array.isArray(x) ? x.slice(0, 8).map(n2).join(' · ') : typeof x === 'object' ? JSON.stringify(x) : n2(x)]);
 }
+// ---------------------------------------------------------------- mission progress and event banners
+// search and approach alternate many times a second while commitment wavers, so they share one step and only the
+// first approach is announced. Scrubbing or a reset resyncs silently. Truth lines come from the simulator, not the brain.
+const STEP = { learning: 0, search: 1, approach: 1, home: 2, done: 3 };
+const ms = { t: -1, ph: null, app: false, tApp: -9, key: '' };
+let toastT = 0, toastQ = [], toastFree = 0;
+function toast(...a) { toastQ.push(a); pumpToast(); }   // queued so each banner stays up at least 1.8 s
+function pumpToast() {
+  const now = performance.now();
+  if (!toastQ.length) return;
+  if (now < toastFree) { setTimeout(pumpToast, toastFree - now); return; }
+  toastFree = now + 1800; showToast(...toastQ.shift());
+}
+function clearToast() { toastQ = []; toastFree = 0; $('toast').classList.remove('on'); }
+function showToast(title, detail, truth, warn) {
+  const el = $('toast');
+  el.innerHTML = `<b>${esc(title)}</b>` + (detail ? `<span>${esc(detail)}</span>` : '') + (truth ? `<span class="${truth[1]}">${esc(truth[0])}</span>` : '');
+  el.classList.toggle('warn', !!warn); el.classList.add('on');
+  el.style.top = `${Math.max(100, hudTop + 62)}px`; el.style.marginLeft = '0px';   // under the heading tape; slide right if it would cover the map
+  const a = el.getBoundingClientRect(), m = $('mapwrap'), b = !m.hidden && m.getBoundingClientRect();
+  if (b && a.left < b.right + 8 && a.top < b.bottom && a.bottom > b.top) el.style.marginLeft = `${b.right + 8 - a.left}px`;
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3500);
+}
+function nearestRole(f) {   // simulator truth: which object the drone stopped at
+  const p = f.quad.pos, os = view.world ? view.world.objects.filter((o) => o.role === 'target' || o.role === 'decoy') : [];
+  let best = null, bd = 5;
+  for (const o of os) { const d = Math.hypot(o.x - p[0], o.y - p[1]); if (d < bd) { bd = d; best = o.role; } }
+  return best;
+}
+function endState(o) {
+  if (o.collisions > 0) return ['Crashed', true];
+  if (o.landed_on_pad || o.home_error_m < 2) return ['Landed', false];
+  return ['Ended', true];
+}
+function missionUi(f) {
+  const hu = f.hud || {}, o = f.outcome, ph = o ? 'done' : f.phase, fam = Number.isFinite(f.familiarity) ? f.familiarity.toFixed(2) : '–';
+  if (ph === 'approach') ms.tApp = f.t;
+  if (f.t < ms.t - 1e-6 || f.t - ms.t > 3 || ms.ph == null) {   // jump: resync without announcing
+    ms.app = ph === 'approach' || STEP[ph] > 1; clearToast();
+  } else if (ph !== ms.ph) {
+    if (ph === 'search' && ms.ph === 'learning')
+      toast('Searching', 'learning flight done' + (Number.isFinite(hu.search_alt_m) ? ` · ${hu.search_alt_m.toFixed(1)} m up for a ${hu.size_est_m.toFixed(1)} m object` : ''));
+    else if (ph === 'approach' && !ms.app) { ms.app = true; toast('Candidate spotted', `familiarity ${fam} · closing in`); }
+    else if (ph === 'home') {
+      const r = nearestRole(f), d = hu.home_dist_est_m ?? (f.pi ? Math.hypot(f.pi.home_est[0], f.pi.home_est[1]) : null);
+      toast('Target accepted', 'returning home' + (Number.isFinite(d) ? ` · ${d.toFixed(0)} m to go` : ''),
+        r === 'target' ? ['✓ truth: the real target', 'ok'] : r === 'decoy' ? ['✗ truth: a look-alike', 'bad'] : null, r === 'decoy');
+    } else if (ph === 'done') {
+      const [lbl, bad] = endState(o);
+      toast(lbl === 'Landed' && o.landed_on_pad ? 'Landed on pad' : lbl, `${o.time_s.toFixed(0)} s · ${o.home_error_m.toFixed(2)} m from the pad`,
+        o.success_target ? ['✓ truth: found the real target', 'ok'] : o.wrong_object_stop ? ['✗ truth: stopped at a look-alike', 'bad'] : ['✗ truth: target never found', 'bad'], bad || !o.success_target);
+    }
+  }
+  ms.t = f.t; ms.ph = ph;
+  const cur = STEP[ph] ?? -1, end = o ? endState(o) : null;
+  const note = cur !== 1 ? '' : hu.inspecting ? 'inspecting' : f.t - ms.tApp < 1.5 ? 'closing in' : '';
+  const key = cur + note + (end || '');
+  if (key === ms.key) return; ms.key = key;
+  $('steps').querySelectorAll('li').forEach((li, i) => {
+    li.className = end ? (i < 3 ? 'done' : end[1] ? 'bad' : 'cur') : i < cur ? 'done' : i === cur ? 'cur' : '';
+    if (i === cur) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    li.querySelector('span').innerHTML = esc(i === 3 && end ? end[0] : ['Learn', 'Search', 'Return', 'Land'][i]) + (i === cur && note ? ` <small>· ${note}</small>` : '');
+  });
+  fitSteps();
+}
+function fitSteps() {   // labels only for the current step when the full bar would reach the camera tools
+  const el = $('steps'), tr = document.querySelector('#view .tools').getBoundingClientRect();
+  el.classList.remove('tight', 'tighter', 'stack');
+  for (const c of ['tight', 'tighter', 'stack']) {   // fewer labels, then no note, then a row of its own under the tools
+    const r = el.getBoundingClientRect();
+    if (r.right <= tr.left - 8 || r.top >= tr.bottom) break;
+    el.classList.add(c);
+  }
+  $('chips').style.top = `${el.offsetTop + el.offsetHeight + 6}px`;
+}
+window.addEventListener('resize', fitSteps); requestAnimationFrame(fitSteps);
 function drawPanels() {
   const f = view.frame;
   P.map($('map'), view.world, view.trail, f, css, { col: roleColor(), present });
@@ -586,7 +662,8 @@ function drawPanels() {
   if (f.pi) { const e = f.pi.home_est, t = f.pi.home_true; $('hverr').textContent = `error ${Math.hypot(e[0] - t[0], e[1] - t[1]).toFixed(1)} m`; }
   $('mindtxt').textContent = f.mind ? f.mind.text : '–'; $('mindtru').textContent = f.mind ? f.mind.truth : '–';
   const chips = (f.faults_active || []).map((k) => `<span class="flag warn">${esc(k.replace(/_/g, ' '))}</span>`);
-  $('chips').innerHTML = `<span class="flag ph-on">${esc(f.phase)}</span>` + chips.join('') + (f.outcome ? `<span class="flag">${f.outcome.success_target ? 'found target' : f.outcome.wrong_object_stop ? 'stopped at look-alike' : 'target not found'} · ${f.outcome.success_home ? 'home' : 'not home'}</span>` : '');
+  missionUi(f);
+  $('chips').innerHTML = chips.join('') + (f.outcome ? `<span class="flag">${f.outcome.success_target ? 'found target' : f.outcome.wrong_object_stop ? 'stopped at look-alike' : 'target not found'} · ${f.outcome.success_home ? 'home' : 'not home'}</span>` : '');
   const o = f.objects || [];
   const rows = [['Phase', f.phase], ['Commit', f.arbiter && Number.isFinite(f.arbiter.commit) ? f.arbiter.commit.toFixed(2) : '–'], ['Heading cmd', f.ring && Number.isFinite(f.ring.heading_cmd_deg) ? f.ring.heading_cmd_deg.toFixed(0) + '°' : '–'],
     ['Avoid yaw offset', f.avoid ? f.avoid.yaw_offset_deg.toFixed(0) + '°' : '–'], ['Looming', f.avoid ? f.avoid.loom.toFixed(2) : '–'], ['Altitude', f.quad.pos[2].toFixed(2) + ' m'],
@@ -653,15 +730,17 @@ function setHud(onv, save) {
 }
 $('hudbtn').onclick = () => setHud(!(HUD && HUD.on), true);
 const vRect = (el) => { if (!el || el.hidden || !el.offsetParent) return null; const a = el.getBoundingClientRect(), b = $('view').getBoundingClientRect(); return a.width && a.height ? [a.left - b.left, a.top - b.top, a.width, a.height] : null; };
-let hudAvoid = [], hudAvoidT = 0, hudTop = 0, hudBot = 0;
+let hudAvoid = [], hudAvoidT = 0, hudTop = 0, hudBot = 0, hudTL = 0;
 function drawHud(now) {
   if (!HUD || !HUD.on) return;
   if (now - hudAvoidT > 250) { // overlays the display must not cover
-    hudAvoidT = now; hudAvoid = ['badge', 'mapwrap', 'mind', 'nosim'].map((id) => vRect($(id))).filter(Boolean);
+    hudAvoidT = now; hudAvoid = ['badge', 'mapwrap', 'mind', 'nosim', 'steps'].map((id) => vRect($(id))).filter(Boolean);
     const tools = document.querySelector('#view .tools'), tr = vRect(tools); if (tr) hudAvoid.push(tr);
     hudTop = tr ? tr[1] + tr[3] : 0; const mr = vRect($('mind')); hudBot = mr ? mr[1] : 0;
+    const sr = vRect($('steps')); hudTL = sr ? sr[1] + sr[3] : 0;   // the corner text block starts under the mission bar
+    if (sr && $('steps').classList.contains('stack')) hudTop = Math.max(hudTop, hudTL);   // and the heading tape too when it has its own row
   }
-  HUD.draw(view.frame, { avoid: hudAvoid, topY: hudTop, bottomY: hudBot, brain: roleColor(), flag: css.flag, gust: css.gust });
+  HUD.draw(view.frame, { avoid: hudAvoid, topY: hudTop, bottomY: hudBot, topLeft: hudTL, brain: roleColor(), flag: css.flag, gust: css.gust });
 }
 
 // ---------------------------------------------------------------- help: "?" buttons with one shared tooltip
