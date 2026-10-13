@@ -1,6 +1,6 @@
 {
  "pass": true,
- "tolerances": "Module outputs are compared on recorded inputs (exact or <= 1e-9); full closed-loop missions are compared on the\ntrajectory with a stated tolerance (closed loops amplify floating-point order differences between numpy and V8):\n  scenarios, hashes, worlds ............ exact\n  eye panorama pixels .................. <= 0.5 % of pixels differ, by <= 1 level\n  object looks (grey) .................. max |diff| <= 1e-9\n  MB familiarity on Python's looks ..... exact;  on each side's own looks + same noise: max |diff| <= 0.02\n  path integrator (recorded inputs) .... heading <= 1e-9 rad, home vector <= 1e-6 m\n  six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9\n  avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact\n  missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags\n    v1: all six arbiters closed loop; v2 (brain.version 2, all six modules, RingGated and visibility-gated rivals,\n    HeadingRing and KalmanHeading): same rule, run to 90 s so the take-off learning flight, the pad lock and the\n    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too\n  eye RGB crops (v2 front end input) .... max |diff| <= 1e-9\nRun: uv run python scripts/parity_brain.py\n",
+ "tolerances": "Module outputs are compared on recorded inputs (exact or <= 1e-9); full closed-loop missions are compared on the\ntrajectory with a stated tolerance (closed loops amplify floating-point order differences between numpy and V8):\n  scenarios, hashes, worlds ............ exact\n  eye panorama pixels .................. <= 0.5 % of pixels differ, by <= 1 level\n  object looks (grey) .................. max |diff| <= 1e-9\n  MB familiarity on Python's looks ..... exact;  on each side's own looks + same noise: max |diff| <= 0.02\n  path integrator (recorded inputs) .... heading <= 1e-9 rad, home vector <= 1e-6 m\n  six arbiters (recorded obs) .......... heading <= 1e-9 rad, commit <= 1e-9\n  avoidance reflex ..................... <= 1e-12;  mind-reader strings: exact\n  missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags\n    v1: all six arbiters closed loop; v2 (brain.version 2, all six modules, RingGated and visibility-gated rivals,\n    HeadingRing and KalmanHeading): same rule, run to 90 s so the take-off learning flight, the pad lock and the\n    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too; post-study adaptive_search\n    (Study 2 modules + adaptive_search, frozen v2 ring): a tent and a backpack mission, same rule, size estimate and\n    search altitude equal to 1e-9\n  eye RGB crops (v2 front end input) .... max |diff| <= 1e-9\nRun: uv run python scripts/parity_brain.py\n",
  "results": {
   "scenarios": {
    "n": 6,
@@ -155,6 +155,7 @@
     "arbiter": "ring",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "ring x3",
@@ -199,6 +200,7 @@
     "arbiter": "ring",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "ring x3",
@@ -243,6 +245,7 @@
     "arbiter": "ring",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "ring x3",
@@ -287,6 +290,7 @@
     "arbiter": "state_machine",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "single",
@@ -331,6 +335,7 @@
     "arbiter": "vote",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "single",
@@ -375,6 +380,7 @@
     "arbiter": "accumulator",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "single",
@@ -419,6 +425,7 @@
     "arbiter": "ring_static",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "single",
@@ -463,6 +470,7 @@
     "arbiter": "sum",
     "version": 1,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": null,
     "heading_estimator": null,
     "python_batch": "single",
@@ -507,6 +515,7 @@
     "arbiter": "ring",
     "version": 2,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -558,6 +567,7 @@
     "arbiter": "ring",
     "version": 2,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -609,6 +619,7 @@
     "arbiter": "ring",
     "version": 2,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -660,6 +671,7 @@
     "arbiter": "state_machine",
     "version": 2,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -711,6 +723,7 @@
     "arbiter": "vote",
     "version": 2,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -762,6 +775,7 @@
     "arbiter": "accumulator",
     "version": 2,
     "tip": "v1",
+    "target_kind": "tent",
     "modules": [
      "home",
      "landing"
@@ -809,6 +823,7 @@
     "arbiter": "sum",
     "version": 2,
     "tip": null,
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -863,6 +878,7 @@
      "bearing_sd_deg": 30.0,
      "dist_sd": 0.3
     },
+    "target_kind": "tent",
     "modules": [
      "heading",
      "home",
@@ -908,14 +924,136 @@
     ],
     "eye_values_differing_frac": null,
     "pass": true
+   },
+   {
+    "seed": 112,
+    "arbiter": "ring",
+    "version": 2,
+    "tip": "v1",
+    "target_kind": "tent",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter",
+     "adaptive_search"
+    ],
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     0.0006231441074449003,
+     0.0006231441074451133
+    ],
+    "size_est_m_py_js": [
+     3.1219838408306786,
+     3.121983840830679
+    ],
+    "search_alt_m_py_js": [
+     2.7285776074696417,
+     2.7285776074696417
+    ],
+    "frames": 672,
+    "frames_py": 672,
+    "frames_js": 672,
+    "max_pos_err_first_20s_m": 5.061625614051098e-14,
+    "max_pos_err_all_m": 5.061625614051098e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     67.16,
+     67.16
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
+   },
+   {
+    "seed": 113,
+    "arbiter": "ring",
+    "version": 2,
+    "tip": "v1",
+    "target_kind": "backpack",
+    "modules": [
+     "heading",
+     "home",
+     "landing",
+     "front",
+     "inspect",
+     "gated_arbiter",
+     "adaptive_search"
+    ],
+    "heading_estimator": null,
+    "python_batch": "single",
+    "landing_error_m_py_js": [
+     0.0010107005834138576,
+     0.0010107005834154147
+    ],
+    "size_est_m_py_js": [
+     1.0141346383564316,
+     1.0141346383564316
+    ],
+    "search_alt_m_py_js": [
+     2.4227180132075827,
+     2.4227180132075827
+    ],
+    "frames": 589,
+    "frames_py": 589,
+    "frames_js": 589,
+    "max_pos_err_first_20s_m": 8.293893593196879e-14,
+    "max_pos_err_all_m": 8.293893593196879e-14,
+    "first_divergence_1cm_s": null,
+    "phase_agreement": 1.0,
+    "outcome_flags_py_js": {
+     "success_target": [
+      true,
+      true
+     ],
+     "success_home": [
+      true,
+      true
+     ],
+     "wrong_object_stop": [
+      false,
+      false
+     ],
+     "landed_on_pad": [
+      true,
+      true
+     ]
+    },
+    "time_s_py_js": [
+     58.86,
+     58.86
+    ],
+    "eye_values_differing_frac": null,
+    "pass": true
    }
   ]
  },
- "js_seconds": 17.179579973220825,
- "wall_seconds": 240.37842893600464,
- "git": "9c7b912",
+ "js_seconds": 19.34548830986023,
+ "wall_seconds": 168.39856696128845,
+ "git": "a6f477b-dirty",
  "sim_version": "0.1.0",
- "created": "2026-10-13T16:45:38",
+ "created": "2026-10-13T21:07:44",
  "python": "3.12.12",
  "numpy": "2.5.4",
  "code_sha256": {
@@ -930,14 +1068,15 @@
   "scripts/brain/mb_front.py": "592f2f2895e965749aaad13283e2f5c07a4ed6f21787e47046d4071749f72aa6",
   "scripts/brain/mind.py": "09aba0091ab2f431863e5c629855324bedfc862d40ece98550b124c82f5b968b",
   "scripts/brain/pi.py": "0c6fcedf8b5f760150cf6f8d6d63db8098c867c11494ddecf687ade895aef445",
+  "scripts/brain/search.py": "a2344e89637058302fcaa4b613e118ae6feff43a1e0fb957baef879366abfa33",
   "scripts/brain/state_machine.py": "b60c770a54b152f5df05ca96ff7880bf69bf1b27f8556b95bf6007d07f0b5af6",
   "scripts/dryden.py": "cc577521940146fd791e45606f0773fc0b67a97679209dfd394cac3d75cbe4c8",
-  "scripts/mission.py": "092077b67a7e034c95c9648e46f434605e031593147129d7ba509dfe032e0f33",
-  "scripts/parity_brain.py": "8e438d6f883bea4300e9827809d5712a62f57fc9ab28a28f737872e9cca250c6",
+  "scripts/mission.py": "fbbb0f6d2fc0df4ba9c0040a9a50773879a9712e6fdcd8f31b97d91bc5625185",
+  "scripts/parity_brain.py": "ac3665b1f71a4134496decf22eff955e2b00b510f7a9ade4f899e7371ca93014",
   "scripts/provenance.py": "fcc5a30df4c62e294473eb3307ba3d77284dcb63a657fe047b35f2bd8aea86d0",
   "scripts/quad.py": "78dafc0ca45bcb7d82c3e7d9d04b3269cbea7e8d4b82bc5e1e1a2520b22a4703",
   "scripts/rng.py": "532bb3605248c236de450ef4e1d44e984448b9aaec281db3c6faec52aab84001",
-  "scripts/scenario.py": "20ad1b26c98d9e585926792b7b7bd9976138fea2fb7e6d7f8d75041bcefdd194",
+  "scripts/scenario.py": "a5d092509a734483861c9ff6fc21f229438f62a450a15449c784aa4dfdd1eefc",
   "scripts/world.py": "6943d19790bd9c53d7b4b4b1f1edee3ee9f4d181645dde4e4b9020386a270448"
  },
  "seed": "fixed set (see results)",

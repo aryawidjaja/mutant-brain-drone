@@ -30,6 +30,11 @@ in this order, each followed by `reduce <stage>`):
           v2_ring_no_tip      sensitivity: no operator tip (brain.tip = null; spiral search from home, 12 m pitch)
           v2_ring_poor_tip    sensitivity: poor tip (bearing sd 30 deg, distance sd 0.3)
                                                                        -> results/mission_v2.json
+  explore_size  POST-STUDY, EXPLORATORY (not pre-registered): the post-study module adaptive_search (scripts/brain/search.py)
+        on new seeds 3000-3199 (split "explore", never used before), v2 ring with the frozen results/tuned_v2_params.json,
+        Study 2 default modules with / without adaptive_search, target tent / backpack (the swapped decoy has the target's
+        kind), conditions none, gust moderate, decoy 0.8, false sun 90 deg; 64 units of 50 missions
+                                                                       -> results/explore_size.json
 H9 criteria (pre-registered, PLAN_V2; operational definitions fixed here before any test data):
   (i)   no-fault full success of v2_ring >= 0.90 (point estimate over 300 seeds; Wilson 95 % CI reported)
   (ii)  aggregate AUC(v2_ring) - AUC(v1) >= 0.15 (point estimate; paired bootstrap 95 % CI reported); secondary: the v1
@@ -42,6 +47,7 @@ H9 criteria (pre-registered, PLAN_V2; operational definitions fixed here before 
   (landed_on_pad rate, landing error, touchdown speed) v2_ring vs v2_ring_minus_home per fault.
 Usage:  run_v2.py run <stage> --shard i --nshards n [--procs p]  |  run_v2.py reduce <stage>  |  run_v2.py count <stage>
         run_v2.py --selfcheck  |  run_v2.py --v1check  |  run_v2.py calib  |  run_v2.py decide_inspect  |  run_v2.py pilot
+        run_v2.py smoke_explore   (<= 2 min: 2 train seeds x tent/backpack x adaptive off/on, no fault, 90 s; reducer check)
 """
 import argparse, json, math, os, sys, time
 from pathlib import Path
@@ -52,7 +58,7 @@ import pandas as pd
 sys.path[:0] = [str(Path(__file__).resolve().parent), str(Path(__file__).resolve().parent / "brain")]
 from mission import Mission, run_batch, T_HLF  # noqa: E402
 from provenance import stamp  # noqa: E402
-from scenario import MODULES, sample_scenario  # noqa: E402
+from scenario import MODULES, EXPLORE_SEEDS, sample_scenario  # noqa: E402
 from run_3d import FAULT_SEV, CONDS, CHUNK, scen, auc_table, param_value  # noqa: E402
 from kt2_five_arms import N_CONFIGS, SEARCH_SEED  # noqa: E402
 from stats import arm_permutation_test, boot_idx, holm, paired_bootstrap, paired_diff  # noqa: E402
@@ -88,7 +94,7 @@ def configs(arm):
     return [arbiters_v2.sample_params(name, u) for u in U]
 
 
-def scen2(arm, params, seed, split, fault, sev, modules=None, est="ring", lf=10.0, version=2, tip="v1"):
+def scen2(arm, params, seed, split, fault, sev, modules=None, est="ring", lf=10.0, version=2, tip="v1", kind="tent"):
     """One v2 scenario (v1 brain when version = 1). ring_gain travels in brain.ring_gain as in the 3D study."""
     if version == 1:
         return scen(arm, params, seed, split, fault, sev)
@@ -100,7 +106,7 @@ def scen2(arm, params, seed, split, fault, sev, modules=None, est="ring", lf=10.
         p = {k: v for k, v in p.items() if k in V1[arm].DEFAULTS}
     mp = {"heading": heading_params(est)} | ({"heading_estimator": est} if est != "ring" else {}) if "heading" in mods else {}
     s = sample_scenario(seed, split=split, fault=fault, severity=sev, arbiter=arm, ring_gain=g, params=p,
-                        learning_flight_s=lf, version=2, modules=mods, module_params=mp or None, **WORLD)
+                        learning_flight_s=lf, version=2, modules=mods, module_params=mp or None, target_kind=kind, **WORLD)
     if tip != "v1":                          # operator tip: None = no tip, {bearing_sd_deg, dist_sd} = its quality
         s["brain"]["tip"] = tip
     s["_meta"]["split"] = split
@@ -127,6 +133,22 @@ def test_arms():
 
 
 ALTS = (2.5, 3.5)
+EXPLORE_CONDS = [("none", None), ("gust", 0.5), ("decoy", 2 / 3), ("false_sun", 2 / 3)]   # gust moderate, decoy 0.8, sun 90 deg
+EXPLORE_CHUNK = 50
+
+
+def explore_units(seeds=EXPLORE_SEEDS, split="explore", conds=EXPLORE_CONDS, chunk=EXPLORE_CHUNK):
+    """explore_size: target kind x adaptive_search off/on x condition x seed chunk (labels <kind>_<off|on>__k<c>__s<i>)."""
+    ring = json.loads((ROOT / "results/tuned_v2_params.json").read_text())["arms"]["ring"]["params"]
+    dm, out = default_modules(), []
+    for kind in ("tent", "backpack"):
+        for ad in ("off", "on"):
+            mods = dm + (["adaptive_search"] if ad == "on" else [])
+            for ci, (f, v) in enumerate(conds):
+                for k in range(0, len(seeds), chunk):
+                    out.append((f"{kind}_{ad}__k{ci}__s{k:03d}", [scen2("ring", ring, s, split, f, v, modules=mods, kind=kind)
+                                                                  for s in list(seeds)[k:k + chunk]]))
+    return out
 ALT_SEEDS = range(100, 120)
 
 
@@ -152,6 +174,8 @@ def units(stage):
                 for k in range(0, len(R2_SEEDS), 10):
                     seeds = list(R2_SEEDS)[k:k + 10]
                     out.append((f"{arm}__c{i:02d}__s{k:02d}", [scen2(arm, cf[i], s, "train", f, v) for s in seeds for f, v in CONDS]))
+    elif stage == "explore_size":
+        out = explore_units()
     elif stage == "test":
         for label, kw in test_arms().items():
             kw = dict(kw)
@@ -235,6 +259,12 @@ def reduce(stage):
         (ROOT / "results/v2_sanity.json").write_text(json.dumps(out, indent=1, default=float))
         print(df.sort_values("seed")[cols].to_string(), "\nfull success", out["full_success"])
         return
+    if stage == "explore_size":
+        res = reduce_explore(df) | {"provenance": st | {"tuned_params": "results/tuned_v2_params.json"}}
+        (ROOT / "results/explore_size.json").write_text(json.dumps(res, indent=1, default=float))
+        for kind, d in res["paired_on_minus_off"].items():
+            print(kind, {f: round(x["success_full"]["est"], 3) for f, x in d.items()})
+        return
     if stage in ("r1", "r2"):
         df["cfg"] = df.unit.str.split("__").str[1].str[1:].astype(int)
         scores = {arm: {int(c): float(auc_table(full(g)).mean(1).mean()) for c, g in df[df.label == arm].groupby("cfg")} for arm in ARMS}
@@ -309,6 +339,65 @@ def reduce(stage):
     (ROOT / "results/mission_v2.json").write_text(json.dumps(res, indent=1, default=float))
     df.drop(columns=["unit"]).to_parquet(ROOT / "results/runs/mission_v2_test.parquet")
     print("H9:", res["H9"], "| (i)", crit_i, "| (ii)", crit_ii["diff"], "| (iii)", {f: m["success"] for f, m in mid.items()})
+
+
+def reduce_explore(df):
+    """explore_size rows -> rates per (kind, adaptive, condition) with Wilson 95 % CIs, medians, and paired (same seed)
+    on - off differences per kind and condition and pooled over conditions (paired bootstrap 95 % CIs)."""
+    df = df.assign(kind=df.label.str.split("_").str[0], adaptive=df.label.str.split("_").str[1],
+                   cond=df.fault, ok=df.success_full.astype(float))
+    cell = {}
+    for (kind, ad, cond), g in df.groupby(["kind", "adaptive", "cond"]):
+        n, k = len(g), int(g.success_full.sum())
+        landed = g[g.landed_on_pad.astype(bool)]
+        cell.setdefault(kind, {}).setdefault(ad, {})[cond] = {
+            "n": n, "success_full": k / n, "wilson95": wilson(k, n), "success_target": float(g.success_target.mean()),
+            "wrong_object_stop": float(g.wrong_object_stop.mean()), "collision_rate": float((g.collisions > 0).mean()),
+            "landing_error_median_m": float(landed.landing_error_m.median()) if len(landed) else None,
+            "time_median_s": float(g.time_s.median()), "time_median_success_s": float(g[g.success_full.astype(bool)].time_s.median()) if k else None,
+            **({"size_est_median_m": float(g.size_est_m.median()), "search_alt_median_m": float(g.search_alt_m.median())}
+               if ad == "on" and "size_est_m" in g else {})}
+    pair = {}
+    for kind in sorted(df.kind.unique()):
+        both = []
+        for cond in [c for c, _ in EXPLORE_CONDS if c in set(df.cond)]:
+            a = df[(df.kind == kind) & (df.adaptive == "on") & (df.cond == cond)].set_index("seed").sort_index()
+            b = df[(df.kind == kind) & (df.adaptive == "off") & (df.cond == cond)].set_index("seed").sort_index()
+            assert a.index.equals(b.index), (kind, cond)
+            both.append((a, b))
+            pair.setdefault(kind, {})[cond] = {m: paired_diff(a[m].to_numpy(float), b[m].to_numpy(float))
+                                               for m in ("success_full", "success_target", "wrong_object_stop", "time_s")} | {"n": len(a)}
+        a, b = pd.concat([x for x, _ in both]), pd.concat([y for _, y in both])
+        pair[kind]["pooled"] = {"success_full": paired_diff(a.success_full.to_numpy(float), b.success_full.to_numpy(float)), "n": len(a)}
+    return {"label": "EXPLORATORY, post-study, NOT pre-registered: module adaptive_search (scripts/brain/search.py)",
+            "seeds": f"explore {min(df.seed)}-{max(df.seed)}", "n_seeds": int(df.seed.nunique()), "world": WORLD,
+            "arm": "v2 ring, frozen tuned_v2_params, Study 2 default modules +/- adaptive_search",
+            "conditions": {c: v for c, v in EXPLORE_CONDS}, "success": "success_full (target stop, landed on the pad <= 0.5 m, no collision)",
+            "cells": cell, "paired_on_minus_off": pair}
+
+
+def smoke_explore():
+    """<= 2-min check of the explore_size wiring on TRAIN seeds (never the explore seeds): 2 seeds x tent/backpack x
+    adaptive off/on, no fault, 90 s; reducer on these rows (nothing written to results/)."""
+    t0 = time.time()
+    us = explore_units(seeds=range(100, 102), split="train", conds=[("none", None)], chunk=2)
+    assert [u for u, _ in us] == ["tent_off__k0__s000", "tent_on__k0__s000", "backpack_off__k0__s000", "backpack_on__k0__s000"]
+    dfs = []
+    for uid, scs in us:
+        for x in scs:
+            x["mission"]["max_time_s"] = 90.0
+        dfs.append(run_batch(scs).assign(unit=uid, label=uid.split("__")[0]))
+    df = pd.concat(dfs, ignore_index=True)
+    res = reduce_explore(df)
+    on = df[df.label.str.endswith("_on")]
+    assert (df[df.label.str.startswith("backpack")].modules.str.contains("adaptive_search") == df[df.label.str.startswith("backpack")].label.str.endswith("_on")).all()
+    assert on.search_alt_m.notna().all() and df[df.label.str.endswith("_off")].search_alt_m.isna().all()
+    assert set(res["paired_on_minus_off"]) == {"tent", "backpack"} and res["cells"]["backpack"]["on"]["none"]["n"] == 2
+    cols = ["label", "seed", "success_target", "success_full", "wrong_object_stop", "time_s", "size_est_m", "search_alt_m", "collisions"]
+    print(df[cols].to_string())
+    print(f"smoke_explore OK ({time.time() - t0:.0f} s); explore_size: {len(units('explore_size'))} units, "
+          f"{sum(len(x) for _, x in units('explore_size'))} missions")
+    return df, res
 
 
 def v1check(n_print=True):
@@ -543,6 +632,8 @@ if __name__ == "__main__":
         demo(int(sys.argv[sys.argv.index("demo") + 1])); sys.exit(0)
     if "pilot" in sys.argv:
         pilot(); sys.exit(0)
+    if "smoke_explore" in sys.argv:
+        smoke_explore(); sys.exit(0)
     if "decide_inspect" in sys.argv:
         decide_inspect(); sys.exit(0)
     if "calib" in sys.argv:

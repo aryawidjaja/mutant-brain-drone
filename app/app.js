@@ -88,12 +88,14 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Brain', 'mfront', 'Insect front end', 'chk', true, 0, 0, 0, 'v2: colour-opponent, oriented front end for the memory', null, 'ver=2'],
   ['Brain', 'minsp', 'Inspection rule', 'chk', true, 0, 0, 0, 'v2: look from two sides before stopping', null, 'ver=2'],
   ['Brain', 'mgate', 'Evidence-gated ring', 'chk', true, 0, 0, 0, 'v2: arbiters only listen to objects they can see', null, 'ver=2'],
+  ['Brain', 'madapt', 'Adaptive search (post-study)', 'chk', true, 0, 0, 0, 'Post-study: search height, spacing and recognition matched to the target size measured on the learning flight', null, 'ver=2'],
   ['Brain', 'tip', 'Operator tip', 'sel', 'default', ['default', 'poor', 'none'], 0, 0, 'How good the rough direction given to the drone is', null, 'ver=2'],
   ['Brain', 'yaw', 'Yaw surrogate', 'chk', false, 0, 0, 0, 'Exploratory, live view only: adds a yaw-rate damping term from a transfer function fitted to the Shiu-model fly yaw circuit. Off in every reported run.'],
 ];
 const OPTNAME = { ver: { 1: 'Study 1 brain', 2: 'Study 2 brain (default)' }, hd: { hring: 'Heading ring', kf: 'Kalman filter', cf: 'Complementary filter', v1c: 'v1 sun compass' },
   tip: { default: 'Default', poor: 'Poor', none: 'None (search from scratch)' } };
-const MODK = [['mhome', 'home'], ['mland', 'landing'], ['mfront', 'front'], ['minsp', 'inspect'], ['mgate', 'gated_arbiter']];
+const MODK = [['mhome', 'home'], ['mland', 'landing'], ['mfront', 'front'], ['minsp', 'inspect'], ['mgate', 'gated_arbiter'], ['madapt', 'adaptive_search']];
+const POST_STUDY = ['adaptive_search']; // optional modules outside the Study 2 default list (absent modules = Study 2 brain)
 const HDEST = { hring: 'ring', kf: 'kf', cf: 'cf' };
 const TIP_POOR = { bearing_sd_deg: 30, dist_sd: 0.3 }; // this app's "poor" tip (the default is 8 deg, 10 %)
 // which v2 scenario fields app/sim/scenario.js accepts (read from its schema; refreshed while the page is open)
@@ -181,7 +183,7 @@ function fromScenario(sc) { // inverse of scenario(), for #s= links
   const br = sc.brain || {};
   K.ver = br.version === 2 ? '2' : '1';
   if (br.version === 2) {
-    const ms = br.modules || ['heading', ...MODK.map(([, m]) => m)];
+    const ms = br.modules || ['heading', ...MODK.map(([, m]) => m).filter((m) => !POST_STUDY.includes(m))];
     MODK.forEach(([k, m]) => { K[k] = ms.includes(m); });
     K.hd = !ms.includes('heading') ? 'v1c' : ({ ring: 'hring', kf: 'kf', cf: 'cf' }[(br.module_params || {}).heading_estimator || 'ring'] || 'hring');
     K.tip = !('tip' in br) ? 'default' : br.tip === null ? 'none' : 'poor';
@@ -719,6 +721,7 @@ const HELP = {
   mfront: 'v2 insect front end: colour-opponent and orientation-sensitive pre-processing (like early insect vision) before the memory, instead of plain grey pixels. ' + STUDY,
   minsp: 'v2 inspection rule: before stopping at an object, look at it from two directions at least 20° apart, to catch look-alikes. ' + STUDY,
   mgate: 'v2 evidence gate: the hub only listens to objects that are currently visible, so it lets go of a look-alike faster. ' + STUDY,
+  madapt: 'Adaptive search: on its learning flight the drone measures how big the target is (from its distance and the target\'s size in the eye). It then picks its search height (lower for small objects, 1–3.5 m) and the spacing of its search spiral, sizes the part of the view its memory looks at to the object, and sets its own match threshold from a few look-back views. When it glimpses a possible match it dips down to look closer and climbs back if the match fades. Off = the Study 2 brain exactly. Exploratory: a post-study addition, not part of the paper\'s results.',
   tip: 'The rough vector to the reported spot that the operator gives the drone before take-off. Default = bearing error about 8° and distance error 10 % (1 SD), as in the study; poor = 30° and 30 % (a choice of this app); none = no tip, the drone spirals out from home. ' + STUDY,
   yaw: 'Adds a small yaw-damping term from a transfer function fitted to the author\'s earlier fly yaw-circuit model. ' + EXPL,
   'p:eye': 'Eye and memory. Left: the low-resolution 360° picture the drone\'s memory sees (ahead in the middle). Right: the target picture it was shown. Below: familiarity, how strongly the current view matches the memory (0 to 1; the brain treats about 0.6 and above as a match), and a second line: for the state machine, its commitment to one object; for the ring and the other arbiters, the peak of the steering hub, which is high whenever any drive (search, object or home) is pulling, so it stays near 1 for most of a flight and is not a commitment to the target. Brain state, recomputed live.',

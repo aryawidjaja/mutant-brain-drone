@@ -13,6 +13,9 @@
 // v2 altitude: search and return at ALT_SEARCH; within INSPECT_NEAR m of a candidate (visible, strength > 0.3, while
 // seeking) the set-point drops to max(ALT_INSPECT_MIN, object height); after the stop it climbs back; the final descent
 // is the landing module's. brain.tip: absent = v1 instruction; {bearing_sd_deg, dist_sd}; null = no tip (spiral from home).
+// adaptive_search (post-study, optional, brain/search.js; off = Study 2 bit for bit): search altitude and spiral pitch from
+// the learning flight's size estimate, size-scaled attention window, self-calibrated evidence window, inspection dips.
+// frame.hud then also carries search_alt_m, size_est_m and inspecting; finish() size_est_m and search_alt_m.
 import { Rng } from './rng.js';
 import { load, MODULES } from './scenario.js';
 import { buildWorld } from './world.js';
@@ -30,6 +33,7 @@ import { features as mbFeatures, CFG as FRONT_CFG, inspectOk } from './brain/mb_
 import { CLASSES as HEADING } from './brain/heading.js';
 import { make as makeV2 } from './brain/arbiters_v2.js';
 import { GAINS } from './vehicle_params.js';
+import * as search from './brain/search.js';
 
 export const DT_B = 0.02, SUB = 10, EYE_EVERY = 5, K_MAX = 4;
 export const ALT = 2.5, V_CRUISE = 2.0, V_NEAR = 1.0, T_TAKEOFF = 2.0, TURN_MAX = 120 * Math.PI / 180;
@@ -96,7 +100,7 @@ export function createMission(scenario, opts = {}) {
   const ang = Math.atan2(rel[1], rel[0]) + bsd * nb;
   const dist = Math.hypot(rel[0], rel[1]) * (1 + dsd * nd);
   const goal = tip === null ? [0.0, 0.0] : [dist * Math.cos(ang), dist * Math.sin(ang)];
-  const spb = tip === null ? SPIRAL_B_NOTIP : SPIRAL_B;
+  let spb = tip === null ? SPIRAL_B_NOTIP : SPIRAL_B;
   const yaw0 = 2 * Math.PI * u0 - Math.PI;
   const quad = new Quad(QP, [home[0] * 1, home[1] * 1, home[2] * 0], yaw0);
   const ctrl = new Controller();
@@ -109,10 +113,22 @@ export function createMission(scenario, opts = {}) {
   const mods = new Set(v2 ? (sc.brain.modules ?? MODULES) : []);
   const mp = sc.brain.module_params ?? {};
   const useFront = mods.has('front'), hdOn = mods.has('heading');
-  const lookOpts = useFront ? { halfM: FRONT_CFG.half_m, rgb: true } : {};
+  const padOpts = useFront ? { halfM: FRONT_CFG.half_m, rgb: true } : {};
+  // adaptive_search: size estimate from the learning flight (prior without one) -> geometry and attention window
+  const ad = mods.has('adaptive_search'), tk = S.role.indexOf(1);
+  const ads = { D: search.D_PRIOR, H: search.H_PRIOR, h: 0, rDip: 0, view: [0, 0, 0, 0], inspecting: false };
+  if (ad) {
+    const T = S.obj[tk], P = eye.learningPoses(S, sc.brain.learning_flight_s);
+    const dh = (p) => { const dx = p[0] - T[0], dy = p[1] - T[1]; return Math.sqrt(dx * dx + dy * dy); };
+    ads.view = [dh(P[0]), P[0][2], dh(P[P.length - 1]), P[P.length - 1][2]];
+    if (P.length > 1) Object.assign(ads, search.sizeEstimate(P, T[0], T[1], T[6], eye.objDiag(T)));
+    const g = search.geometry(ads.D, ads.H, spb, ALT_SEARCH);
+    ads.h = g.h; ads.rDip = g.rDip; spb = g.p;
+  }
+  const lookOpts = ad && useFront ? { halfM: search.halfM(ads.D), rgb: true } : padOpts;
   const LH2 = eye.LH * eye.SS, LW2 = eye.LW * eye.SS, G2 = FRONT_CFG.grid * FRONT_CFG.grid;
   const LOOK_N = useFront ? LH2 * LW2 * 3 : eye.LH * eye.LW;
-  const f0 = useFront ? F0_FRONT : F0, f1 = useFront ? F1_FRONT : F1;
+  let f0 = useFront ? F0_FRONT : F0, f1 = useFront ? F1_FRONT : F1;
   /** look -> MB input ranks (grey ranks, or the front end's integer per-channel ranks round(36 x)). */
   const code = (g) => {
     if (!useFront) return ranks(g);
@@ -127,6 +143,16 @@ export function createMission(scenario, opts = {}) {
   };
   const mb = useFront ? freshMB(8 * G2) : freshMB();
   for (const g of eye.learningLooks(S, sc.brain.learning_flight_s, lookOpts)) mb.learn(code(g));
+  if (ad) {   // evidence window from unstored look-back views of the target (Rng stream 22 pixel noise)
+    const rCal = new Rng(sc.seed, 22), T = S.obj[tk], fam = [];
+    for (const p of search.calPoses(T[0], T[1], ads.D, ads.h)) {
+      const [gl] = eye.look(S, tk, p, 1e9, lookOpts), noise = eye.normals(rCal, LOOK_N);
+      const g = new Float64Array(gl.length);
+      for (let i = 0; i < g.length; i++) g[i] = gl[i] + eye.NOISE * noise[i];
+      fam.push(mb.familiarity(code(g)));
+    }
+    ({ f0, f1 } = search.evidenceWindow(fam));
+  }
   const params = { ...sc.brain.params };
   if (sc.brain.arbiter === 'ring') params.ring_gain = sc.brain.ring_gain;
   const arb = mods.has('gated_arbiter') ? makeV2(V2_ARB[sc.brain.arbiter], params) : make(sc.brain.arbiter, params);
@@ -148,7 +174,6 @@ export function createMission(scenario, opts = {}) {
   const occDur = fault.occlusion ? (fault.occlusion.params.duration_s ?? 5.0) : 0.0;
   const isT = S.role.map((r) => r === 1), isD = S.role.map((r) => r === 0);
   const hasDec = isD.some((x) => x);
-  const tk = isT.indexOf(true);
   const Tmax = sc.mission.max_time_s;
 
   const st = {
@@ -230,7 +255,7 @@ export function createMission(scenario, opts = {}) {
     const pv = pz.vis[0] && (lf || hom);
     const noise = eye.normals(rPad, LOOK_N);
     const g = new Float64Array(LOOK_N);
-    if (pv) { const [gl] = eye.look(PS, 0, pos, t, lookOpts); for (let i = 0; i < LOOK_N; i++) g[i] = gl[i] + eye.NOISE * noise[i]; }
+    if (pv) { const [gl] = eye.look(PS, 0, pos, t, padOpts); for (let i = 0; i < LOOK_N; i++) g[i] = gl[i] + eye.NOISE * noise[i]; }
     w2.padVis = pv;
     if (pv && lf) hm.learn(g);
     const r = hm.steer([g, ...objG], [pv && hom, ...st.vis.map((x) => x && hom)],
@@ -280,6 +305,14 @@ export function createMission(scenario, opts = {}) {
       if (c && (kc < 0 || st.rh[k] < st.rh[kc])) kc = k;
     }
     alt = live ? (kc >= 0 ? Math.max(ALT_INSPECT_MIN, S.obj[kc][6]) : ALT_SEARCH) : 0.0;
+    if (ad) {   // adaptive search altitude and inspection dips (hysteresis DIP_ON / DIP_OFF)
+      const seek = st.phase === 1 || st.phase === 2, thr = ads.inspecting ? search.DIP_OFF : search.DIP_ON;
+      let r = Infinity;
+      for (let k = 0; k < K; k++) if (st.vis[k] && st.ev[k] >= thr && st.rh[k] < ads.rDip && seek) r = Math.min(r, st.rh[k]);
+      ads.inspecting = r < Infinity;
+      const dip = Math.min(Math.max(search.viewAlt(r, ...ads.view), Math.max(search.ALT_MIN, ads.H)), ads.h);
+      alt = live ? (ads.inspecting ? dip : seek ? ads.h : ALT_SEARCH) : 0.0;
+    }
     const rot = yaw - st.headingEst, c = Math.cos(rot), s = Math.sin(rot);
     const toAir = (q) => [c * q[0] - s * q[1], s * q[0] + c * q[1]];
     if (mods.has('home') && st.phase === 0) {
@@ -323,7 +356,8 @@ export function createMission(scenario, opts = {}) {
       t_hold_occlusion_s: occDur > 0 ? num(tHold) : null, t_release_decoy_s: hasDec ? num(tRel) : null,
       landing_error_m: num(st.landErr), landed_on_pad: st.landed && st.landErr <= PAD_R,
       touchdown_speed_mps: v2 ? num(w2.touchSpeed) : null,
-      success_full: st.out.success_target && st.landed && st.landErr <= PAD_R && st.collisions === 0 };
+      success_full: st.out.success_target && st.landed && st.landErr <= PAD_R && st.collisions === 0,
+      ...(ad ? { size_est_m: ads.D, search_alt_m: ads.h } : {}) };
   }
 
   function step() {
@@ -423,7 +457,7 @@ export function createMission(scenario, opts = {}) {
       omega: Float64Array.from(quad.omega), motor: Float64Array.from(quad.motor), euler: quad.euler(), wind: st.wind.slice(),
       hv, res, obs, dead, sunOn, phase: st.phase, vis: st.vis.slice(), strength: st.strength.slice(), rh: st.rh.slice(),
       fam: st.fam.slice(), headingEst: st.headingEst, yawOff: st.yawOff, loom: st.loom,
-      altSp: sp.alt, energy: st.energy, hdConf: hd ? hd.conf : null,
+      altSp: sp.alt, energy: st.energy, hdConf: hd ? hd.conf : null, inspecting: ads.inspecting,
       home2: v2 ? { stage: w2.hstage, pad_visible: w2.padVis, familiarity: w2.homeFam, locked: hm.locked, seen: w2.seen,
         searching: w2.searching, approach: w2.ap.slice(), views: hm.nViews, touchdown: w2.touch } : null };
     const dt = DT_B / SUB;
@@ -500,7 +534,8 @@ export function createMission(scenario, opts = {}) {
         home_dist_est_m: v2 ? Math.hypot(z.home2.approach[0], z.home2.approach[1]) : Math.hypot(z.hv[0], z.hv[1]),
         home_dist_true_m: Math.hypot(homeTrue[0], homeTrue[1]), energy_so_far: z.energy, phase: PHASES[z.phase],
         version: v2 ? 2 : 1, heading_conf: z.hdConf, home_familiarity: mods.has('home') ? z.home2.familiarity : null,
-        landing_stage: mods.has('landing') ? (z.home2.touchdown ? 'touchdown' : ['cruise', 'final', 'descent'][z.home2.stage]) : null },
+        landing_stage: mods.has('landing') ? (z.home2.touchdown ? 'touchdown' : ['cruise', 'final', 'descent'][z.home2.stage]) : null,
+        ...(ad ? { search_alt_m: ads.h, size_est_m: ads.D, inspecting: z.inspecting } : {}) },
     };
   }
 

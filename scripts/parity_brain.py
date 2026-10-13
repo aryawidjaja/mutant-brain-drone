@@ -12,7 +12,9 @@ trajectory with a stated tolerance (closed loops amplify floating-point order di
   missions (Python batch vs JS batch 1)  position <= 0.01 m for the first 20 s; same success/stop flags
     v1: all six arbiters closed loop; v2 (brain.version 2, all six modules, RingGated and visibility-gated rivals,
     HeadingRing and KalmanHeading): same rule, run to 90 s so the take-off learning flight, the pad lock and the
-    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too
+    touchdown are inside the compared window; landing flags (landed_on_pad) must agree too; post-study adaptive_search
+    (Study 2 modules + adaptive_search, frozen v2 ring): a tent and a backpack mission, same rule, size estimate and
+    search altitude equal to 1e-9
   eye RGB crops (v2 front end input) .... max |diff| <= 1e-9
 Run: uv run python scripts/parity_brain.py
 """
@@ -23,7 +25,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [HERE, os.path.join(HERE, "brain")]
 from provenance import stamp  # noqa: E402
-from scenario import sample_scenario, scenario_hash, strip, load  # noqa: E402
+from scenario import sample_scenario, scenario_hash, strip, load, MODULES, OPTIONAL_MODULES  # noqa: E402
 from world import build_world  # noqa: E402
 import eye  # noqa: E402
 import mission as M  # noqa: E402
@@ -200,6 +202,11 @@ def main():
                                  module_params={"heading": hp["ring"]["params"]}, **v2kw)]
     v2_others[3]["brain"]["tip"] = None                                  # no operator tip: spiral from home
     v2_others[4]["brain"]["tip"] = {"bearing_sd_deg": 30.0, "dist_sd": 0.3}
+    t2 = json.load(open(os.path.join(ROOT, "results", "tuned_v2_params.json")))["arms"]["ring"]["params"]
+    v2_others += [sample_scenario(s, fault=f, severity=v, arbiter="ring", ring_gain=t2["ring_gain"],
+                                  params={k: x for k, x in t2.items() if k != "ring_gain"}, modules=MODULES + OPTIONAL_MODULES,
+                                  module_params={"heading": hp["ring"]["params"]}, target_kind=k, **v2kw)
+                  for s, f, v, k in [(112, "none", None, "tent"), (113, "decoy", 2 / 3, "backpack")]]
     TM, TM2 = 60.0, 90.0
     v1_all = ring_batch + others
     spec["missions"] = [{"scenario": strip(s), "T": TM if i < len(v1_all) else TM2, "eye": i in (0, len(v1_all))}
@@ -272,15 +279,19 @@ def main():
         e20 = float(err[tt <= 20.0].max())
         flags = {k: (po[k], jm["outcome"][k]) for k in ("success_target", "success_home", "wrong_object_stop", "landed_on_pad")}
         same_flags = all(a == b for a, b in flags.values())
+        if "size_est_m" in po:                                           # adaptive_search: size estimate and altitude
+            same_flags &= all(abs(po[k] - jm["outcome"][k]) <= 1e-9 for k in ("size_est_m", "search_alt_m"))
         eye_d = None
         if spec["missions"][i]["eye"]:
             eye_d = float(np.mean([np.mean(np.asarray(a["eye"]["rgb"]) != np.asarray(b["eye"])) for a, b in zip(pf[:nf], jf[:nf])]))
         b_ = spec["missions"][i]["scenario"]["brain"]
         rec = {"seed": spec["missions"][i]["scenario"]["seed"], "arbiter": b_["arbiter"], "version": b_.get("version", 1),
-               "tip": b_.get("tip", "v1"),
+               "tip": b_.get("tip", "v1"), "target_kind": spec["missions"][i]["scenario"]["target"]["kind"],
                "modules": b_.get("modules"), "heading_estimator": b_.get("module_params", {}).get("heading_estimator"),
                "python_batch": "ring x3" if i < 3 or len(v1_all) <= i < len(v1_all) + 3 else "single",
-               "landing_error_m_py_js": [po["landing_error_m"], jm["outcome"]["landing_error_m"]], "frames": nf, "frames_py": len(pf), "frames_js": len(jf),
+               "landing_error_m_py_js": [po["landing_error_m"], jm["outcome"]["landing_error_m"]],
+               **({"size_est_m_py_js": [po["size_est_m"], jm["outcome"]["size_est_m"]],
+                   "search_alt_m_py_js": [po["search_alt_m"], jm["outcome"]["search_alt_m"]]} if "size_est_m" in po else {}), "frames": nf, "frames_py": len(pf), "frames_js": len(jf),
                "max_pos_err_first_20s_m": e20, "max_pos_err_all_m": float(err.max()), "first_divergence_1cm_s": div,
                "phase_agreement": float(np.mean([a["phase"] == b["phase"] for a, b in zip(pf[:nf], jf[:nf])])),
                "outcome_flags_py_js": flags, "time_s_py_js": [po["time_s"], jm["outcome"]["time_s"]],

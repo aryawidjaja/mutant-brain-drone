@@ -60,6 +60,7 @@ from arbiters import make, drive_inputs, N_RING  # noqa: E402
 from home import HomeMemory, F_HOME, F_TRACK  # noqa: E402
 import mb_front  # noqa: E402
 import arbiters_v2  # noqa: E402
+import search  # noqa: E402
 from scenario import MODULES  # noqa: E402
 
 DT_B, SUB = 0.02, 10           # brain tick, physics sub-steps (500 Hz)
@@ -100,6 +101,9 @@ V2_DOC = """v2 brain (fixed before any v2 mission data; the paper's v2 section):
     module_params.heading_estimator = "kf" | "cf" for the comparison arms; params results/kt5_tuned_params.json); its
     estimate is the path integrator's compass input (scripts/kt5_heading.py wiring).
   * front / inspect / gated_arbiter: brain/mb_front.py, brain/arbiters_v2.py when present.
+  * adaptive_search (post-study, optional, not in the Study 2 default list): brain/search.py (size estimate from the
+    learning flight -> search altitude and spiral pitch, attention window and self-calibrated evidence window, inspection
+    dips). Off = Study 2 bit for bit.
   Run-record fields added (both versions): landing_error_m (horizontal distance from the pad centre at touchdown, or
   at the hover end without the landing module), landed_on_pad (<= PAD_R), touchdown_speed_mps (NaN without touchdown),
   success_full = success_target & landed_on_pad & no collision."""
@@ -232,6 +236,9 @@ class Mission:
         notip = np.array([t is None for t in tips])
         self.goal = np.where(notip[:, None], 0.0, self.goal)          # no tip: the spiral starts around home
         self.spb = np.where(notip, SPIRAL_B_NOTIP, SPIRAL_B)
+        self.ad = "adaptive_search" in self.mods
+        if self.ad:
+            self._init_adapt(br)
         yaw0 = 2 * np.pi * u0 - np.pi
         # vehicle
         self.quad = Quad(B, pos0=self.home * [1, 1, 0], yaw0=yaw0)
@@ -248,12 +255,14 @@ class Mission:
         for lf in sorted({s["brain"]["learning_flight_s"] for s in self.sc}):
             rows = np.array([i for i, s in enumerate(self.sc) if s["brain"]["learning_flight_s"] == lf])
             if self.front:
-                L = eye.learning_looks(self.S, lf, half_m=mb_front.CFG["half_m"], rgb=True)[rows]   # [b, V, H, W, 3]
+                L = eye.learning_looks(self.S, lf, half_m=self.half_m[:, None] if self.ad else mb_front.CFG["half_m"], rgb=True)[rows]
                 act = self.code(L.reshape(-1, *L.shape[2:])).reshape(len(rows), L.shape[1], N_KC)
             else:
                 L = eye.learning_looks(self.S, lf)[rows]                               # [b, V, 192]
                 act = kc_active(ranks(L.reshape(-1, L.shape[-1]))).reshape(len(rows), L.shape[1], N_KC)
             self.mbw[rows] &= ~act.any(1)
+        if self.ad:
+            self._calibrate()
         params = dict(br["params"])
         if br["arbiter"] == "ring":
             params["ring_gain"] = br["ring_gain"]
@@ -497,7 +506,7 @@ class Mission:
         fam = np.zeros((B, K))
         idx = np.argwhere(vis)
         if len(idx):
-            grey, _ = eye.looks(eye.sub_scene(S, idx[:, 0], idx[:, 1]), eye_pos[idx[:, 0]], t, **self.look_kw)
+            grey, _ = eye.looks(eye.sub_scene(S, idx[:, 0], idx[:, 1]), eye_pos[idx[:, 0]], t, **self._look_kw(idx[:, 0]))
             g = grey[:, 0] + eye.NOISE * noise[idx[:, 0], idx[:, 1]].reshape(grey[:, 0].shape)
             act = kc_active(ranks(g)) if not self.front else self.code(g)
             fam[idx[:, 0], idx[:, 1]] = 1.0 - (act & self.mbw[idx[:, 0]]).sum(-1) / act.sum(-1)
@@ -506,7 +515,8 @@ class Mission:
         self.fam = fam
         self.vis, self.rh = vis, rh
         self.bear_rel = wrap(bear - yaw[:, None])
-        self.strength = np.where(vis, np.clip((fam - self.f0) / (self.f1 - self.f0), 0.0, 1.0), 0.0)
+        f0, f1 = (self.f0[:, None], self.f1[:, None]) if self.ad else (self.f0, self.f1)
+        self.strength = np.where(vis, np.clip((fam - f0) / (f1 - f0), 0.0, 1.0), 0.0)
         self.hist = np.roll(self.hist, 1, -1)
         self.hist[..., 0] = self.strength
         self.ev = self.hist.mean(-1)
@@ -530,6 +540,45 @@ class Mission:
         self.yaw_off, self.speed_fac, self.loom = reflex(self.depth, vmeas, fn, dead)
 
     # ---------------------------------------------------------------- v2 brain modules
+    def _init_adapt(self, br):
+        """adaptive_search: size estimate from the learning flight (prior without one), search geometry, attention window."""
+        B, S = self.B, self.S
+        rows, tk = np.arange(B), np.argmax(S.role, 1)
+        T = S.obj[rows, tk]
+        self.size_d, self.size_h = np.full(B, search.D_PRIOR), np.full(B, search.H_PRIOR)
+        self.lf_view = np.zeros((B, 4))                     # first / last learning pose: horizontal range, altitude
+        for lf in sorted({s["brain"]["learning_flight_s"] for s in self.sc}):
+            r = np.array([i for i, s in enumerate(self.sc) if s["brain"]["learning_flight_s"] == lf])
+            P = eye.learning_poses(S, lf)[r]
+            dx, dy = P[..., 0] - T[r, 0][:, None], P[..., 1] - T[r, 1][:, None]
+            d = np.sqrt(dx * dx + dy * dy)
+            self.lf_view[r] = np.stack([d[:, 0], P[:, 0, 2], d[:, -1], P[:, -1, 2]], 1)
+            if P.shape[1] > 1:
+                self.size_d[r], self.size_h[r] = search.size_estimate(P, T[r, 0], T[r, 1], T[r, 6], eye.obj_diag(S)[r, tk[r]])
+        self.h_search, self.spb, self.r_dip = search.geometry(self.size_d, self.size_h, self.spb, ALT_SEARCH)
+        self.half_m = search.half_m(self.size_d)
+        self.inspecting = np.zeros(B, bool)
+
+    def _calibrate(self):
+        """adaptive_search: evidence window from unstored look-back views of the target (Rng stream 22 pixel noise)."""
+        B, S = self.B, self.S
+        rows, tk = np.arange(B), np.argmax(S.role, 1)
+        T = S.obj[rows, tk]
+        C = search.cal_poses(T[:, 0], T[:, 1], self.size_d, self.h_search)
+        noise = eye.normals(Rng(self.seeds, 22), C.shape[1] * self.look_n).reshape(B, C.shape[1], -1)
+        fam = np.zeros((B, C.shape[1]))
+        for v in range(C.shape[1]):
+            g, _ = eye.looks(eye.sub_scene(S, rows, tk), C[:, v], 1e9, **self._look_kw(rows))
+            g = g[:, 0] + eye.NOISE * noise[:, v].reshape(g[:, 0].shape)
+            act = self.code(g)
+            fam[:, v] = 1.0 - (act & self.mbw).sum(-1) / act.sum(-1)
+        self.cal_fam = fam
+        self.f0, self.f1 = search.evidence_window(fam)
+
+    def _look_kw(self, rows):
+        """Object-look options for these batch rows (adaptive_search with the front end: per-row attention window)."""
+        return {**self.look_kw, "half_m": self.half_m[rows][:, None]} if self.ad and self.front else self.look_kw
+
     def code(self, looks):
         """Looks -> active KCs (grey ranks, or the front end's per-channel ranks)."""
         return kc_active(front_ranks(np.clip(looks, 0.0, 1.0))) if self.front else kc_active(ranks(looks))
@@ -611,6 +660,13 @@ class Mission:
         k = np.argmin(np.where(cand, self.rh, np.inf), 1)
         h_obj = np.maximum(ALT_INSPECT_MIN, self.S.obj[np.arange(self.B), k, 6])
         alt = np.where(live, np.where(cand.any(1), h_obj, ALT_SEARCH), 0.0)
+        if self.ad:                             # adaptive search altitude and inspection dips (hysteresis DIP_ON / DIP_OFF)
+            seek = (self.phase == 1) | (self.phase == 2)
+            thr = np.where(self.inspecting, search.DIP_OFF, search.DIP_ON)[:, None]
+            cand = self.vis & (self.ev >= thr) & (self.rh < self.r_dip[:, None]) & seek[:, None]
+            self.inspecting = cand.any(1)
+            dip = np.clip(search.view_alt(np.where(cand, self.rh, np.inf).min(1), *self.lf_view.T), np.maximum(search.ALT_MIN, self.size_h), self.h_search)
+            alt = np.where(live, np.where(self.inspecting, dip, np.where(seek, self.h_search, ALT_SEARCH)), 0.0)
         rot = yaw - self.heading_est                                   # compass frame -> airframe
         c, s_ = np.cos(rot), np.sin(rot)
         to_air = lambda v: np.stack([c * v[:, 0] - s_ * v[:, 1], s_ * v[:, 0] + c * v[:, 1]], 1)  # noqa: E731
@@ -705,6 +761,9 @@ class Mission:
                 "heading_conf": float(self.hd.conf[b]) if self.hd_on else None,
                 "home_familiarity": float(self.home_fam[b]) if "home" in self.mods else None,
                 "landing_stage": (("touchdown" if self.touch[b] else stages[self.hstage[b]]) if "landing" in self.mods else None)}
+            if self.ad:
+                self.frames[b][-1]["hud"] |= {"search_alt_m": float(self.h_search[b]), "size_est_m": float(self.size_d[b]),
+                                              "inspecting": bool(self.inspecting[b])}
             if self.v2:
                 self.frames[b][-1]["home"] = {
                     "stage": int(self.hstage[b]), "pad_visible": bool(self.pad_vis[b]), "familiarity": float(self.home_fam[b]),
@@ -727,7 +786,8 @@ class Mission:
                 "t_release_decoy_s": np.where(self.has_dec, t_rel, np.nan),
                 "landing_error_m": self.land_err.copy(), "landed_on_pad": self.landed & (self.land_err <= PAD_R),
                 "touchdown_speed_mps": self.touch_speed.copy() if self.v2 else np.full(self.B, np.nan),
-                "success_full": self.out["success_target"] & self.landed & (self.land_err <= PAD_R) & (self.collisions == 0)}
+                "success_full": self.out["success_target"] & self.landed & (self.land_err <= PAD_R) & (self.collisions == 0),
+                **({"size_est_m": self.size_d.copy(), "search_alt_m": self.h_search.copy()} if self.ad else {})}
 
     def outcome_row(self, b):
         o = self.finish()
@@ -906,4 +966,10 @@ if __name__ == "__main__":
         raise AssertionError("v2 accepted a pad target")
     except AssertionError as e:
         assert "3D objects" in str(e)
-    print("mission self-check OK (v1 + v2 smoke)")
+    # post-study adaptive_search: size estimate near the backpack's diagonal (1.005 m), altitude below Study 2's, HUD fields
+    m = Mission([sample_scenario(100, fault="none", arbiter="vote", landscape="forest", version=2, max_time_s=12.0,
+                                 modules=MODULES + ["adaptive_search"], target_kind="backpack")], log_rows=[0])
+    o = m.run()
+    assert abs(o["size_est_m"][0] - 1.005) < 0.15 and search.ALT_MIN <= o["search_alt_m"][0] < ALT_SEARCH
+    assert {"search_alt_m", "size_est_m", "inspecting"} <= set(m.frames[0][-1]["hud"]) and m.f1[0] > m.f0[0]
+    print("mission self-check OK (v1 + v2 smoke + adaptive_search)")

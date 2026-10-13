@@ -188,6 +188,7 @@ window.makeHUD = function (cv, host) {
     if (f.arbiter && fin(f.arbiter.commit)) br.push([['COMMIT ', DIM], [f.arbiter.commit.toFixed(2), brain]]);
     if (fin(hu.heading_conf)) br.push([['HDG CONF ', DIM], [hu.heading_conf.toFixed(2), brain]]);
     if (fin(hu.home_familiarity)) br.push([['HOME FAM ', DIM], [hu.home_familiarity.toFixed(2), brain]]);
+    if (fin(hu.search_alt_m)) br.push([['SEARCH ', DIM], [hu.search_alt_m.toFixed(1) + ' m', brain], [' · size ' + (fin(hu.size_est_m) ? hu.size_est_m.toFixed(1) : '?') + ' m' + (hu.inspecting ? ' · inspecting' : ''), DIM]]);
     const hm = f.home;
     if (hu.landing_stage && !(hm && 'stage' in hm)) br.push([['LAND ', DIM], [String(hu.landing_stage).toUpperCase(), brain]]);
     if (hm && typeof hm === 'object' && 'stage' in hm && (!f.hud || hu.landing_stage)) {

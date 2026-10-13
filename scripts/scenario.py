@@ -16,9 +16,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEMA = json.load(open(os.path.join(ROOT, "schema", "scenario.schema.json")))
 FAULTS = ["occlusion", "decoy", "compass_half", "eye_columns", "false_sun", "speed_scale", "gust"]  # PLAN neutral list
 ARBITERS = ["ring", "ring_static", "vote", "sum", "accumulator", "state_machine"]
-MODULES = ["heading", "home", "landing", "front", "inspect", "gated_arbiter"]          # v2 brain modules
+MODULES = ["heading", "home", "landing", "front", "inspect", "gated_arbiter"]          # v2 brain modules (Study 2 default)
+OPTIONAL_MODULES = ["adaptive_search"]                                                # post-study; on only when listed
 TRAIN_SEEDS = {1: range(0, 100), 2: range(100, 200)}                                  # by study (v1, v2)
 TEST_SEEDS = {1: range(1000, 1300), 2: range(2000, 2300)}
+EXPLORE_SEEDS = range(3000, 3200)          # post-study exploratory runs (split "explore"; never used by either study)
 
 
 def _check(v, s, path, root):
@@ -100,15 +102,17 @@ def fault_params(fault, sev):
 
 def sample_scenario(seed, split="train", fault=None, severity=None, arbiter="ring", ring_gain=1.0,
                     learning_flight_s=10.0, landscape="meadow", obstacle_density=0.3, params=None,
-                    max_time_s=300.0, dist_m=(25.0, 40.0), version=1, modules=None, module_params=None):
+                    max_time_s=300.0, dist_m=(25.0, 40.0), version=1, modules=None, module_params=None, target_kind="tent"):
     """One scenario per (seed, condition). Draw order on Rng(seed, 5) is fixed (mirrored in scenario.js):
     u0 target distance, u1 target bearing, u2 target yaw, u3 fault pick (used only if fault is None),
     u4 severity (only if severity is None), u5 fault onset, u6 sign / swap offset angle, u7 swap offset distance,
     u8 wind direction, u9 dead-column start. fault='none' gives the no-fault baseline.
     version=2 adds brain.version/modules (and module_params when given); the world draws are unchanged. Seeds must lie
-    in a train or test range of either study (v1: train 0-99, test 1000-1299; v2: train 100-199, test 2000-2299)."""
-    assert split in ("train", "test")
-    ok = any(seed in r for r in (TRAIN_SEEDS if split == "train" else TEST_SEEDS).values())
+    in a train or test range of either study (v1: train 0-99, test 1000-1299; v2: train 100-199, test 2000-2299), or in
+    EXPLORE_SEEDS with split="explore" (post-study exploratory runs). target_kind sets the target and the swapped decoy's
+    kind (default tent, the only kind either study used; Python only, the app builds its own scenarios)."""
+    assert split in ("train", "test", "explore")
+    ok = seed in EXPLORE_SEEDS if split == "explore" else any(seed in r for r in (TRAIN_SEEDS if split == "train" else TEST_SEEDS).values())
     assert ok, f"seed {seed} not in {split} split"
     r = Rng([seed], 5)
     u = [float(r.uniform()[0]) for _ in range(10)]
@@ -120,7 +124,7 @@ def sample_scenario(seed, split="train", fault=None, severity=None, arbiter="rin
     s = {"seed": int(seed),
          "world": {"size_m": [100.0, 100.0], "landscape": landscape, "obstacle_density": float(obstacle_density),
                    "light": 1.0, "fog_m": None},
-         "home": [0.0, 0.0, 0.0], "target": {"kind": "tent", "pos": tpos, "yaw_deg": 360 * u[2]},
+         "home": [0.0, 0.0, 0.0], "target": {"kind": target_kind, "pos": tpos, "yaw_deg": 360 * u[2]},
          "decoys": [], "wind": {"mean_mps": [0.0, 0.0, 0.0], "turbulence": "none", "shared_fraction": 1.0},
          "faults": [],
          "brain": {"arbiter": arbiter, "ring_gain": float(ring_gain), "learning_flight_s": float(learning_flight_s),
@@ -137,7 +141,7 @@ def sample_scenario(seed, split="train", fault=None, severity=None, arbiter="rin
         if fault == "decoy":
             # swap control: the look-alike stands where the target was reported; the target moved 8-14 m
             a, off = 2 * math.pi * u[6], 8 + 6 * u[7]
-            s["decoys"] = [{"kind": "tent", "pos": list(tpos), "swap": True, "similarity": p["similarity"], "t_s": 0.0}]
+            s["decoys"] = [{"kind": target_kind, "pos": list(tpos), "swap": True, "similarity": p["similarity"], "t_s": 0.0}]
             s["target"]["pos"] = [tpos[0] + off * math.cos(a), tpos[1] + off * math.sin(a), 0.0]
         elif fault == "gust":
             a = 2 * math.pi * u[8]
@@ -198,6 +202,15 @@ if __name__ == "__main__":
     assert {k: v for k, v in strip(v2).items() if k != "brain"} == {k: v for k, v in strip(sample_scenario(150, fault="decoy", severity=0.5)).items() if k != "brain"}
     assert scenario_hash(strip(v2)) != scenario_hash(strip(sample_scenario(150, fault="decoy", severity=0.5)))
     sample_scenario(2299, split="test", version=2)
+    # post-study: explore split, target kind, optional module (absent modules still = the Study 2 list)
+    e = sample_scenario(3000, split="explore", fault="decoy", severity=2 / 3, version=2, modules=MODULES + OPTIONAL_MODULES,
+                        target_kind="backpack")
+    assert e["target"]["kind"] == e["decoys"][0]["kind"] == "backpack" and e["brain"]["modules"][-1] == "adaptive_search"
+    assert sample_scenario(150, version=2)["brain"]["modules"] == MODULES and "adaptive_search" not in MODULES
+    try:
+        sample_scenario(2000, split="explore"); raise AssertionError("test seed accepted as explore")
+    except AssertionError as err:
+        assert "not in explore" in str(err)
     for bad in [{**m, "brain": {"arbiter": "ring", "version": 3}}, {**m, "brain": {"arbiter": "ring", "modules": ["wings"]}}]:
         try:
             load(bad); raise AssertionError(f"accepted bad scenario {bad}")
