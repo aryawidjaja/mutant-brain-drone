@@ -42,9 +42,10 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Mission', 'seed', 'Seed', 'num', 0, 0, 99999, 1, 'World layout, gusts and noise all follow this seed. The paper reports test seeds 1000–1299.'],
   ['Mission', 'tkind', 'Target', 'sel', 'tent', ['tent', 'backpack'], 0, 0, 'Kind of object the drone is shown and must find'],
   ['Mission', 'gal', 'Picture', 'gallery'],
-  ['Mission', 'dist', 'Distance', 'rng', 40, 10, 120, 1, 'Mission distance: home to target, metres', (v) => v + ' m'],
-  ['Mission', 'tbear', 'Bearing', 'rng', 55, 0, 359, 1, 'Compass bearing of the target from home (0 = north, clockwise)', (v) => v + '°'],
-  ['Mission', 'tyaw', 'Target yaw', 'rng', 0, 0, 359, 1, 'Rotation of the target object', (v) => v + '°'],
+  ['Mission', 'tman', 'Place by hand', 'chk', false, 0, 0, 0, 'Off: the target is placed at random for each seed, by the same rule as the study. On: set distance, bearing and yaw yourself'],
+  ['Mission', 'dist', 'Distance', 'rng', 40, 10, 120, 1, 'Mission distance: home to target, metres', (v) => v + ' m', 'tman'],
+  ['Mission', 'tbear', 'Bearing', 'rng', 55, 0, 359, 1, 'Compass bearing of the target from home (0 = north, clockwise)', (v) => v + '°', 'tman'],
+  ['Mission', 'tyaw', 'Target yaw', 'rng', 0, 0, 359, 1, 'Rotation of the target object', (v) => v + '°', 'tman'],
   ['Mission', 'hx', 'Home x', 'num', 0, -100, 100, 1, 'Home position, metres east'],
   ['Mission', 'hy', 'Home y', 'num', 0, -100, 100, 1, 'Home position, metres north'],
   ['Mission', 'maxt', 'Time limit', 'rng', 300, 60, 600, 30, 'Mission time limit', (v) => v + ' s'],
@@ -119,7 +120,17 @@ function armParams() { // brain.params for the chosen arbiter; ring_gain travels
   return p;
 }
 const r1 = (v) => Math.round(v * 100) / 100;
+// Target placement used by the study (scripts/scenario.py sample_scenario): mulberry32 stream 5 of the seed (same
+// generator as app/sim/rng.js); u0 sets the distance in 25-40 m, u1 the bearing (math convention), u2 the yaw.
+function studyPlacement(seed) {
+  let a = Number((BigInt(seed) * 0x9E3779B1n + 5n * 0x85EBCA77n + 0x6D2B79F5n) & 0xFFFFFFFFn) >>> 0;
+  const u = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const u0 = u(), u1 = u(), u2 = u();
+  const bm = 2 * Math.PI * u1;
+  return { dist: Math.round(25 + 15 * u0), tbear: Math.round(((90 - bm / D2R) % 360 + 360) % 360), tyaw: Math.round(360 * u2) % 360 };
+}
 function scenario() {
+  if (!K.tman) Object.assign(K, studyPlacement(K.seed | 0));
   const home = [K.hx, K.hy, 0], b = (90 - K.tbear) * D2R, tp = [r1(home[0] + K.dist * Math.cos(b)), r1(home[1] + K.dist * Math.sin(b)), 0];
   // world spans [-W/2, W/2] x [-H/2, H/2] around the origin (app/sim/world.js): keep home and target 10 m inside it
   const size = [0, 1].map((i) => Math.max(80, Math.ceil((2 * Math.max(Math.abs(home[i]), Math.abs(tp[i])) + 20) / 10) * 10));
@@ -160,7 +171,7 @@ function v2Brain() { // brain.version / modules / module_params / tip, only as f
 }
 function fromScenario(sc) { // inverse of scenario(), for #s= links
   const sw = (sc.decoys || []).find((d) => d.swap), h = sc.home || [0, 0, 0], t = sw ? sw.pos : sc.target.pos, dx = t[0] - h[0], dy = t[1] - h[1];
-  Object.assign(K, { seed: sc.seed | 0, hx: h[0], hy: h[1], tkind: sc.target.kind, tyaw: Math.round(sc.target.yaw_deg || 0), dist: Math.round(Math.hypot(dx, dy)),
+  Object.assign(K, { tman: true, seed: sc.seed | 0, hx: h[0], hy: h[1], tkind: sc.target.kind, tyaw: Math.round(sc.target.yaw_deg || 0), dist: Math.round(Math.hypot(dx, dy)),
     tbear: Math.round(((90 - Math.atan2(dy, dx) / D2R) % 360 + 360) % 360), maxt: sc.mission.max_time_s,
     land: sc.world.landscape, dens: sc.world.obstacle_density, light: sc.world.light ?? 1, fogon: sc.world.fog_m != null, fog: sc.world.fog_m || K.fog,
     turb: sc.wind.turbulence, arb: sc.brain.arbiter, gain: sc.brain.ring_gain ?? 1, lf: (sc.brain.learning_flight_s ?? 10) > 0,
@@ -324,13 +335,16 @@ function noSim(why) {
   el.innerHTML = `<div>The live simulator runs in a Web Worker, which browsers only allow over http.<br>Serve the folder with <code>npx serve app</code> and open the address it prints.<br><span style="font-size:11.5px">${esc(why || '')}</span><br><br>The Results and Paper modes work from here.</div>`;
 }
 const simOpts = () => (K.yaw && YAWFIT ? { yawSurrogate: { fit: { K: YAWFIT.K, tau_s: YAWFIT.tau_s, wc_radps: YAWFIT.wc_radps }, k: YAW_K } } : {});
+function commitKey(arb = arbOf()) {
+  const ck = $('commitkey'); if (ck) ck.innerHTML = `<i style="background:var(--muted)"></i>${arb === 'state_machine' ? 'commitment to an object' : 'hub peak (any drive)'}`;
+}
 function resetSim() {
   pendingReset = false; $('reset').textContent = 'Reset'; $('reset').classList.remove('pri');
-  if (!sim.ok) { const sc = scenario(); resetView(null, sc, sc.mission.max_time_s); return; }
+  if (!sim.ok) { const sc = scenario(); syncKnobs(); commitKey(); resetView(null, sc, sc.mission.max_time_s); return; }
   if (sim.w) sim.w.terminate();
   let w; try { w = new Worker('worker.js', { type: 'module' }); } catch (e) { noSim(e.message); return; }
   sim.w = w; sim.done = false; setRunning(false);
-  const sc = scenario();
+  const sc = scenario(); syncKnobs(); commitKey();
   w.onmessage = (e) => { if (w === sim.w) onSim(e.data, sc); };
   w.onerror = (e) => { if (w === sim.w) showErr(new Error('Simulator worker: ' + (e.message || 'failed to start'))); };
   w.postMessage({ cmd: 'init', scenario: sc, speed: +$('speed').value, opts: simOpts() });
@@ -558,6 +572,7 @@ function drawPanels() {
   const arb = f.arbiter ? f.arbiter.name : arbOf();
   $('hubwho').textContent = ARBNAME[arb] || arb;
   $('hubcmdkey').innerHTML = `<i style="background:${roleColor()}"></i>heading command`;
+  commitKey(arb);
   const FR = 'Compass frame (the drone\'s own north; true north only when the compass is right). Ink arrow = own heading, coloured arrow = heading command.';
   $('hubnote').textContent = (/^ring/.test(arb) ? 'Ring of 32 heading neurons: brightness = activity. Bars outside the ring = input from each drive at that heading.'
     : arb === 'vote' ? 'Static vote: the summed input bump (no dynamics, no memory); the command is its interpolated peak.'
@@ -660,6 +675,7 @@ const HELP = {
   gal: 'The picture shown to the drone before take-off (colours and pattern of the target). "seed" lets the world seed choose. ' + STUDY,
   dist: 'Straight-line distance from home to the target, in metres. The study uses 25–40 m; up to 120 m here. ' + STUDY,
   tbear: 'Compass direction of the target as seen from home (0° = north, 90° = east). ' + STUDY,
+  tman: 'Off (default): the target is put at a random spot for each seed, 25 to 40 m from home in any direction, by the same rule the study used, so changing the seed moves the target. On: you choose the distance, bearing and yaw with the sliders below. ' + STUDY,
   tyaw: 'Which way the target object faces, in degrees. Matters for recognition: the memory must cope with new viewing angles. ' + STUDY,
   hx: 'Home position, metres east of the world centre. Home is where the drone takes off and must return to. ' + STUDY,
   hy: 'Home position, metres north of the world centre. ' + STUDY,
@@ -705,7 +721,7 @@ const HELP = {
   mgate: 'v2 evidence gate: the hub only listens to objects that are currently visible, so it lets go of a look-alike faster. ' + STUDY,
   tip: 'The rough vector to the reported spot that the operator gives the drone before take-off. Default = bearing error about 8° and distance error 10 % (1 SD), as in the study; poor = 30° and 30 % (a choice of this app); none = no tip, the drone spirals out from home. ' + STUDY,
   yaw: 'Adds a small yaw-damping term from a transfer function fitted to the author\'s earlier fly yaw-circuit model. ' + EXPL,
-  'p:eye': 'Eye and memory. Left: the low-resolution 360° picture the drone\'s memory sees (ahead in the middle). Right: the target picture it was shown. Below: familiarity, how strongly the current view matches the memory (0 to 1; the brain treats about 0.6 and above as a match), and commitment to an object. Brain state, recomputed live.',
+  'p:eye': 'Eye and memory. Left: the low-resolution 360° picture the drone\'s memory sees (ahead in the middle). Right: the target picture it was shown. Below: familiarity, how strongly the current view matches the memory (0 to 1; the brain treats about 0.6 and above as a match), and a second line: for the state machine, its commitment to one object; for the ring and the other arbiters, the peak of the steering hub, which is high whenever any drive (search, object or home) is pulling, so it stays near 1 for most of a flight and is not a commitment to the target. Brain state, recomputed live.',
   'p:hub': 'Steering hub. The ring of 32 heading neurons (or the rival arbiter) that combines the urges: objects (teal), home (violet), search (grey). The orange arrow is the heading the brain chooses; the light arrow is its current heading. Brain state, in the brain\'s own compass frame.',
   'p:homev': 'Home-vector memory. The path integrator\'s estimate of the way home (solid) next to the simulator\'s truth (faint). The gap between them is the navigation error, in metres.',
   'p:att': 'Attitude, motors and wind. Artificial horizon (bank and pitch), the four motor commands (0–1 of maximum thrust) and the wind at the drone. Simulator truth.',
