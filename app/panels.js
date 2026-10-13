@@ -322,5 +322,69 @@ function chartAuroc(S, W = 420, H = 260) {
   return svg(W, H, 'Re-finding the target (H4)', s);
 }
 
-window.Panels = { SM_STATES, eye, pic, fam, hub, homev, att, map, chartFrontier, chartSeverity, chartAuroc, ROLE, roleCol, ARMNAME, eyeBytes };
+// ---------- Study 2 (v2) charts: summary.v2 (scripts/export_app_summary.py, from results/mission_v2.json)
+const V2NAME = { ring: 'Study 2 brain (ring)', ring_static: 'Ring, no recurrence', vote: 'Static vote', sum: 'Vector sum', accumulator: 'Leaky accumulator', state_machine: 'State machine', v1: 'Study 1 brain' };
+const FNAME = { none: 'none', occlusion: 'occlusion', decoy: 'decoy', compass_half: 'compass ½', eye_columns: 'eye cols', false_sun: 'false sun', speed_scale: 'speed', gust: 'gusts' };
+const v2mk = (a, X, Y, tip) => (a === 'v1' ? `<g><title>${tip}</title><circle class="cn" cx="${f1(X)}" cy="${f1(Y)}" r="3.6" style="fill:var(--panel);stroke-width:1.4"/></g>` : mk(a, X, Y, tip));
+const v2legend = (arms, W) => arms.map((a, i) => { const nc = legCols(W), x = 44 + (i % nc) * ((W - 50) / nc), y = 30 + Math.floor(i / nc) * 13; return v2mk(a, x, y - 3.5, V2NAME[a]) + `<text x="${x + 7}" y="${y}">${V2NAME[a]}</text>`; }).join('');
+const xcats = (A, cats, H, m) => cats.map((c, i) => `<text transform="translate(${f1(A.X(i + 0.5) + 3)},${H - m.b + 9}) rotate(-35)" text-anchor="end">${FNAME[c] || c}</text>`).join('');
+const noXTicks = (s) => s.replace(/<text x="[\d.]+" y="[\d.]+" text-anchor="middle">-?\d+(\.\d+)?<\/text>/g, '');
+/** success per condition at the pre-registered middle severity (H9 iii levels), all six v2 arbiters and the Study 1 brain */
+function chartV2Success(S, W = 420, H = 260) {
+  const M = S && S.v2 && S.v2.m, H9 = S && S.v2 && S.v2.h9; if (!M || !M.curves || !H9) return '';
+  const arms = ['ring', 'ring_static', 'vote', 'sum', 'accumulator', 'state_machine', 'v1'].filter((a) => M.curves[a]);
+  const cats = ['none', ...M.faults];
+  const pt = (a, c) => {
+    if (c === 'none') return { v: M.success_none[a], ci: M.none_ci[a], lvl: '' };
+    const lv = H9.iii[c].level, i = M.levels[c].findIndex((x) => (isNaN(+x) ? x === String(lv) : +x === +lv));
+    const q = M.curves[a][c] && M.curves[a][c][i]; return q ? { v: q.success, ci: q.ci, lvl: M.levels[c][i] } : null;
+  };
+  const m = { l: 40, r: 10, t: legTop(arms.length, W), b: 46 };
+  const A = axes(W, H, [0, cats.length], [0, 1], '', 'full success', m);
+  let s = noXTicks(A.s) + xcats(A, cats, H, m);
+  cats.forEach((c, i) => arms.forEach((a, k) => {
+    const p = pt(a, c); if (!p || !Number.isFinite(p.v)) return;
+    const X = A.X(i + 0.5 + (k - (arms.length - 1) / 2) * 0.11);
+    if (p.ci) s += `<line class="${a === 'v1' ? 'cn' : cls(a)} wh" x1="${f1(X)}" x2="${f1(X)}" y1="${f1(A.Y(p.ci[0]))}" y2="${f1(A.Y(p.ci[1]))}"/>`;
+    s += v2mk(a, X, A.Y(p.v), `${V2NAME[a]}, ${FNAME[c] || c}${p.lvl ? ' ' + p.lvl : ''}: ${(100 * p.v).toFixed(0)}% (95% CI ${(100 * p.ci[0]).toFixed(0)}–${(100 * p.ci[1]).toFixed(0)}%, n = 300)`);
+  }));
+  return svg(W, H, 'Success by condition, middle severity (Study 2)', s + v2legend(arms, W));
+}
+/** paired drop in full-success AUC when one part of the Study 2 brain is removed or changed (v2 ring minus arm) */
+function chartV2Ablation(S, W = 420, H = 260) {
+  const M = S && S.v2 && S.v2.m; if (!M || !M.abl) return '';
+  const rows = [...Object.entries(M.abl).map(([k, v]) => [{ heading: 'no heading ring', home: 'no home snapshot', landing: 'no landing', front: 'no insect front end', inspect: 'no inspection rule', gated_arbiter: 'no evidence gate' }[k.replace('v2_ring_minus_', '')] || k, v]),
+    ...(M.extra ? [['Kalman heading', M.extra.kf], ['poor tip', M.extra.poor_tip], ['no tip', M.extra.no_tip]] : []),
+    ...(M.lf ? [['no learning flight', M.lf]] : [])].filter(([, v]) => v && Number.isFinite(v.est));
+  const m = { l: 118, r: 14, t: 24, b: 30 }, n = rows.length, hi = Math.max(0.1, ...rows.map(([, v]) => v.hi));
+  const A = axes(W, H, [Math.min(0, ...rows.map(([, v]) => v.lo)), Math.ceil(hi * 10) / 10], [0, n], 'drop in full-success AUC (paired, 95% CI)', '', m);
+  let s = A.s.replace(/<text x="[\d.]+" y="[\d.]+" text-anchor="end">[\d.]+<\/text>/g, '').replace(/<line class="grid" x1="[\d.]+" x2="[\d.]+" y1="[\d.]+" y2="[\d.]+"\/>/g, (g) => (/x1="(\d+(\.\d+)?)" x2="\1"/.test(g) ? g : ''));
+  s += `<line class="cn" x1="${f1(A.X(0))}" x2="${f1(A.X(0))}" y1="${m.t}" y2="${H - m.b}"/>`;
+  rows.forEach(([lab, v], i) => {
+    const Y = A.Y(n - i - 0.5), c = /no tip|poor tip|Kalman/.test(lab) ? 'cn' : 'ca';
+    s += `<g><title>${lab}: ${v.est.toFixed(3)} [${v.lo.toFixed(3)}, ${v.hi.toFixed(3)}]</title><rect class="${c}" style="opacity:.75" x="${f1(Math.min(A.X(0), A.X(v.est)))}" y="${f1(Y - 5)}" width="${f1(Math.abs(A.X(v.est) - A.X(0)))}" height="10"/>`
+      + `<line class="${c} wh" x1="${f1(A.X(v.lo))}" x2="${f1(A.X(v.hi))}" y1="${f1(Y)}" y2="${f1(Y)}" style="stroke:var(--ink)"/></g><text x="${m.l - 6}" y="${f1(Y + 3.5)}" text-anchor="end">${lab}</text>`;
+  });
+  return svg(W, H, 'What each part is worth (Study 2)', s);
+}
+/** landing on the home pad: share of runs landed on the pad (error <= 0.5 m) per condition, with the median error */
+function chartV2Landing(S, W = 420, H = 260) {
+  const M = S && S.v2 && S.v2.m; if (!M || !M.landing || !M.landing.ring) return '';
+  const L = M.landing, cats = ['none', ...(M.faults || Object.keys(L.ring).filter((k) => k !== 'none'))];
+  const arms = [['ring', 'ca', 'Study 2 brain'], ['v2_ring_minus_home', 'cn', 'no home snapshot'], ['v1', 'cn', 'Study 1 brain']].filter(([a]) => L[a]);
+  const m = { l: 40, r: 10, t: 36, b: 46 };
+  const A = axes(W, H, [0, cats.length], [0, 1], '', 'landed on the pad (≤ 0.5 m)', m);
+  let s = noXTicks(A.s) + xcats(A, cats, H, m);
+  const bw = Math.min(10, (A.X(1) - A.X(0)) / (arms.length + 1.5));
+  cats.forEach((c, i) => arms.forEach(([a, cl, nm], k) => {
+    const v = L[a][c]; if (!v || !Number.isFinite(v.landed_on_pad)) return;
+    const X = A.X(i + 0.5) + (k - (arms.length - 1) / 2) * (bw + 2), y = A.Y(v.landed_on_pad);
+    const st = a === 'v1' ? 'fill:var(--panel);stroke-width:1.2' : a === 'ring' ? '' : 'opacity:.55';
+    s += `<g><title>${nm}, ${FNAME[c] || c}: ${(100 * v.landed_on_pad).toFixed(0)}% on the pad; median landing error ${Number.isFinite(v.landing_error_median_m) ? (100 * v.landing_error_median_m).toFixed(1) + ' cm' : '–'}; median touchdown ${Number.isFinite(v.touchdown_speed_median_mps) ? v.touchdown_speed_median_mps.toFixed(2) + ' m/s' : '– (no touchdown)'}</title><rect class="${cl}" style="${st}" x="${f1(X - bw / 2)}" y="${f1(y)}" width="${f1(bw)}" height="${f1(Math.max(0.5, A.Y(0) - y))}"/></g>`;
+  }));
+  s += arms.map(([a, cl, nm], k) => `<rect class="${cl}" style="${a === 'v1' ? 'fill:var(--panel)' : a === 'ring' ? '' : 'opacity:.55'}" x="${f1(44 + k * (W - 50) / arms.length)}" y="22" width="8" height="8"/><text x="${f1(56 + k * (W - 50) / arms.length)}" y="29.5">${nm}</text>`).join('');
+  return svg(W, H, 'Landing on the home pad (Study 2)', s);
+}
+
+window.Panels = { SM_STATES, eye, pic, fam, hub, homev, att, map, chartFrontier, chartSeverity, chartAuroc, chartV2Success, chartV2Ablation, chartV2Landing, ROLE, roleCol, ARMNAME, eyeBytes };
 })();

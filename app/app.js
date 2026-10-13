@@ -8,7 +8,8 @@
 //   runs/manifest.json     {runs: [{file, label}]}; runs/<file> = {meta: {scenario, arbiter, seed, git, sim_version, label},
 //                          world: <C5>, frames: [<C6 frame>, ...] at 10 Hz; frame.eye optional, {w, h, b64} or {w, h, rgb}}
 //   runs/bundle.js         window.RUN_BUNDLE = {manifest, runs: {file: run}}   (for file://)
-//   data/tuned_params.js   window.TUNED = {_source, <arm>: params}; window.YAW_SURROGATE = {K, tau_s, wc_radps, ...}
+//   data/tuned_params.js   window.TUNED = {_source, <arm>: params} (Study 1 brain); window.TUNED_V2 = {_source, <arm>: params,
+//                          _heading: {ring, kf, cf}} (Study 2 brain); window.YAW_SURROGATE = {K, tau_s, wc_radps, ...}
 //   sim/vehicle_params.js  ES module; SOURCES = {name: {value, unit, source}} (P/default also accepted)
 'use strict';
 (async () => {
@@ -47,7 +48,7 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Mission', 'hx', 'Home x', 'num', 0, -100, 100, 1, 'Home position, metres east'],
   ['Mission', 'hy', 'Home y', 'num', 0, -100, 100, 1, 'Home position, metres north'],
   ['Mission', 'maxt', 'Time limit', 'rng', 300, 60, 600, 30, 'Mission time limit', (v) => v + ' s'],
-  ['World', 'land', 'Landscape', 'sel', 'meadow', ['meadow', 'forest', 'urban'], 0, 0, 'Kind of world: open meadow, forest, or urban blocks'],
+  ['World', 'land', 'Landscape', 'sel', 'forest', ['meadow', 'forest', 'urban'], 0, 0, 'Kind of world: open meadow, forest, or urban blocks'],
   ['World', 'dens', 'Obstacles', 'rng', 0.3, 0, 1, 0.05, 'Obstacle density (0 = none, 1 = densest)', (v) => v.toFixed(2)],
   ['World', 'light', 'Light', 'rng', 1, 0.1, 1, 0.05, 'Light level (1 = full daylight)', (v) => v.toFixed(2)],
   ['World', 'fogon', 'Fog', 'chk', false, 0, 0, 0, 'Fog on or off'],
@@ -79,7 +80,7 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Brain', 'gain', 'Ring gain', 'rng', 1, 0, 3, 0.01, 'Recurrent gain of the ring (0 = no memory; same as ring_static). Selecting the ring with tuned params sets the tuned value.', (v) => v.toFixed(2), 'arb=ring'],
   ['Brain', 'lf', 'Learning flight', 'chk', true, 0, 0, 0, 'Bee-style learning flight: the target is memorised from 5 views per second along a zig-zag arc 2–7 m out. Off = one photo from 4 m.'],
   ['Brain', 'lfs', 'Duration', 'rng', 10, 1, 30, 1, 'Learning flight length (the study uses 10 s)', (v) => v + ' s', 'lf'],
-  ['Brain', 'ver', 'Version', 'sel', '1', ['1', '2'], 0, 0, 'v1 = the brain of the published first study; v2 = the robust brain under test'],
+  ['Brain', 'ver', 'Brain', 'sel', '2', ['2', '1'], 0, 0, 'Study 2 brain (default) or the Study 1 brain'],
   ['Brain', 'hd', 'Heading', 'sel', 'hring', ['hring', 'kf', 'cf', 'v1c'], 0, 0, 'How the v2 brain keeps its heading', null, 'ver=2'],
   ['Brain', 'mhome', 'Home snapshot', 'chk', true, 0, 0, 0, 'v2: remember the home pad by sight', null, 'ver=2'],
   ['Brain', 'mland', 'Landing', 'chk', true, 0, 0, 0, 'v2: land on the pad', null, 'ver=2'],
@@ -89,7 +90,7 @@ const KN = [ // [group, id, label, type, default, a, b, step, tooltip]
   ['Brain', 'tip', 'Operator tip', 'sel', 'default', ['default', 'poor', 'none'], 0, 0, 'How good the rough direction given to the drone is', null, 'ver=2'],
   ['Brain', 'yaw', 'Yaw surrogate', 'chk', false, 0, 0, 0, 'Exploratory, live view only: adds a yaw-rate damping term from a transfer function fitted to the Shiu-model fly yaw circuit. Off in every reported run.'],
 ];
-const OPTNAME = { ver: { 1: 'v1 (published study)', 2: 'v2 (robust, under test)' }, hd: { hring: 'Heading ring', kf: 'Kalman filter', cf: 'Complementary filter', v1c: 'v1 sun compass' },
+const OPTNAME = { ver: { 1: 'Study 1 brain', 2: 'Study 2 brain (default)' }, hd: { hring: 'Heading ring', kf: 'Kalman filter', cf: 'Complementary filter', v1c: 'v1 sun compass' },
   tip: { default: 'Default', poor: 'Poor', none: 'None (search from scratch)' } };
 const MODK = [['mhome', 'home'], ['mland', 'landing'], ['mfront', 'front'], ['minsp', 'inspect'], ['mgate', 'gated_arbiter']];
 const HDEST = { hring: 'ring', kf: 'kf', cf: 'cf' };
@@ -99,13 +100,23 @@ const SUPPORT = { version: false, modules: false, tip: false };
 const ARBNAME = { ring: 'Ring hub', ring_static: 'Ring, no recurrence', vote: 'Static vote', sum: 'Vector sum', accumulator: 'Leaky accumulator', state_machine: 'State machine' };
 const K = Object.fromEntries(KN.filter((k) => k[3] !== 'gallery').map((k) => [k[1], k[4]]));
 K.pic = null; // target picture: gallery index 0-3 for the target kind, or null = drawn from the seed
-const TUNED = window.TUNED || null, YAWFIT = window.YAW_SURROGATE || null, YAW_K = 0.013; // rad/s per Hz: about half the yaw rate fed back at low frequency
-if (!TUNED) K.prm = 'default';
+const TUNED_V1 = window.TUNED || null, TUNED_V2 = window.TUNED_V2 || null, YAWFIT = window.YAW_SURROGATE || null, YAW_K = 0.013; // rad/s per Hz: about half the yaw rate fed back at low frequency
+const isV2 = () => K.ver === '2' && SUPPORT.version;
+const tset = () => (isV2() ? TUNED_V2 : TUNED_V1); // the frozen parameter set of the brain that flies
+let TUNED = tset();
+if (!TUNED_V1 && !TUNED_V2) K.prm = 'default';
 const tunedGain = () => (TUNED && TUNED.ring && Number.isFinite(TUNED.ring.ring_gain) ? TUNED.ring.ring_gain : 1);
+function retune() { // after a brain switch: pick the matching set and, for the tuned ring, its gain
+  TUNED = tset();
+  if (K.arb === 'ring' && K.prm === 'tuned' && TUNED) K.gain = tunedGain();
+}
 if (TUNED) K.gain = tunedGain();
 function armParams() { // brain.params for the chosen arbiter; ring_gain travels in brain.ring_gain
   if (K.prm !== 'tuned' || !TUNED || !TUNED[K.arb]) return {};
-  const p = { ...TUNED[K.arb] }; delete p.ring_gain; return p;
+  const p = { ...TUNED[K.arb] }; delete p.ring_gain;
+  // v2 without the evidence gate flies the Study 1 arbiter class: keep only the parameters that class has (as run_v2.py)
+  if (isV2() && !K.mgate && TUNED_V1 && TUNED_V1[K.arb]) for (const k of Object.keys(p)) if (!(k in TUNED_V1[K.arb])) delete p[k];
+  return p;
 }
 const r1 = (v) => Math.round(v * 100) / 100;
 function scenario() {
@@ -138,7 +149,11 @@ function v2Brain() { // brain.version / modules / module_params / tip, only as f
   const o = { version: 2 };
   if (SUPPORT.modules) {
     o.modules = [...(K.hd !== 'v1c' ? ['heading'] : []), ...MODK.filter(([k]) => K[k]).map(([, m]) => m)];
-    if (K.hd !== 'v1c' && HDEST[K.hd] !== 'ring') o.module_params = { heading_estimator: HDEST[K.hd] };
+    if (K.hd !== 'v1c') { // frozen heading-estimator parameters (results/kt5_tuned_params.json), as the study passes them
+      const hp = TUNED_V2 && TUNED_V2._heading ? TUNED_V2._heading[HDEST[K.hd]] : null;
+      const mp = { ...(hp ? { heading: { ...hp } } : {}), ...(HDEST[K.hd] !== 'ring' ? { heading_estimator: HDEST[K.hd] } : {}) };
+      if (Object.keys(mp).length) o.module_params = mp;
+    }
   }
   if (SUPPORT.tip && K.tip !== 'default') o.tip = K.tip === 'none' ? null : { ...TIP_POOR }; // absent = default tip
   return o;
@@ -204,7 +219,7 @@ function buildKnobs() {
       K[id] = type === 'chk' ? el.checked : type === 'sel' ? el.value : +el.value;
       if (type === 'num') K[id] = clamp(Math.round(K[id] / step) * step || 0, a, b);
       if (id === 'tkind') K.pic = null;
-      if ((id === 'arb' || id === 'prm') && K.arb === 'ring' && K.prm === 'tuned' && TUNED) K.gain = tunedGain();
+      if (id === 'arb' || id === 'prm' || id === 'ver' || id === 'mgate') retune();
       syncKnobs(); knobChanged();
     });
   }
@@ -222,6 +237,7 @@ function syncKnobs() {
   const kw = $('kw-Faults'); if (kw) kw.textContent = nf ? `${nf} on` : 'none';
   const kb = $('kw-Brain'); if (kb) kb.textContent = ARBNAME[K.arb];
   if (kEls.prm) { kEls.prm.el.disabled = !TUNED; }
+  if (!TUNED && K.prm === 'tuned') K.prm = 'default';
   const ps = $('prmsrc');
   if (ps) ps.innerHTML = (K.prm === 'tuned' && TUNED ? `Params: tuned, from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (2D kill-test tuning, a stand-in until the 3D tuning is frozen)' : ''}.` : 'Params: code defaults (untuned).')
     + (K.yaw ? ` Yaw surrogate on: exploratory, not used for any reported number${YAWFIT ? ` (fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms)` : ''}.` : '');
@@ -423,23 +439,35 @@ async function selectRun(i) {
   view.T = 0; showRunFrame(); playIcon();
   const m = run.meta, o = fr.length ? fr[fr.length - 1].outcome || {} : {};
   const row = (k, v) => `<tr><td>${k}</td><td class="num">${esc(v)}</td></tr>`;
-  $('runmeta').innerHTML = (m.label ? `<tr><td class="wrap" colspan="2" style="text-align:left">${esc(m.label)}</td></tr>` : '') + row('Arbiter', ARBNAME[m.arbiter] || m.arbiter) + row('Seed', m.seed) + row('Git', m.git) + row('Sim version', m.sim_version) +
-    (m.params_source ? row('Params', m.params_source.split('/').pop()) : '') +
-    ['success_target', 'success_home', 'wrong_object_stop', 'collisions', 'time_s', 'path_len_m', 'home_error_m', 'max_bank_deg', 't_hold_occlusion_s', 't_release_decoy_s'].filter((k) => k in o).map((k) => row(k.replace(/_/g, ' '), o[k] === null ? '–' : typeof o[k] === 'number' ? String(+o[k].toFixed(2)) : String(o[k]))).join('');
+  const ver = m.scenario && m.scenario.brain && m.scenario.brain.version === 2 ? 'Study 2 brain' : 'Study 1 brain';
+  $('runmeta').innerHTML = (m.label ? `<tr><td class="wrap" colspan="2" style="text-align:left">${esc(m.label)}</td></tr>` : '') + row('Brain', ver) + row('Arbiter', ARBNAME[m.arbiter] || m.arbiter) + row('Seed', m.seed) + row('Git', m.git) + row('Sim version', m.sim_version) +
+    (m.params_source ? row('Params', m.params_source.split(' ')[0].split('/').pop()) : '') +
+    ['success_full', 'success_target', 'success_home', 'landed_on_pad', 'landing_error_m', 'touchdown_speed_mps', 'wrong_object_stop', 'collisions', 'time_s', 'path_len_m', 'home_error_m', 'max_bank_deg', 't_hold_occlusion_s', 't_release_decoy_s'].filter((k) => k in o).map((k) => row({ success_full: 'full success', touchdown_speed_mps: 'touchdown m/s', landing_error_m: 'landing error m' }[k] || k.replace(/_/g, ' '), o[k] === null ? '–' : typeof o[k] === 'number' ? String(+o[k].toFixed(k === 'landing_error_m' ? 3 : 2)) : String(o[k]))).join('');
 }
 function showRunFrame() {
   const fr = results.run.frames; if (!fr.length) return;
   const dt = fr.length > 1 ? (fr[fr.length - 1].t - fr[0].t) / (fr.length - 1) : 0.1;
   const i = clamp(Math.floor((view.T - fr[0].t) / dt), 0, fr.length - 1), j = Math.min(fr.length - 1, i + 1), a = clamp((view.T - fr[i].t) / dt, 0, 1);
-  const f = { ...fr[i], quad: { ...fr[i].quad, pos: fr[i].quad.pos.map((v, k) => v + a * (fr[j].quad.pos[k] - v)) } };
+  const qa = fr[i].quad.quat, qb = fr[j].quad.quat, sg = qa && qb && qa.reduce((t, v, k) => t + v * qb[k], 0) < 0 ? -1 : 1;
+  const qq = qa && qb ? qa.map((v, k) => v + a * (sg * qb[k] - v)) : qa, qn = qq ? Math.hypot(...qq) || 1 : 1; // nlerp between recorded attitudes
+  const f = { ...fr[i], quad: { ...fr[i].quad, pos: fr[i].quad.pos.map((v, k) => v + a * (fr[j].quad.pos[k] - v)), ...(qq ? { quat: qq.map((v) => v / qn) } : {}) } };
   if (!f.eye) for (let k = i; k >= 0; k--) if (fr[k].eye) { f.eye = fr[k].eye; break; }
   view.frame = f; view.trail.n = i + 1; panelDirty = true;
 }
+let study = '2';
+document.querySelectorAll('#study button').forEach((b) => { b.onclick = () => { study = b.dataset.study; document.querySelectorAll('#study button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); drawCharts(); }; });
 function drawCharts() {
   const S = results.S, wm = results.mockS ? '<div class="wm">MOCK DATA</div>' : '';
   const put = (id, s, what) => { $(id).innerHTML = (s || `<p class="fine">No ${what} in the summary yet.</p>`) + wm; };
   const el = $('ch1'), W = Math.max(260, el.clientWidth - 16), H = Math.max(220, Math.min(340, el.clientHeight - 12 || 260));
-  put('ch1', P.chartFrontier(S, W, H), 'stubbornness frontier'); put('ch2', P.chartSeverity(S, W, H), 'success-vs-severity data'); put('ch3', P.chartAuroc(S, W, H), 'recognition AUROC');
+  if (study === '2') {
+    const m = S && S.v2 && S.v2.m;
+    $('studynote').textContent = m ? `Study 2 brain vs rivals and the Study 1 brain, ${m.n_seeds} test seeds per condition (forest, density 0.3); full success = target found, landed on the home pad, no collision.` : 'Study 2 results are not in data/summary.json yet.';
+    put('ch1', P.chartV2Success(S, W, H), 'Study 2 success-by-condition data'); put('ch2', P.chartV2Ablation(S, W, H), 'Study 2 ablation data'); put('ch3', P.chartV2Landing(S, W, H), 'Study 2 landing data');
+  } else {
+    $('studynote').textContent = 'Study 1 brain: the first study\'s results (3D test seeds 1000–1299; success = target found and home within 2 m).';
+    put('ch1', P.chartFrontier(S, W, H), 'stubbornness frontier'); put('ch2', P.chartSeverity(S, W, H), 'success-vs-severity data'); put('ch3', P.chartAuroc(S, W, H), 'recognition AUROC');
+  }
 }
 
 // ---------------------------------------------------------------- banners, model panel
@@ -485,7 +513,7 @@ async function modelPanel() {
     t.innerHTML = `<thead><tr><th>Vehicle parameter</th><th>Value</th></tr></thead>` + rows.join('');
   } else t.innerHTML = `<tr><td class="wrap" colspan="2">Vehicle parameters with sources will be listed here. ${esc(why)} Mass and inertia come from the MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> model; motor constants from a separately cited source.</td></tr>`;
   const yawLi = YAWFIT ? `<li><b>Yaw circuit (optional):</b> the author's earlier Shiu-model fly yaw circuit (flight-test-the-fly) is too slow for live use. The "Yaw surrogate" toggle uses a transfer function fitted to its measured frequency response (gain ${YAWFIT.K.toFixed(3)} Hz per °/s, delay ${(YAWFIT.tau_s * 1000).toFixed(1)} ms, corner ${YAWFIT.fc_hz.toFixed(1)} Hz; fit error ${YAWFIT.rms_gain_err_db.toFixed(2)} dB, ${YAWFIT.rms_phase_err_deg.toFixed(1)}° rms) as a small yaw-rate damping term. Exploratory, live view only, off by default and in every reported run.</li>` : '<li><b>Yaw circuit:</b> a fitted surrogate of the Shiu-model yaw circuit exists (app/sim/yaw_surrogate.js) but its fit file is not loaded here.</li>';
-  const prmLi = `<li><b>Arbiter parameters:</b> ${TUNED ? `tuned values from <span class="mono">${esc(TUNED._source)}</span>${/kt2/.test(TUNED._source) ? ' (tuned in the 2D kill-test world, used here as a stand-in until the 3D tuning is frozen)' : ''}` : 'code defaults (no tuned file found)'}.</li>`;
+  const prmLi = `<li><b>Arbiter parameters:</b> ${TUNED_V1 || TUNED_V2 ? `frozen tuned values; Study 2 brain from <span class="mono">${esc(TUNED_V2 ? TUNED_V2._source : '–')}</span> (heading estimators from <span class="mono">${esc(TUNED_V2 ? TUNED_V2._heading_source : '–')}</span>), Study 1 brain from <span class="mono">${esc(TUNED_V1 ? TUNED_V1._source : '–')}</span>. The selector loads the set of the brain that flies` : 'code defaults (no tuned file found)'}.</li>`;
   const gfxLi = '<li><b>Graphics:</b> Visual detail (grass, textures, foliage) is decorative; the drone\'s eye and collisions use the simplified world geometry. Credits: drone meshes from MuJoCo Menagerie <i>bitcraze_crazyflie_2</i> (MIT); ground, bark, rock, asphalt, concrete and fabric textures from ambientCG (CC0; Grass004, Ground037, Ground106, Bark014, Rock051, Asphalt031, Concrete034, Fabric061); sky from the three.js Sky addon (MIT, Preetham daylight model).</li>';
   $('simp').innerHTML = '<li class="ph" style="list-style:none;margin-left:-16px">Simplifications</li>' + SIMP.map(([a, b]) => `<li><b>${a}:</b> ${b}</li>`).join('') + yawLi + prmLi + gfxLi + (sim.src === 'mock' ? '<li><b>Now running:</b> the mock simulator, a kinematic point drone with a toy brain. None of the above applies until app/sim/mission.js loads.</li>' : '');
 }
@@ -664,11 +692,11 @@ const HELP = {
   spdt: 'Seconds after the start when the speed error begins. ' + STUDY,
   spds: 'Speed scale error: ×1.2 means the drone thinks it flies 20 % faster than it does. ' + STUDY,
   arb: 'The decision hub that turns all urges (go to object, go home, search) into one heading. Ring hub = the insect-style ring attractor under test; the others are fair rivals and a no-memory control. ' + STUDY,
-  prm: 'Arbiter settings: the frozen values tuned on training seeds (as in the paper) or the plain code defaults. ' + STUDY,
+  prm: 'Arbiter settings: the frozen values tuned on training seeds for the selected brain (as in the paper) or the plain code defaults. ' + STUDY,
   gain: 'Strength of the ring\'s self-excitation, which is its short-term memory. 0 = no memory; higher = more stubborn (holds a hidden target longer but also chases a decoy longer). Typical 0.3–1.5. ' + STUDY,
   lf: 'Bee-style learning flight: before setting off, the drone memorises the target from many views (5 per second along a zig-zag arc). Off = a single photo. ' + STUDY,
   lfs: 'Length of the learning flight in seconds. The study uses 10 s. ' + STUDY,
-  ver: 'Which brain flies. v1 = the brain of the published first study, unchanged. v2 = the more robust brain under test (better heading, home snapshot and landing, better recognition). ' + STUDY,
+  ver: 'Which brain flies. Study 2 brain (default) = the robust brain of the second study (heading ring, home snapshot and landing, insect front end, inspection rule, evidence-gated ring) with its frozen tuned parameters. Study 1 brain = the brain of the first study, unchanged, with its own frozen parameters. ' + STUDY,
   hd: 'How the v2 brain keeps track of which way it faces. Heading ring = insect-style ring fed by the gyro and corrected by the sky compass; Kalman and complementary filters are engineering rivals; v1 sun compass = the old direct compass (heading module off). ' + STUDY,
   mhome: 'v2 home snapshot: the drone memorises how the home pad looks during take-off and steers by sight when it gets back, instead of trusting dead reckoning alone. ' + STUDY,
   mland: 'v2 landing: a final slow approach and a vertical descent onto the home pad. Off = the run ends when the drone thinks it is home. ' + STUDY,
@@ -733,7 +761,7 @@ async function pollSupport() {
     const bp = (((m.SCHEMA || {}).properties || {}).brain || {}).properties || {};
     const was = JSON.stringify(SUPPORT);
     SUPPORT.version = !!bp.version; SUPPORT.modules = !!bp.modules; SUPPORT.tip = !!bp.tip;
-    if (JSON.stringify(SUPPORT) !== was) { syncKnobs(); writeHash(); }
+    if (JSON.stringify(SUPPORT) !== was) { retune(); syncKnobs(); knobChanged(); }
   } catch (e) { console.warn('scenario.js schema not readable', e); }
 }
 
