@@ -431,32 +431,32 @@
  },
  "StwoFront": {
   "source": "results/recog_v2_gate.json:auroc_0deg",
-  "value": 0.6865,
+  "value": 0.686493,
   "text": "0.686"
  },
  "StwoFrontLo": {
   "source": "results/recog_v2_gate.json:auroc_0deg_ci95/0",
-  "value": 0.6551,
+  "value": 0.655091,
   "text": "0.655"
  },
  "StwoFrontHi": {
   "source": "results/recog_v2_gate.json:auroc_0deg_ci95/1",
-  "value": 0.7204,
+  "value": 0.720394,
   "text": "0.720"
  },
  "StwoMargin": {
   "source": "results/recog_v2_gate.json:margin_over_pixels_0deg",
-  "value": 0.1846,
+  "value": 0.184572,
   "text": "0.185"
  },
  "StwoMarginLo": {
   "source": "results/recog_v2_gate.json:margin_ci95/0",
-  "value": 0.1502,
+  "value": 0.150177,
   "text": "0.150"
  },
  "StwoMarginHi": {
   "source": "results/recog_v2_gate.json:margin_ci95/1",
-  "value": 0.2186,
+  "value": 0.218634,
   "text": "0.219"
  },
  "StwoNN": {
@@ -466,32 +466,32 @@
  },
  "StwoDino": {
   "source": "results/recog_v2_auroc.json:arms/dino_patch/ms/auroc/0",
-  "value": 0.797,
+  "value": 0.797037,
   "text": "0.797"
  },
  "StwoMBvone": {
   "source": "results/recog_v2_auroc.json:arms/mb_v1/lf13/auroc/0",
-  "value": 0.5007,
+  "value": 0.500706,
   "text": "0.501"
  },
  "StwoFrontNinety": {
   "source": "results/recog_v2_auroc.json:arms/mb_front/ms/auroc/6",
-  "value": 0.3227,
+  "value": 0.322743,
   "text": "0.32"
  },
  "StwoMSvsGoal": {
   "source": "results/recog_v2_auroc.json:paired_differences/mb_front_ms_minus_mb_front_goal/by_theta/0",
-  "value": -0.0191,
+  "value": -0.019097,
   "text": "\\ensuremath{-}0.019"
  },
  "StwoMSvsGoalLo": {
   "source": "results/recog_v2_auroc.json:paired_differences/mb_front_ms_minus_mb_front_goal/ci95_lo/0",
-  "value": -0.0593,
+  "value": -0.059271,
   "text": "\\ensuremath{-}0.059"
  },
  "StwoMSvsGoalHi": {
   "source": "results/recog_v2_auroc.json:paired_differences/mb_front_ms_minus_mb_front_goal/ci95_hi/0",
-  "value": 0.0243,
+  "value": 0.024342,
   "text": "0.024"
  },
  "Nseeds": {

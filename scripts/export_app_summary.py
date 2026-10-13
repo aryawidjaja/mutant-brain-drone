@@ -479,6 +479,11 @@ def build():
               'derived: max of results/parity_brain.json:results/missions/*/max_pos_err_all_m')
         o.put('parity.brain.arbiters', sorted({m['arbiter'] for m in ms}), 'derived: set of results/parity_brain.json:results/missions/*/arbiter')
         o.put('parity.brain.max_mission_s', max(m['time_s_py_js'][0] for m in ms), 'derived: max of results/parity_brain.json:results/missions/*/time_s_py_js[0]')
+        o.copy('parity.brain.git', 'parity_brain.json', 'git', pb)
+        for ver in sorted({m.get('version', 1) for m in ms}):
+            mv_ = [m for m in ms if m.get('version', 1) == ver]
+            o.put(f'parity.brain.by_version.v{ver}', dict(n=len(mv_), arbiters=sorted({m['arbiter'] for m in mv_}), max_s=max(m['time_s_py_js'][0] for m in mv_)),
+                  f'derived: results/parity_brain.json:results/missions/* with version {ver}: count, arbiters, longest mission (s)')
     else:
         o.put('parity.brain', None, 'derived: results/parity_brain.json missing (pending)')
 
@@ -552,17 +557,22 @@ def v2_runs():
     return r
 
 
-def seed_auc(r, ok):
-    """Per-seed equal-weight AUC over the 7 faults of the boolean column ok (trapezoid over level/n_levels, none at 0)."""
+def seed_fault_table(r, ok):
+    """Per-seed AUC of the boolean column ok for each of the 7 faults (trapezoid over level/n_levels, none at x = 0)."""
     base = r[r.fault == 'none'].set_index('seed')[ok].astype(float)
-    per = []
+    per = {}
     for f in V2_FAULTS:
         g = r[r.fault == f]
         L = int(g.level.max())
         tab = g.pivot(index='seed', columns='level', values=ok).astype(float).reindex(columns=range(1, L + 1))
         tab.insert(0, 0, base.reindex(tab.index))
-        per.append(np.trapezoid(tab.to_numpy(), np.arange(L + 1) / L, axis=1))
-    return pd.Series(np.mean(per, 0), index=tab.index)
+        per[f] = pd.Series(np.trapezoid(tab.to_numpy(), np.arange(L + 1) / L, axis=1), index=tab.index)
+    return pd.DataFrame(per)
+
+
+def seed_auc(r, ok):
+    """Per-seed equal-weight AUC over the 7 faults of the boolean column ok."""
+    return seed_fault_table(r, ok).mean(1)
 
 
 def v2_blocks(o):
@@ -644,6 +654,39 @@ def v2_blocks(o):
         o.put(f'v2.m.v1own.curves.{f}', [dict(success=v, ci=wilson(v, 300)) for v in vals],
               f'derived: {R}, v1 rows, own-definition success per level with Wilson 95% interval (n = 300)')
     o.put('v2.m.v1own.auc', float(seed_auc(v1, 'own').mean()), f'derived: {R}, v1 rows, per-seed own-definition AUC, mean')
+    # post hoc: both brains on the Study 1 (2 m) success definition, per fault
+    SD = f'derived: {R}, post hoc, success = target stop & home within 2 m & no collision for both brains; per-seed fault AUC; paired bootstrap (stats.paired_diff, 10,000, seed 0), Study 2 ring brain minus Study 1 brain'
+    v2r = r[r.arm == 'v2_ring'].assign(own=lambda x: x.success_target & x.success_home & (x.collisions == 0))
+    t2, t1 = seed_fault_table(v2r, 'own'), seed_fault_table(v1, 'own').reindex(seed_fault_table(v2r, 'own').index)
+    o.put('v2.same.auc_v2', float(t2.mean(1).mean()), SD.replace('; paired bootstrap (stats.paired_diff, 10,000, seed 0), Study 2 ring brain minus Study 1 brain', ', Study 2 ring brain, aggregate'))
+    d_ = paired_diff(t2.mean(1).to_numpy(), t1.mean(1).to_numpy())
+    o.put('v2.same.agg', {k: d_[k] for k in ['est', 'lo', 'hi']}, SD + ', aggregate')
+    for f in V2_FAULTS:
+        d_ = paired_diff(t2[f].to_numpy(), t1[f].to_numpy())
+        o.put(f'v2.same.fault.{f}', {k: d_[k] for k in ['est', 'lo', 'hi']}, SD + f', fault {f}')
+    nonpi = ['occlusion', 'decoy', 'eye_columns', 'gust']
+    d_ = paired_diff(t2[nonpi].mean(1).to_numpy(), t1[nonpi].mean(1).to_numpy())
+    o.put('v2.same.non_pi', {k: d_[k] for k in ['est', 'lo', 'hi']}, SD + ', mean over occlusion, look-alike, eye columns and gust')
+    mid = lambda g: g[(g.fault == 'decoy') & (g.level == 3)].own.mean()          # noqa: E731  (similarity 0.8, the H9 middle level)
+    o.put('v2.same.decoy_mid', dict(v2=float(mid(v2r)), v1=float(mid(v1))), f'derived: {R}, post hoc, 2 m-definition success at look-alike similarity 0.8 (level 3), both brains')
+    o.put('v2.same.decoy_wrong_stop', dict(v2=minmax_(r[(r.arm == 'v2_ring') & (r.fault == 'decoy')].groupby('level').wrong_object_stop.mean().tolist()),
+                                         v1=minmax_(v1[v1.fault == 'decoy'].groupby('level').wrong_object_stop.mean().tolist())),
+          f'derived: {R}, wrong-object-stop rate under the look-alike fault, [min, max] over its levels, Study 2 ring brain and Study 1 brain')
+    # chronology: earliest run-record timestamp (written by the cloud runner) and the freeze commit time
+    import datetime as _dt
+    first = min(r.created)
+    try:
+        fz = subprocess.check_output(['git', 'log', '-1', '--format=%cI', '6c831c7'], cwd=ROOT, text=True).strip()
+        pr = subprocess.check_output(['git', 'log', '--diff-filter=A', '--format=%h %cI', '--', 'results/v2_preregistration.sha256'], cwd=ROOT, text=True).split()
+    except Exception:
+        fz, pr = None, [None, None]
+    o.put('v2.chron.first_row_created', first, f'derived: min of {R}:created (cloud runner clock, UTC)')
+    o.put('v2.chron.freeze_commit', '6c831c7', 'derived: commit that froze results/tuned_v2_params.json (git log)')
+    o.put('v2.chron.freeze_commit_time_utc', _dt.datetime.fromisoformat(fz).astimezone(_dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S') if fz else None, 'derived: git log -1 --format=%cI 6c831c7, converted to UTC')
+    o.put('v2.chron.prereg_commit', pr[0], 'derived: git log --diff-filter=A -- results/v2_preregistration.sha256 (commit hash)')
+    if fz:
+        o.put('v2.chron.minutes_after_freeze', (_dt.datetime.fromisoformat(first).replace(tzinfo=_dt.timezone.utc) - _dt.datetime.fromisoformat(fz)).total_seconds() / 60,
+              'derived: (earliest run-record time, read as UTC) minus the freeze commit time, minutes')
     for a, lab in [('v2_ring', 'ring'), ('v2_ring_minus_home', 'ring_minus_home')]:
         g = r[(r.arm == a) & r.touchdown_speed_mps.notna()]
         for f, x in g.groupby('fault'):
@@ -702,6 +745,9 @@ def v2_blocks(o):
                 o.copy(f'v2.kt7.delta_dom.{rvl}.{i}.{k}', K7, f'dominance_frontier_sensitivity/delta/{rvl}/{i}/{k}', k7)
         o.copy(f'v2.kt7.rival_time_off.{rvl}', K7, f'premature_switch_noninferiority/rival_tuned_time_off_s/{rvl}', k7)
     o.copy('v2.kt7.ok_per_gain', K7, 'premature_switch_noninferiority/ok_per_gain', k7)
+    for i in range(len(k7['premature_switch_noninferiority']['ring_minus_rival']['state_machine'])):
+        for k in ['ring_gain', 'est', 'lo', 'hi']:
+            o.copy(f'v2.kt7.excess_sm.{i}.{k}', K7, f'premature_switch_noninferiority/ring_minus_rival/state_machine/{i}/{k}', k7)
     for k in ['gate', 'dead_because', 't_cross_s']:
         o.copy(f'v2.kt7.{k}', K7, k, k7)
     o.copy('v2.kt7.dom_gate', K7, 'dominance_frontier_sensitivity/gate', k7)
